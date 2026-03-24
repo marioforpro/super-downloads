@@ -25,7 +25,7 @@
 
 ---
 
-## Phase 1: App Polish — IN PROGRESS
+## Phase 1: App Polish — COMPLETE
 
 > Objetivo: Convertir la herramienta en un producto pulido. Diseño, UX, y funcionalidad.
 > Referencia: `docs/APP-AUDIT.md` para detalle completo de cada item.
@@ -59,18 +59,20 @@
 
 ---
 
-## Phase 2: Product Infrastructure — NOT STARTED
+## Phase 2: Product Infrastructure — IN PROGRESS
 
 > Objetivo: Añadir la lógica de negocio y sistemas de distribución sobre el producto pulido.
 
 **Criterio de completado:** App con freemium funcional, auto-updater, y onboarding.
 
-- [ ] Lógica freemium (contador de 5 descargas/día, persistente)
-- [ ] UI de límite alcanzado (mensaje amigable + CTA a Pro)
-- [ ] Sistema de auto-update (Tauri updater plugin + Ed25519 keys)
-- [ ] First-run onboarding / welcome screen
-- [ ] About screen (versión, enlace web, contacto, licencia)
-- [ ] Analytics básico (telemetría anónima opt-in)
+- [x] Lógica freemium (contador de 5 descargas/día, persistente, reset midnight)
+- [x] UI de límite alcanzado (toast + counter en top bar)
+- [x] Download counter visible (X/5 badge, color-coded)
+- [x] Pro user detection (license key in localStorage)
+- [ ] Sistema de auto-update (Tauri updater plugin — keys need interactive generation)
+- [x] First-run onboarding / welcome screen (icon, features, free limit note)
+- [x] About screen (version, email, website — click version label)
+- [ ] Analytics básico (telemetría anónima opt-in) — deferred to post-launch
 
 ---
 

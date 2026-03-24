@@ -487,6 +487,129 @@ body.theme-light .app.auto-add-active::after {
   filter: brightness(1.1);
 }
 
+/* Download counter */
+.download-counter {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-secondary);
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.download-counter.low {
+  color: #e8a33a;
+  background: rgba(232, 163, 58, 0.12);
+}
+
+.download-counter.exhausted {
+  color: var(--error-color);
+  background: rgba(255, 68, 68, 0.12);
+}
+
+.download-counter.pro {
+  color: var(--accent-blue);
+  background: rgba(76, 141, 255, 0.12);
+}
+
+/* Onboarding */
+.onboarding-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.onboarding-overlay.visible {
+  opacity: 1;
+}
+
+.onboarding-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 14px;
+  padding: 24px 20px;
+  max-width: 360px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.onboarding-icon {
+  border-radius: 14px;
+  margin-bottom: 12px;
+}
+
+.onboarding-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.onboarding-tagline {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.onboarding-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.onboarding-feature {
+  font-size: 10px;
+  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.onboarding-free-note {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+}
+
+.onboarding-start-btn {
+  width: 100%;
+  height: 34px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent-blue);
+  color: white;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+
+.onboarding-start-btn:hover {
+  filter: brightness(1.1);
+}
+
+/* About card */
+.about-card {
+  text-align: center;
+}
+
+.about-card svg {
+  border-radius: 12px;
+}
+
 /* Drag & drop */
 .app.drag-over::before {
   content: "";

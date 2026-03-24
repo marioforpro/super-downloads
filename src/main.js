@@ -90,9 +90,145 @@ const MAX_TERMINAL_HISTORY = 100;
 const CONVERSION_PROGRESS_CAP = 93;
 const SETTINGS_OVERLAY_BREAKPOINT = 620;
 const CLIPBOARD_WATCH_INTERVAL_MS = 1200;
+const FREE_DAILY_LIMIT = 5;
+const DOWNLOAD_COUNTER_KEY = "dailyDownloadCounter";
+const LICENSE_KEY_STORAGE = "proLicenseKey";
+const FIRST_RUN_KEY = "hasSeenOnboarding";
 let lastRequestedMinWindowHeight = 0;
 let lastAutoFilledClipboardText = "";
 let clipboardWatchTimer = null;
+
+// Freemium / license logic
+function isProUser() {
+  const key = localStorage.getItem(LICENSE_KEY_STORAGE);
+  return key && key.trim().length > 0;
+}
+
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getDailyCounter() {
+  try {
+    const data = JSON.parse(localStorage.getItem(DOWNLOAD_COUNTER_KEY) || "{}");
+    if (data.date === getTodayKey()) {
+      return data.count || 0;
+    }
+  } catch {}
+  return 0;
+}
+
+function incrementDailyCounter() {
+  const today = getTodayKey();
+  const current = getDailyCounter();
+  localStorage.setItem(DOWNLOAD_COUNTER_KEY, JSON.stringify({ date: today, count: current + 1 }));
+  updateDownloadCounterUI();
+}
+
+function getRemainingDownloads() {
+  if (isProUser()) return Infinity;
+  return Math.max(0, FREE_DAILY_LIMIT - getDailyCounter());
+}
+
+function canDownload() {
+  return isProUser() || getDailyCounter() < FREE_DAILY_LIMIT;
+}
+
+function updateDownloadCounterUI() {
+  const counterEl = document.querySelector("#download-counter");
+  if (!counterEl) return;
+  if (isProUser()) {
+    counterEl.textContent = "Pro";
+    counterEl.className = "download-counter pro";
+  } else {
+    const remaining = getRemainingDownloads();
+    counterEl.textContent = `${remaining}/${FREE_DAILY_LIMIT}`;
+    counterEl.className = `download-counter ${remaining === 0 ? "exhausted" : remaining <= 2 ? "low" : ""}`;
+  }
+}
+
+// First-run onboarding
+function hasSeenOnboarding() {
+  return localStorage.getItem(FIRST_RUN_KEY) === "true";
+}
+
+function markOnboardingSeen() {
+  localStorage.setItem(FIRST_RUN_KEY, "true");
+}
+
+function showOnboarding() {
+  let overlay = document.querySelector(".onboarding-overlay");
+  if (overlay) return;
+  overlay = document.createElement("div");
+  overlay.className = "onboarding-overlay";
+  overlay.innerHTML = `
+    <div class="onboarding-card">
+      <svg class="onboarding-icon" width="56" height="56" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ob-bg" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#162b73"/>
+            <stop offset="100%" stop-color="#0a163f"/>
+          </linearGradient>
+          <linearGradient id="ob-arrow" x1="0.18" y1="0.05" x2="0.84" y2="0.96">
+            <stop offset="0%" stop-color="#d5ebff"/>
+            <stop offset="36%" stop-color="#8cd0ff"/>
+            <stop offset="100%" stop-color="#30a7ff"/>
+          </linearGradient>
+        </defs>
+        <rect width="1024" height="1024" rx="240" fill="url(#ob-bg)"/>
+        <path d="M512 256c-33 0-58 25-58 58v248l-69-69c-22-22-58-22-80 0s-22 58 0 80l170 170c22 22 58 22 80 0l170-170c22-22 22-58 0-80s-58-22-80 0l-69 69V314c0-33-25-58-58-58z" fill="url(#ob-arrow)"/>
+      </svg>
+      <h2 class="onboarding-title">Welcome to Super Downloads</h2>
+      <p class="onboarding-tagline">The video downloader built for editors.</p>
+      <div class="onboarding-features">
+        <div class="onboarding-feature">Download from YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn</div>
+        <div class="onboarding-feature">Every video is Premiere Pro ready — H.264/MP4</div>
+        <div class="onboarding-feature">Paste a link, drag from browser, or enable clipboard auto-add</div>
+      </div>
+      <div class="onboarding-free-note">${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited</div>
+      <button class="onboarding-start-btn">Get Started</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add("visible"));
+  overlay.querySelector(".onboarding-start-btn").addEventListener("click", () => {
+    markOnboardingSeen();
+    overlay.classList.remove("visible");
+    setTimeout(() => overlay.remove(), 300);
+    input.focus();
+  });
+}
+
+// About modal
+function showAbout() {
+  let overlay = document.querySelector(".about-overlay");
+  if (overlay) overlay.remove();
+  overlay = document.createElement("div");
+  overlay.className = "confirm-overlay";
+  const version = document.querySelector("#version-label")?.textContent || "v1.1.0";
+  overlay.innerHTML = `
+    <div class="confirm-card about-card">
+      <svg width="48" height="48" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ab-bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#162b73"/><stop offset="100%" stop-color="#0a163f"/></linearGradient>
+          <linearGradient id="ab-ar" x1="0.18" y1="0.05" x2="0.84" y2="0.96"><stop offset="0%" stop-color="#d5ebff"/><stop offset="36%" stop-color="#8cd0ff"/><stop offset="100%" stop-color="#30a7ff"/></linearGradient>
+        </defs>
+        <rect width="1024" height="1024" rx="240" fill="url(#ab-bg)"/>
+        <path d="M512 256c-33 0-58 25-58 58v248l-69-69c-22-22-58-22-80 0s-22 58 0 80l170 170c22 22 58 22 80 0l170-170c22-22 22-58 0-80s-58-22-80 0l-69 69V314c0-33-25-58-58-58z" fill="url(#ab-ar)"/>
+      </svg>
+      <h3 style="margin:8px 0 2px;font-size:13px;">Super Downloads</h3>
+      <p style="color:var(--text-secondary);font-size:10px;margin-bottom:8px;">${version} — The video downloader built for editors.</p>
+      <p style="color:var(--text-secondary);font-size:10px;margin-bottom:4px;">support@superdownloads.app</p>
+      <p style="color:var(--text-secondary);font-size:10px;margin-bottom:12px;">superdownloads.app</p>
+      <button class="confirm-btn confirm-ok" style="width:100%;">Close</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add("visible"));
+  const close = () => { overlay.classList.remove("visible"); setTimeout(() => overlay.remove(), 200); };
+  overlay.querySelector(".confirm-ok").addEventListener("click", close);
+  overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+}
 
 // Initialize
 loadSettings();
@@ -1238,6 +1374,13 @@ async function startDownloadForUrl(url, options = {}) {
     return "unsupported";
   }
 
+  if (!canDownload()) {
+    if (!silent) {
+      showToast("Daily limit reached — upgrade to Pro for unlimited downloads");
+    }
+    return "limit-reached";
+  }
+
   if (isPotentialBulkDownloadUrl(url)) {
     if (silent) {
       return "bulk-blocked";
@@ -1262,14 +1405,14 @@ async function startDownloadForUrl(url, options = {}) {
     const settings = JSON.parse(localStorage.getItem("appSettings") || "{}");
     
     // The command returns immediately with download_id, actual download happens in background
-    await window.__TAURI__.core.invoke("download_video", { 
+    await window.__TAURI__.core.invoke("download_video", {
       url,
       downloadId: downloadId,
       downloadLocation: settings.downloadLocation || null,
       quality: settings.videoQuality || "best",
       format: settings.audioOnlyEnabled === true ? "mp3" : "mp4"
     });
-    // Don't update error here - let the event listeners handle it
+    incrementDailyCounter();
     return "started";
   } catch (err) {
     console.error("Failed to invoke download_video:", err);
@@ -1548,6 +1691,14 @@ startClipboardWatcher();
 syncAutoAddUiState();
 setSettingsOpen(false);
 
+// First-run onboarding
+if (!hasSeenOnboarding()) {
+  setTimeout(() => showOnboarding(), 300);
+}
+
+// Initialize download counter UI
+updateDownloadCounterUI();
+
 // Dynamic version from Tauri
 (async () => {
   try {
@@ -1574,6 +1725,13 @@ if (settingsInfoBtn) {
 }
 if (settingsGuideClose) {
   settingsGuideClose.addEventListener("click", () => setSettingsGuideOpen(false));
+}
+
+// About screen trigger
+const versionLabel = document.querySelector("#version-label");
+if (versionLabel) {
+  versionLabel.style.cursor = "pointer";
+  versionLabel.addEventListener("click", showAbout);
 }
 
 // Auto-save settings on change
