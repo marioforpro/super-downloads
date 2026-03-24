@@ -49,11 +49,11 @@
 - [x] **System theme** — Selector Dark/Light/System con listener para cambios de OS
 - [x] **Limpiar console.logs** — Eliminados 12 debug logs, mantenidos warn/error
 
-### Could-haves (polish extra, pueden esperar a post-launch)
+### Could-haves (polish extra)
 
-- [ ] Custom modal (reemplazar `window.confirm()`)
-- [ ] Batch URL paste (múltiples URLs de una vez)
-- [ ] Eliminar lógica `settings-compact` muerta
+- [x] **Custom confirm modal** — Reemplazados ambos `window.confirm()` con modal in-app
+- [x] **Eliminar settings-compact** — ~180 líneas de CSS muerto eliminadas
+- [ ] Batch URL paste (múltiples URLs de una vez) — deferred to post-launch
 
 **Requiere input del founder:** Decisión sobre persistencia del historial, decisión sobre reset de settings.
 

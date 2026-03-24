@@ -1,3 +1,32 @@
+// Confirm modal system
+function showConfirm(message) {
+  return new Promise((resolve) => {
+    let overlay = document.querySelector(".confirm-overlay");
+    if (overlay) overlay.remove();
+    overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+    overlay.innerHTML = `
+      <div class="confirm-card">
+        <div class="confirm-message">${message.replace(/\n/g, "<br>")}</div>
+        <div class="confirm-actions">
+          <button class="confirm-btn confirm-cancel">Cancel</button>
+          <button class="confirm-btn confirm-ok">Continue</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add("visible"));
+    const close = (result) => {
+      overlay.classList.remove("visible");
+      setTimeout(() => overlay.remove(), 200);
+      resolve(result);
+    };
+    overlay.querySelector(".confirm-cancel").addEventListener("click", () => close(false));
+    overlay.querySelector(".confirm-ok").addEventListener("click", () => close(true));
+    overlay.addEventListener("click", (e) => { if (e.target === overlay) close(false); });
+  });
+}
+
 // Toast notification system
 function showToast(message, duration = 2000) {
   let container = document.querySelector(".toast-container");
@@ -353,7 +382,7 @@ function removeDownload(id) {
   scheduleSaveDownloads();
 }
 
-function clearDownloadList() {
+async function clearDownloadList() {
   if (downloads.length === 0) {
     return;
   }
@@ -365,7 +394,7 @@ function clearDownloadList() {
   ));
 
   if (hasActiveDownloads) {
-    const shouldContinue = window.confirm("Some downloads are still active. Clear the list anyway? Active downloads will continue in the background.");
+    const shouldContinue = await showConfirm("Some downloads are still active. Clear the list anyway?\n\nActive downloads will continue in the background.");
     if (!shouldContinue) {
       return;
     }
@@ -1213,9 +1242,7 @@ async function startDownloadForUrl(url, options = {}) {
     if (silent) {
       return "bulk-blocked";
     }
-    const shouldContinue = window.confirm(
-      "This link may start a bulk download (playlist/channel with many videos).\n\nDo you want to continue?"
-    );
+    const shouldContinue = await showConfirm("This link may start a bulk download (playlist/channel with many videos).\n\nDo you want to continue?");
     if (!shouldContinue) {
       return "cancelled-by-user";
     }
@@ -1302,11 +1329,8 @@ async function tryAutofillFromClipboard() {
 }
 
 function syncSettingsLayoutMode() {
-  if (!appRoot) {
-    return;
-  }
+  if (!appRoot) return;
   appRoot.classList.add("settings-overlay");
-  appRoot.classList.remove("settings-compact");
 }
 
 function startClipboardWatcher() {

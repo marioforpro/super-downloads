@@ -418,6 +418,75 @@ body.theme-light .app.auto-add-active::after {
   transform: translateY(0);
 }
 
+/* Confirm modal */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.confirm-overlay.visible {
+  opacity: 1;
+}
+
+.confirm-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  max-width: 320px;
+  width: 90%;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4);
+}
+
+.confirm-message {
+  font-size: 12px;
+  color: var(--text-primary);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+
+.confirm-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.confirm-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.confirm-cancel {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.confirm-cancel:hover {
+  background: var(--border-color);
+  color: var(--text-primary);
+}
+
+.confirm-ok {
+  background: var(--accent-blue);
+  color: white;
+}
+
+.confirm-ok:hover {
+  filter: brightness(1.1);
+}
+
 /* Drag & drop */
 .app.drag-over::before {
   content: "";
@@ -848,27 +917,8 @@ body.theme-light .download-item {
   box-shadow: -6px 0 18px rgba(0, 0, 0, 0.32);
 }
 
-.app.settings-compact .settings-panel {
-  left: 8px;
-  right: 8px;
-  top: 8px;
-  bottom: auto;
-  width: auto;
-  max-height: calc(100% - 16px);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  transform: translateY(-8px);
-  opacity: 0;
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38);
-}
-
 .settings-panel.open {
   transform: translateX(0);
-}
-
-.app.settings-compact .settings-panel.open {
-  transform: translateY(0);
-  opacity: 1;
 }
 
 .settings-panel-header {
@@ -880,21 +930,12 @@ body.theme-light .download-item {
   flex-shrink: 0;
 }
 
-.app.settings-compact .settings-panel-header {
-  padding: 8px 10px;
-}
-
 .settings-panel-header h2 {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--text-primary);
-}
-
-.app.settings-compact .settings-panel-header h2 {
-  font-size: 10px;
-  letter-spacing: 0.04em;
 }
 
 .settings-panel-close {
@@ -925,14 +966,6 @@ body.theme-light .download-item {
   display: flex;
   flex-direction: column;
   gap: 10px;
-}
-
-.app.settings-compact .settings-panel-content {
-  overflow-y: visible;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-  padding: 8px;
 }
 
 .setting-item {
@@ -1054,31 +1087,6 @@ body.theme-light .download-item {
   opacity: 0.6;
 }
 
-.app.settings-compact .setting-item {
-  padding: 7px;
-}
-
-.app.settings-compact .setting-item .setting-help {
-  display: none;
-}
-
-.app.settings-compact .setting-item:first-child,
-.app.settings-compact .setting-item:nth-child(2) {
-  grid-column: span 1;
-}
-
-.app.settings-compact .settings-panel-content .setting-item:nth-child(3) {
-  order: 4;
-}
-
-.app.settings-compact .settings-panel-content .setting-item:nth-child(4) {
-  order: 3;
-}
-
-.app.settings-compact .setting-toggle {
-  min-height: 38px;
-}
-
 .setting-label {
   display: block;
   font-size: 10px;
@@ -1087,11 +1095,6 @@ body.theme-light .download-item {
   text-transform: uppercase;
   color: #c9d0dd;
   margin-bottom: 4px;
-}
-
-.app.settings-compact .setting-label {
-  font-size: 9px;
-  margin-bottom: 2px;
 }
 
 .setting-help {
@@ -1111,10 +1114,6 @@ body.theme-light .download-item {
   font-weight: 560;
   color: var(--text-primary);
   line-height: 1.2;
-}
-
-.app.settings-compact .checkbox-label {
-  font-size: 10px;
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -1168,21 +1167,11 @@ body.theme-light .download-item {
   align-items: center;
 }
 
-.app.settings-compact .setting-control {
-  gap: 5px;
-}
-
 .setting-control input[type="text"] {
   flex: 1;
   font-size: 11px;
   height: 30px;
   padding: 0 10px;
-}
-
-.app.settings-compact .setting-control input[type="text"] {
-  height: 28px;
-  font-size: 10px;
-  padding: 0 8px;
 }
 
 .browse-btn {
@@ -1197,12 +1186,6 @@ body.theme-light .download-item {
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
-}
-
-.app.settings-compact .browse-btn {
-  height: 28px;
-  padding: 0 10px;
-  font-size: 10px;
 }
 
 .browse-btn:hover {
@@ -1224,12 +1207,6 @@ select {
   font-size: 11px;
   cursor: pointer;
   transition: all 0.2s ease;
-}
-
-.app.settings-compact select {
-  height: 28px;
-  font-size: 10px;
-  padding: 0 8px;
 }
 
 .setting-toggle {
