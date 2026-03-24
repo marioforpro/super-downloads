@@ -418,6 +418,18 @@ body.theme-light .app.auto-add-active::after {
   transform: translateY(0);
 }
 
+/* Drag & drop */
+.app.drag-over::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  border: 2px dashed var(--accent-blue);
+  background: rgba(76, 141, 255, 0.06);
+  z-index: 150;
+  pointer-events: none;
+}
+
 /* Download Item */
 .download-item {
   background: var(--bg-secondary);

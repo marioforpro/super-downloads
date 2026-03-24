@@ -31,7 +31,7 @@ const downloadLocation = document.querySelector("#download-location");
 const videoQuality = document.querySelector("#video-quality");
 const audioOnlyEnabled = document.querySelector("#audio-only-enabled");
 const autoStartClipboardEnabled = document.querySelector("#auto-start-clipboard-enabled");
-const themeLightEnabled = document.querySelector("#theme-light-enabled");
+const themeSelect = document.querySelector("#theme-select");
 const settingsInfoBtn = document.querySelector("#settings-info-btn");
 const settingsGuideModal = document.querySelector("#settings-guide-modal");
 const settingsGuideClose = document.querySelector("#settings-guide-close");
@@ -501,15 +501,15 @@ async function handleMenuAction(action, downloadId) {
 
     case "show-in-finder":
       if (download.filePath) {
-        console.log("Attempting to show in Finder:", download.filePath);
+
         const filePath = download.filePath.trim();
         
         // Method 1: Try using our custom Rust command (most reliable on macOS)
         if (window.__TAURI__?.core?.invoke) {
           try {
-            console.log("Trying Rust reveal_in_finder command with path:", filePath);
+
             await window.__TAURI__.core.invoke("reveal_in_finder", { path: filePath });
-            console.log("Successfully revealed in Finder via Rust command");
+
             return;
           } catch (rustErr) {
             console.warn("Rust command failed, trying opener plugin:", rustErr);
@@ -522,9 +522,9 @@ async function handleMenuAction(action, downloadId) {
           const revealItemInDir = openerModule.revealItemInDir || openerModule.default?.revealItemInDir;
           
           if (revealItemInDir) {
-            console.log("Trying opener plugin revealItemInDir with path:", filePath);
+
             await revealItemInDir(filePath);
-            console.log("Successfully revealed in Finder via opener plugin");
+
             return;
           } else {
             throw new Error("revealItemInDir function not found");
@@ -538,9 +538,9 @@ async function handleMenuAction(action, downloadId) {
             const open = openerModule.open || openerModule.default?.open;
             const dir = filePath.substring(0, filePath.lastIndexOf("/"));
             if (dir) {
-              console.log("Fallback: Opening directory:", dir);
+
               await open(dir);
-              console.log("Opened directory as fallback");
+
               return;
             }
           } catch (dirErr) {
@@ -1115,7 +1115,9 @@ function loadSettings() {
   const settings = JSON.parse(localStorage.getItem("appSettings") || "{}");
   downloadLocation.value = settings.downloadLocation || getDefaultDownloadPath();
   videoQuality.value = settings.videoQuality || "best";
-  applyTheme(settings.theme === "light" ? "light" : "dark");
+  const themePref = settings.theme || "dark";
+  if (themeSelect) themeSelect.value = themePref;
+  applyTheme(themePref);
   if (audioOnlyEnabled) {
     audioOnlyEnabled.checked = false;
   }
@@ -1136,19 +1138,23 @@ function saveSettings() {
     videoQuality: videoQuality.value,
     audioOnlyEnabled: audioOnlyEnabled?.checked === true,
     autoStartClipboardEnabled: autoStartClipboardEnabled?.checked === true,
-    theme: themeLightEnabled?.checked === true ? "light" : "dark",
+    theme: themeSelect?.value || "dark",
     keepHistory: keepHistoryEnabled?.checked === true,
     outputFormat: "mp4" // Always use MP4 for best compatibility
   };
   localStorage.setItem("appSettings", JSON.stringify(settings));
 }
 
-function applyTheme(theme) {
-  const isLight = theme === "light";
-  document.body.classList.toggle("theme-light", isLight);
-  if (themeLightEnabled) {
-    themeLightEnabled.checked = isLight;
+function resolveTheme(pref) {
+  if (pref === "system") {
+    return window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
   }
+  return pref === "light" ? "light" : "dark";
+}
+
+function applyTheme(pref) {
+  const resolved = resolveTheme(pref);
+  document.body.classList.toggle("theme-light", resolved === "light");
 }
 
 // Get Default Download Path
@@ -1158,18 +1164,18 @@ function getDefaultDownloadPath() {
 
 // Browse for Download Location - using custom Rust command
 async function browseForLocation() {
-  console.log("Browse button clicked");
+
   
   try {
     // Use our custom Rust command that opens a native folder picker
     const selected = await window.__TAURI__.core.invoke("pick_folder");
     
-    console.log("Folder picker result:", selected);
+
     
     if (selected) {
       downloadLocation.value = selected;
       saveSettings();
-      console.log("Download location updated to:", selected);
+
     }
   } catch (err) {
     console.error("Folder picker failed:", err);
@@ -1465,6 +1471,37 @@ document.addEventListener("keydown", async (e) => {
   }
 });
 
+// Drag & drop support
+document.addEventListener("dragover", (e) => {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = "copy";
+  appRoot?.classList.add("drag-over");
+});
+
+document.addEventListener("dragleave", (e) => {
+  if (!e.relatedTarget || e.relatedTarget === document.documentElement) {
+    appRoot?.classList.remove("drag-over");
+  }
+});
+
+document.addEventListener("drop", async (e) => {
+  e.preventDefault();
+  appRoot?.classList.remove("drag-over");
+  const text = e.dataTransfer.getData("text/plain") || e.dataTransfer.getData("text/uri-list");
+  if (text) {
+    const urls = text.split(/[\r\n]+/).map(u => u.trim()).filter(u => u && !u.startsWith("#"));
+    for (const url of urls) {
+      if (isValidURL(url) && isVideoURL(url)) {
+        await startDownloadForUrl(url, { silent: true });
+        await new Promise(resolve => setTimeout(resolve, 120));
+      }
+    }
+    if (urls.length > 0 && !urls.some(u => isVideoURL(u))) {
+      showToast("Not a supported video URL");
+    }
+  }
+});
+
 window.addEventListener("focus", () => {
   tryAutofillFromClipboard();
 });
@@ -1529,12 +1566,20 @@ if (autoStartClipboardEnabled) {
     startClipboardWatcher();
   });
 }
-if (themeLightEnabled) {
-  themeLightEnabled.addEventListener("change", () => {
-    applyTheme(themeLightEnabled.checked ? "light" : "dark");
+if (themeSelect) {
+  themeSelect.addEventListener("change", () => {
+    applyTheme(themeSelect.value);
     saveSettings();
   });
 }
+
+// Listen for system theme changes (when "System" is selected)
+window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", () => {
+  const settings = JSON.parse(localStorage.getItem("appSettings") || "{}");
+  if (settings.theme === "system") {
+    applyTheme("system");
+  }
+});
 if (keepHistoryEnabled) {
   keepHistoryEnabled.addEventListener("change", () => {
     saveSettings();
@@ -1611,8 +1656,9 @@ window.__TAURI__.event.listen("download-finished", (event) => {
   transferStats.delete(downloadId);
   progressUiState.delete(downloadId);
   stopConversionProgress(downloadId);
+  const displayTitle = title || "Downloaded Video";
   updateDownload(downloadId, {
-    title: title || "Downloaded Video",
+    title: displayTitle,
     progress: 100,
     status: "completed",
     completed: true,
@@ -1626,12 +1672,18 @@ window.__TAURI__.event.listen("download-finished", (event) => {
     eta: "",
     conversionProgress: 100
   });
+
+  // Native macOS notification (only when app is not focused)
+  if (!document.hasFocus() && window.__TAURI__?.core?.invoke) {
+    window.__TAURI__.core.invoke("show_notification", {
+      title: "Download Complete",
+      body: displayTitle
+    }).catch(() => {});
+  }
 });
 
 window.__TAURI__.event.listen("download-error", (event) => {
-  console.log("download-error event received:", event);
   const [downloadId, errorMessage] = event.payload;
-  console.log("Error for download:", downloadId, "Message:", errorMessage);
   
   // Add helpful message for Vimeo impersonation errors
   let displayError = getFriendlyErrorMessage(errorMessage || "Download failed");

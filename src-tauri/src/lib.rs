@@ -1932,6 +1932,29 @@ fn read_clipboard_text() -> Result<String, String> {
     }
 }
 
+#[tauri::command]
+fn show_notification(title: String, body: String) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let script = format!(
+            "display notification \"{}\" with title \"{}\"",
+            body.replace('\\', "\\\\").replace('"', "\\\""),
+            title.replace('\\', "\\\\").replace('"', "\\\"")
+        );
+        Command::new("osascript")
+            .arg("-e")
+            .arg(&script)
+            .output()
+            .map_err(|e| format!("Failed to show notification: {}", e))?;
+        Ok(())
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        Ok(())
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -1947,7 +1970,8 @@ pub fn run() {
             set_min_window_height,
             save_download_history,
             load_download_history,
-            delete_cached_thumbnail
+            delete_cached_thumbnail,
+            show_notification
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -44,10 +44,10 @@
 
 ### Should-haves (mejoran significativamente la experiencia)
 
-- [ ] **Drag & drop de URLs** — Arrastrar links desde el navegador a la app
-- [ ] **Notificaciones nativas macOS** — Avisar cuando una descarga termina
-- [ ] **System theme** — Opción "Auto" que siga el tema de macOS
-- [ ] **Limpiar console.logs** — Condicionar a modo dev
+- [x] **Drag & drop de URLs** — Drop zone en toda la ventana, soporte multi-URL
+- [x] **Notificaciones nativas macOS** — Notificación al terminar (solo cuando app no tiene foco)
+- [x] **System theme** — Selector Dark/Light/System con listener para cambios de OS
+- [x] **Limpiar console.logs** — Eliminados 12 debug logs, mantenidos warn/error
 
 ### Could-haves (polish extra, pueden esperar a post-launch)
 
