@@ -1,0 +1,688 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Super Downloads — The video downloader built for editors"
+  description="Download videos from YouTube, TikTok, X, Vimeo, Instagram, Facebook & LinkedIn. Every download is Premiere Pro ready — H.264/MP4. Native macOS app."
+>
+  <!-- Nav -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <div class="nav-brand">
+        <img src="/icon.svg" alt="Super Downloads" class="nav-icon" width="28" height="28" />
+        <span class="nav-name">Super Downloads</span>
+      </div>
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#download" class="nav-cta">Download</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">Native macOS App</div>
+      <h1 class="hero-title">The video downloader<br /><span class="hero-accent">built for editors.</span></h1>
+      <p class="hero-subtitle">
+        Download from YouTube, TikTok, X, Vimeo, Instagram, Facebook & LinkedIn.<br />
+        Every video is Premiere Pro ready — H.264/MP4. No conversion needed.
+      </p>
+      <div class="hero-actions">
+        <a href="#download" class="btn btn-primary">Download Free</a>
+        <a href="#pricing" class="btn btn-secondary">See Pricing</a>
+      </div>
+      <p class="hero-note">macOS 10.13+ — Apple Silicon & Intel</p>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="features">
+    <div class="section-inner">
+      <h2 class="section-title">Everything you need. Nothing you don't.</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">7</div>
+          <h3>7 Platforms</h3>
+          <p>YouTube, TikTok, X/Twitter, Vimeo, Instagram, Facebook, LinkedIn — one app for all.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">H.264</div>
+          <h3>Edit-Ready Output</h3>
+          <p>Every download is auto-converted to H.264/AAC/MP4 — drag straight into Premiere Pro, DaVinci, or Final Cut.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">HW</div>
+          <h3>Hardware Accelerated</h3>
+          <p>VideoToolbox encoding means conversions are fast. Your Mac's GPU does the heavy lifting.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">MP3</div>
+          <h3>Audio Extraction</h3>
+          <p>MP3-only mode pulls just the audio. Perfect for music, podcasts, and sound effects.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">CB</div>
+          <h3>Clipboard Auto-Add</h3>
+          <p>Copy a video link anywhere — Super Downloads catches it and starts downloading automatically.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">D&D</div>
+          <h3>Drag & Drop</h3>
+          <p>Drag links from your browser directly into the app window. Downloads start instantly.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="pricing">
+    <div class="section-inner">
+      <h2 class="section-title">Simple pricing. Pay once, download forever.</h2>
+      <div class="pricing-grid">
+        <div class="pricing-card">
+          <div class="pricing-tier">Free</div>
+          <div class="pricing-price">€0</div>
+          <div class="pricing-period">forever</div>
+          <ul class="pricing-features">
+            <li>5 downloads per day</li>
+            <li>All 7 platforms</li>
+            <li>All quality options</li>
+            <li>H.264 conversion</li>
+            <li>MP3 mode</li>
+            <li>Dark & Light themes</li>
+          </ul>
+          <a href="#download" class="btn btn-secondary" style="width:100%">Download Free</a>
+        </div>
+        <div class="pricing-card featured">
+          <div class="pricing-badge">Best Value</div>
+          <div class="pricing-tier">Pro</div>
+          <div class="pricing-price">€29</div>
+          <div class="pricing-period">one-time — lifetime license</div>
+          <ul class="pricing-features">
+            <li><strong>Unlimited downloads</strong></li>
+            <li>All 7 platforms</li>
+            <li>All quality options</li>
+            <li>H.264 conversion</li>
+            <li>MP3 mode</li>
+            <li>Dark & Light themes</li>
+            <li><strong>3 devices</strong></li>
+            <li><strong>Priority updates</strong></li>
+          </ul>
+          <a href="#download" class="btn btn-primary" style="width:100%">Get Pro — €29</a>
+          <p class="pricing-promo">Use code <strong>LAUNCH30</strong> for 30% off</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section id="download" class="download">
+    <div class="section-inner">
+      <h2 class="section-title">Download Super Downloads</h2>
+      <p class="download-subtitle">Choose your architecture. Both include the same features.</p>
+      <div class="download-buttons">
+        <a href="#" class="btn btn-primary btn-download">
+          <span class="btn-arch">Apple Silicon</span>
+          <span class="btn-chip">M1 / M2 / M3 / M4</span>
+        </a>
+        <a href="#" class="btn btn-secondary btn-download">
+          <span class="btn-arch">Intel</span>
+          <span class="btn-chip">2012–2020 Macs</span>
+        </a>
+      </div>
+      <div class="download-install-note">
+        <h4>First launch (unsigned app)</h4>
+        <ol>
+          <li>Right-click the app and choose <strong>Open</strong></li>
+          <li>Click <strong>Open</strong> again in the warning dialog</li>
+        </ol>
+        <p>If macOS says the app is damaged, open Terminal and run:<br />
+        <code>xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"</code></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq">
+    <div class="section-inner">
+      <h2 class="section-title">FAQ</h2>
+      <div class="faq-list">
+        <details class="faq-item">
+          <summary>Is this legal?</summary>
+          <p>Super Downloads is a tool for downloading content you have rights to — your own published videos, Creative Commons content, or content you have permission to download. Please respect copyright and platform terms of service.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Why does macOS warn me about the app?</summary>
+          <p>The app is not signed with an Apple Developer ID yet. This means macOS Gatekeeper will show a warning the first time you open it. Right-click the app, choose Open, then click Open again. This only happens once.</p>
+        </details>
+        <details class="faq-item">
+          <summary>What video quality can I download?</summary>
+          <p>You can choose Best Available, 1080p, or 720p. All downloads are automatically converted to H.264/MP4 for editing compatibility. Picking 1080p or 720p is often faster since it avoids conversion.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Do I need an internet connection?</summary>
+          <p>Yes, to download videos. But the app itself runs 100% locally — no account needed, no cloud processing, no data sent anywhere.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I use this on Windows or Linux?</summary>
+          <p>Not yet. Super Downloads is currently macOS only (Apple Silicon and Intel). Other platforms may come in the future.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do I get a refund?</summary>
+          <p>Email support@superdownloads.app within 14 days of purchase for a full refund, no questions asked.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="section-inner footer-inner">
+      <div class="footer-brand">
+        <img src="/icon.svg" alt="Super Downloads" width="20" height="20" />
+        <span>Super Downloads</span>
+      </div>
+      <div class="footer-links">
+        <a href="mailto:support@superdownloads.app">Support</a>
+        <a href="/terms">Terms</a>
+        <a href="/privacy">Privacy</a>
+      </div>
+      <div class="footer-copy">&copy; 2026 Super Downloads. All rights reserved.</div>
+    </div>
+  </footer>
+</Layout>
+
+<style>
+  /* Nav */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .nav-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 14px;
+  }
+
+  .nav-icon {
+    border-radius: 6px;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .nav-links a {
+    color: var(--gray-600);
+  }
+
+  .nav-links a:hover {
+    color: var(--gray-900);
+    text-decoration: none;
+  }
+
+  .nav-cta {
+    background: var(--navy-mid);
+    color: var(--white) !important;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 12px;
+  }
+
+  .nav-cta:hover {
+    background: var(--navy-dark) !important;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 120px 24px 60px;
+    text-align: center;
+    background: linear-gradient(180deg, var(--gray-100) 0%, var(--white) 100%);
+  }
+
+  .hero-inner {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  .hero-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--blue-bright);
+    background: rgba(48, 167, 255, 0.08);
+    border: 1px solid rgba(48, 167, 255, 0.2);
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+  }
+
+  .hero-title {
+    font-size: clamp(28px, 5vw, 44px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--gray-900);
+    margin-bottom: 16px;
+  }
+
+  .hero-accent {
+    color: var(--blue-bright);
+  }
+
+  .hero-subtitle {
+    font-size: 16px;
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: 28px;
+  }
+
+  .hero-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+
+  .hero-note {
+    font-size: 12px;
+    color: var(--gray-400);
+  }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn:hover {
+    text-decoration: none;
+  }
+
+  .btn-primary {
+    background: var(--blue-bright);
+    color: var(--white);
+  }
+
+  .btn-primary:hover {
+    background: #1a96f0;
+    color: var(--white);
+  }
+
+  .btn-secondary {
+    background: var(--white);
+    color: var(--gray-900);
+    border: 1px solid var(--gray-200);
+  }
+
+  .btn-secondary:hover {
+    background: var(--gray-100);
+    border-color: var(--gray-400);
+    color: var(--gray-900);
+  }
+
+  /* Sections */
+  .section-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .section-title {
+    text-align: center;
+    font-size: clamp(22px, 3.5vw, 32px);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-bottom: 40px;
+    color: var(--gray-900);
+  }
+
+  /* Features */
+  .features {
+    padding: 80px 24px;
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .feature-card {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .feature-icon {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--blue-bright);
+    background: rgba(48, 167, 255, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+  }
+
+  .feature-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .feature-card p {
+    font-size: 13px;
+    color: var(--gray-600);
+    line-height: 1.5;
+  }
+
+  /* Pricing */
+  .pricing {
+    padding: 80px 24px;
+    background: var(--gray-100);
+  }
+
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .pricing-card {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 14px;
+    padding: 28px 24px;
+    position: relative;
+  }
+
+  .pricing-card.featured {
+    border-color: var(--blue-bright);
+    box-shadow: 0 4px 24px rgba(48, 167, 255, 0.12);
+  }
+
+  .pricing-badge {
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--blue-bright);
+    color: var(--white);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 12px;
+    border-radius: 12px;
+  }
+
+  .pricing-tier {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-600);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+
+  .pricing-price {
+    font-size: 40px;
+    font-weight: 800;
+    color: var(--gray-900);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .pricing-period {
+    font-size: 13px;
+    color: var(--gray-400);
+    margin-bottom: 20px;
+  }
+
+  .pricing-features {
+    list-style: none;
+    margin-bottom: 20px;
+  }
+
+  .pricing-features li {
+    font-size: 13px;
+    color: var(--gray-600);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .pricing-features li:last-child {
+    border-bottom: none;
+  }
+
+  .pricing-promo {
+    font-size: 11px;
+    color: var(--blue-bright);
+    text-align: center;
+    margin-top: 10px;
+  }
+
+  /* Download */
+  .download {
+    padding: 80px 24px;
+  }
+
+  .download-subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: var(--gray-600);
+    margin-top: -28px;
+    margin-bottom: 32px;
+  }
+
+  .download-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+  }
+
+  .btn-download {
+    flex-direction: column;
+    padding: 16px 32px;
+    min-width: 200px;
+  }
+
+  .btn-arch {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .btn-chip {
+    font-size: 11px;
+    font-weight: 400;
+    opacity: 0.7;
+    margin-top: 2px;
+  }
+
+  .download-install-note {
+    max-width: 520px;
+    margin: 0 auto;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: 12px;
+    padding: 20px;
+    font-size: 13px;
+    color: var(--gray-600);
+    line-height: 1.6;
+  }
+
+  .download-install-note h4 {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 8px;
+  }
+
+  .download-install-note ol {
+    padding-left: 20px;
+    margin-bottom: 10px;
+  }
+
+  .download-install-note code {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 11px;
+    word-break: break-all;
+  }
+
+  /* FAQ */
+  .faq {
+    padding: 80px 24px;
+    background: var(--gray-100);
+  }
+
+  .faq-list {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .faq-item {
+    background: var(--white);
+    border: 1px solid var(--gray-200);
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+
+  .faq-item summary {
+    padding: 14px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-item[open] summary {
+    border-bottom: 1px solid var(--gray-200);
+  }
+
+  .faq-item p {
+    padding: 14px 18px;
+    font-size: 13px;
+    color: var(--gray-600);
+    line-height: 1.6;
+  }
+
+  /* Footer */
+  .footer {
+    padding: 32px 24px;
+    border-top: 1px solid var(--gray-200);
+  }
+
+  .footer-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .footer-brand img {
+    border-radius: 4px;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 20px;
+    font-size: 12px;
+  }
+
+  .footer-links a {
+    color: var(--gray-400);
+  }
+
+  .footer-copy {
+    font-size: 11px;
+    color: var(--gray-400);
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .nav-links a:not(.nav-cta) {
+      display: none;
+    }
+
+    .hero {
+      padding-top: 100px;
+    }
+
+    .hero-subtitle br {
+      display: none;
+    }
+
+    .features-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .pricing-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .footer-inner {
+      flex-direction: column;
+      text-align: center;
+    }
+  }
+</style>

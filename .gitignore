@@ -17,6 +17,10 @@ src-tauri/gen
 # Bundled binaries (large files ~300MB total)
 src-tauri/binaries/
 
+# Astro build output
+web/dist/
+web/.astro/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

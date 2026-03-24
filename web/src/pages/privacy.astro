@@ -1,0 +1,97 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Privacy Policy — Super Downloads" description="Privacy Policy for Super Downloads.">
+  <div class="legal">
+    <a href="/" class="back">&larr; Back</a>
+    <h1>Privacy Policy</h1>
+    <p class="updated">Last updated: March 24, 2026</p>
+
+    <h2>1. Overview</h2>
+    <p>Super Downloads is a desktop application that runs entirely on your computer. We are committed to your privacy and collect minimal data.</p>
+
+    <h2>2. What We Don't Collect</h2>
+    <p>The App does not collect, store, or transmit:</p>
+    <ul>
+      <li>URLs you download</li>
+      <li>Video content or metadata</li>
+      <li>Browsing history or clipboard contents</li>
+      <li>Personal information</li>
+      <li>Usage analytics (the App has no telemetry)</li>
+    </ul>
+
+    <h2>3. What We Collect</h2>
+    <p><strong>When you purchase a Pro license:</strong> Your email address and payment information are processed by our payment provider (LemonSqueezy). We receive your email and license key. We do not store your payment card details.</p>
+    <p><strong>When you contact support:</strong> We store your email and message content to respond to your inquiry.</p>
+
+    <h2>4. Local Data</h2>
+    <p>The App stores settings and download history locally on your device using standard application storage. This data never leaves your computer.</p>
+
+    <h2>5. Third-Party Services</h2>
+    <p>The App uses yt-dlp to process video URLs. Downloads are fetched directly from the source platform to your computer. No data passes through our servers.</p>
+    <p>Pro license purchases are processed by LemonSqueezy (a Stripe company). Their privacy policy applies to payment processing.</p>
+
+    <h2>6. Data Retention</h2>
+    <p>We retain customer email addresses for license management. You can request deletion at any time by contacting support@superdownloads.app.</p>
+
+    <h2>7. Changes</h2>
+    <p>We may update this policy. Changes will be posted on this page with an updated date.</p>
+
+    <h2>8. Contact</h2>
+    <p>Questions about privacy? Contact us at <a href="mailto:support@superdownloads.app">support@superdownloads.app</a>.</p>
+  </div>
+</Layout>
+
+<style>
+  .legal {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 60px 24px 80px;
+  }
+
+  .back {
+    display: inline-block;
+    font-size: 13px;
+    color: var(--gray-400);
+    margin-bottom: 24px;
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+
+  .updated {
+    font-size: 12px;
+    color: var(--gray-400);
+    margin-bottom: 32px;
+  }
+
+  h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-top: 28px;
+    margin-bottom: 8px;
+  }
+
+  p {
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.7;
+    margin-bottom: 12px;
+  }
+
+  ul {
+    padding-left: 20px;
+    margin-bottom: 12px;
+  }
+
+  li {
+    font-size: 14px;
+    color: var(--gray-600);
+    line-height: 1.7;
+    margin-bottom: 4px;
+  }
+</style>

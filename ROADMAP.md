@@ -76,22 +76,26 @@
 
 ---
 
-## Phase 3: Landing Page — NOT STARTED
+## Phase 3: Landing Page — IN PROGRESS
 
 > Objetivo: Presencia web pública. Lugar donde enviar tráfico. Canal de descarga.
 
 **Criterio de completado:** Web live con descarga directa, info del producto, y pricing.
 
-**Stack:** Astro (sitio estático, deploy en Vercel)
+**Stack:** Astro v6 (sitio estático en `web/`, deploy en Vercel)
 
-- [ ] Diseño de landing page (hero, features, pricing, download, FAQ)
-- [ ] Desarrollo de la landing
-- [ ] Página de pricing (free vs pro)
-- [ ] Botones de descarga (Apple Silicon + Intel)
-- [ ] Legal: Terms of Service + Privacy Policy
-- [ ] SEO básico (meta tags, OG image, sitemap)
+- [x] Diseño de landing page (hero, features, pricing, download, FAQ)
+- [x] Desarrollo de la landing (index.astro, responsive)
+- [x] Página de pricing integrada en landing (free vs pro, €29 lifetime, LAUNCH30)
+- [x] Sección de descarga (Apple Silicon + Intel, instrucciones de instalación)
+- [x] Legal: Terms of Service + Privacy Policy (pages completas)
+- [x] SEO básico (meta tags, OG tags, description)
+- [x] Favicon SVG (icono de la app)
+- [ ] Conectar URLs de descarga a DMGs reales
+- [ ] OG image (screenshot o diseño)
+- [ ] Configurar Vercel deployment
 - [ ] Analytics web (PostHog o Plausible)
-- [ ] Favicon + assets
+- [ ] Apuntar dominio superdownloads.app a Vercel
 
 ---
 
