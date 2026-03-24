@@ -8,8 +8,6 @@
 
 > Objetivo: Base documental, branding, y quick wins técnicos. Todo lo necesario antes de construir.
 
-**Criterio de completado:** Identidad visual definida, docs estructurados, repo inicializado, quick wins técnicos resueltos.
-
 - [x] Inicializar git repo
 - [x] Definir identidad visual (icono confirmado, paleta azul definida)
 - [x] Crear BRAND.md con reglas de marca
@@ -22,37 +20,67 @@
 - [x] Fix CSP en tauri.conf.json
 - [x] Añadir versión visible en la UI (settings panel)
 - [x] Registrar dominio superdownloads.app (Hostinger)
+- [x] Registrar email support@superdownloads.app
 - [x] Initial git commit con estado actual
 
 ---
 
-## Phase 1: Product Polish — NOT STARTED
+## Phase 1: App Polish — NOT STARTED
 
-> Objetivo: Preparar la app para usuarios reales. Cerrar gaps de UX y añadir lógica freemium.
+> Objetivo: Convertir la herramienta en un producto pulido. Diseño, UX, y funcionalidad.
+> Referencia: `docs/APP-AUDIT.md` para detalle completo de cada item.
 
-**Criterio de completado:** App lista para que un desconocido la descargue y la use sin ayuda.
+**Criterio de completado:** La app se siente profesional. Un desconocido puede usarla sin ayuda.
 
-- [ ] First-run onboarding / welcome screen
-- [ ] Lógica freemium implementada (límites en free tier)
-- [ ] Versión visible en la UI
-- [ ] About / info screen
-- [ ] Changelog visible
-- [ ] Mejorar mensajes de error (user-friendly)
-- [ ] Code signing + notarización (si se decide en Phase 0)
-- [ ] Sistema de auto-update (Tauri updater plugin)
-- [ ] Analytics básico (telemetría anónima opt-in)
+### Must-haves (bloquean el lanzamiento)
 
-**Requiere input del founder:** Definición exacta de límites free/pro, copy de onboarding.
+- [ ] **Empty state inspirador** — Icono + tagline + hint en vez de "No active downloads"
+- [ ] **Toast notifications** — Reemplazar todos los `alert()` con toasts in-app
+- [ ] **Copy link feedback** — Toast temporal "Link copied" al copiar
+- [ ] **"Open file" en context menu** — Abrir vídeo descargado con player por defecto
+- [ ] **Versión dinámica** — Leer versión desde Tauri API en vez de hardcodear
+- [ ] **Resolver persistencia del historial** — Decidir y implementar: ¿se guarda o no?
+- [ ] **Resolver reset de audio-only/auto-add** — ¿Intencional o bug? Decidir y actuar
+
+### Should-haves (mejoran significativamente la experiencia)
+
+- [ ] **Drag & drop de URLs** — Arrastrar links desde el navegador a la app
+- [ ] **Notificaciones nativas macOS** — Avisar cuando una descarga termina
+- [ ] **System theme** — Opción "Auto" que siga el tema de macOS
+- [ ] **Limpiar console.logs** — Condicionar a modo dev
+
+### Could-haves (polish extra, pueden esperar a post-launch)
+
+- [ ] Custom modal (reemplazar `window.confirm()`)
+- [ ] Batch URL paste (múltiples URLs de una vez)
+- [ ] Eliminar lógica `settings-compact` muerta
+
+**Requiere input del founder:** Decisión sobre persistencia del historial, decisión sobre reset de settings.
 
 ---
 
-## Phase 2: Landing Page — NOT STARTED
+## Phase 2: Product Infrastructure — NOT STARTED
+
+> Objetivo: Añadir la lógica de negocio y sistemas de distribución sobre el producto pulido.
+
+**Criterio de completado:** App con freemium funcional, auto-updater, y onboarding.
+
+- [ ] Lógica freemium (contador de 5 descargas/día, persistente)
+- [ ] UI de límite alcanzado (mensaje amigable + CTA a Pro)
+- [ ] Sistema de auto-update (Tauri updater plugin + Ed25519 keys)
+- [ ] First-run onboarding / welcome screen
+- [ ] About screen (versión, enlace web, contacto, licencia)
+- [ ] Analytics básico (telemetría anónima opt-in)
+
+---
+
+## Phase 3: Landing Page — NOT STARTED
 
 > Objetivo: Presencia web pública. Lugar donde enviar tráfico. Canal de descarga.
 
 **Criterio de completado:** Web live con descarga directa, info del producto, y pricing.
 
-**Stack recomendado:** Astro (sitio estático, deploy en Vercel)
+**Stack:** Astro (sitio estático, deploy en Vercel)
 
 - [ ] Diseño de landing page (hero, features, pricing, download, FAQ)
 - [ ] Desarrollo de la landing
@@ -60,64 +88,57 @@
 - [ ] Botones de descarga (Apple Silicon + Intel)
 - [ ] Legal: Terms of Service + Privacy Policy
 - [ ] SEO básico (meta tags, OG image, sitemap)
-- [ ] Analytics web (PostHog o similar)
+- [ ] Analytics web (PostHog o Plausible)
 - [ ] Favicon + assets
-
-**Requiere input del founder:** Copy de producto, screenshots finales, dominio.
 
 ---
 
-## Phase 3: Billing — NOT STARTED
+## Phase 4: Billing — NOT STARTED
 
 > Objetivo: Monetización funcionando. El usuario puede pagar por Pro.
 
 **Criterio de completado:** Un usuario puede comprar la licencia Pro y desbloquear features.
 
-- [ ] Sistema de licencias (clave de activación o cuenta)
-- [ ] Integración con Stripe (o Gumroad/Paddle/LemonSqueezy)
-- [ ] Flujo de compra desde la app
-- [ ] Flujo de compra desde la web
-- [ ] Verificación de licencia en la app
+- [ ] LemonSqueezy: cuenta, producto "Super Downloads Pro" (€29 lifetime)
+- [ ] License key generation (3 activaciones por key)
+- [ ] Promo code LAUNCH30 (30% off)
+- [ ] License validation en la app (LemonSqueezy API)
+- [ ] Flujo: web checkout → license key → app activation
 - [ ] Restauración de licencia
 - [ ] Email de confirmación de compra
 
-**Requiere input del founder:** Plataforma de pago preferida, pricing exacto, flujo de activación.
-
 ---
 
-## Phase 4: Pre-Launch — NOT STARTED
+## Phase 5: Pre-Launch — NOT STARTED
 
 > Objetivo: Todo preparado para anunciar públicamente.
 
-**Criterio de completado:** Lista de launch completada, todos los assets listos, canales preparados.
+**Criterio de completado:** Launch checklist completada (ver `docs/LAUNCH.md`).
 
-- [ ] Screenshots profesionales de la app
+- [ ] Screenshots profesionales de la app (3-5 capturas)
 - [ ] Vídeo demo / GIF animado
 - [ ] Assets para redes sociales
-- [ ] Copy de lanzamiento (post para X, Instagram, etc.)
-- [ ] Canal de soporte definido (email mínimo)
+- [ ] Copy de lanzamiento
+- [ ] Canal de soporte (support@superdownloads.app)
 - [ ] FAQ / documentación de usuario
 - [ ] Testeo con 3-5 beta testers
 - [ ] Última ronda de bug fixing
 
-**Requiere input del founder:** Revisión de materiales, aprobación de copy.
-
 ---
 
-## Phase 5: Launch — NOT STARTED
+## Phase 6: Launch — NOT STARTED
 
 > Objetivo: Producto público. Primeros usuarios reales.
 
-- [ ] Publicar en web
+- [ ] Publicar web en superdownloads.app
 - [ ] Anunciar en redes sociales
+- [ ] Submits a directorios de apps Mac (MacUpdate, AlternativeTo, etc.)
 - [ ] Publicar en Product Hunt (cuando tenga sentido)
-- [ ] Submits a directorios de apps Mac
-- [ ] Submits a directorios de herramientas
 - [ ] Monitorizar feedback y bugs
 
 ---
 
-## Phase 6: Post-Launch — FUTURE
+## Phase 7: Post-Launch — FUTURE
 
 > Iteración basada en datos reales.
 

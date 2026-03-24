@@ -138,6 +138,20 @@
 
 ---
 
+## 2026-03-24 — Support email registered
+**Context:** Need a contact channel for the product.
+**Decision:** support@superdownloads.app (hosted on Hostinger).
+
+---
+
+## 2026-03-24 — App needs design/UX review before business logic
+**Context:** Founder clarified that the app is NOT finished. It needs a design pass, functionality review, and UX improvements before adding freemium logic or preparing for launch.
+**Decision:** Insert a dedicated "App Review & Polish" phase BEFORE freemium/billing infrastructure.
+**Why:** Business logic (freemium limits, updater, onboarding) should be built on top of a polished product, not a work-in-progress. Changing UX after adding freemium logic creates rework.
+**Consequence:** Roadmap restructured. New Phase 1 = App Polish (design, UX, features). Freemium/infra moves to Phase 2.
+
+---
+
 ## 2026-03-24 — Project documentation structure
 **Context:** Setting up Super Downloads for structured development with AI collaboration.
 **Decision:** Adopt documentation patterns from Super Prompts, adapted for a desktop app context.
