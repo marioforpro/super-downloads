@@ -25,7 +25,7 @@
 
 ---
 
-## Phase 1: App Polish — NOT STARTED
+## Phase 1: App Polish — IN PROGRESS
 
 > Objetivo: Convertir la herramienta en un producto pulido. Diseño, UX, y funcionalidad.
 > Referencia: `docs/APP-AUDIT.md` para detalle completo de cada item.
@@ -34,13 +34,13 @@
 
 ### Must-haves (bloquean el lanzamiento)
 
-- [ ] **Empty state inspirador** — Icono + tagline + hint en vez de "No active downloads"
-- [ ] **Toast notifications** — Reemplazar todos los `alert()` con toasts in-app
-- [ ] **Copy link feedback** — Toast temporal "Link copied" al copiar
-- [ ] **"Open file" en context menu** — Abrir vídeo descargado con player por defecto
-- [ ] **Versión dinámica** — Leer versión desde Tauri API en vez de hardcodear
-- [ ] **Resolver persistencia del historial** — Decidir y implementar: ¿se guarda o no?
-- [ ] **Resolver reset de audio-only/auto-add** — ¿Intencional o bug? Decidir y actuar
+- [x] **Empty state inspirador** — Icono + hint + plataformas soportadas
+- [x] **Toast notifications** — Reemplazados todos los `alert()` con toasts in-app
+- [x] **Copy link feedback** — Toast "Link copied" al copiar
+- [x] **"Open file" en context menu** — Abre vídeo con player por defecto
+- [x] **Versión dinámica** — Lee versión desde Tauri API (`app.getVersion()`)
+- [x] **Persistencia del historial** — Toggle "Keep download history" en settings (OFF por defecto)
+- [x] **Audio-only/auto-add reset** — Confirmado intencional, documentado
 
 ### Should-haves (mejoran significativamente la experiencia)
 

@@ -152,6 +152,20 @@
 
 ---
 
+## 2026-03-24 — Download history: clear on launch by default, user toggle in settings
+**Context:** App currently always starts with empty download list. Need to decide if history persists.
+**Decision:** Default = clear on launch (current behavior). Add toggle in settings: "Keep download history" (OFF by default). When ON, history persists across restarts.
+**Why:** Founder prefers clean start, but users should have the choice. The Rust backend already has save/load functions ready.
+
+---
+
+## 2026-03-24 — Audio-only and Auto-add reset on launch: intentional
+**Context:** Both settings reset to OFF every time the app opens.
+**Decision:** This is intentional. Keep current behavior. No change needed.
+**Why:** Safety defaults. Auto-add watching clipboard is a privacy-sensitive feature. Audio-only changes output format unexpectedly. Both should require conscious activation each session.
+
+---
+
 ## 2026-03-24 — Project documentation structure
 **Context:** Setting up Super Downloads for structured development with AI collaboration.
 **Decision:** Adopt documentation patterns from Super Prompts, adapted for a desktop app context.

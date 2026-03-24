@@ -1,3 +1,22 @@
+// Toast notification system
+function showToast(message, duration = 2000) {
+  let container = document.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.textContent = message;
+  container.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add("visible"));
+  setTimeout(() => {
+    toast.classList.remove("visible");
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
 // DOM Elements
 const input = document.querySelector("#url-input");
 const appRoot = document.querySelector(".app");
@@ -18,6 +37,7 @@ const settingsGuideModal = document.querySelector("#settings-guide-modal");
 const settingsGuideClose = document.querySelector("#settings-guide-close");
 const autoAddRibbon = document.querySelector("#auto-add-ribbon");
 const clearListBtn = document.querySelector("#clear-list-btn");
+const keepHistoryEnabled = document.querySelector("#keep-history-enabled");
 
 // State
 let downloads = [];
@@ -47,9 +67,10 @@ let clipboardWatchTimer = null;
 
 // Initialize
 loadSettings();
-downloads = [];
-renderDownloadList();
-scheduleWindowResize();
+loadDownloads().then(() => {
+  renderDownloadList();
+  scheduleWindowResize();
+});
 
 // URL Validation
 function isValidURL(url) {
@@ -370,7 +391,17 @@ function renderDownloadList() {
   }
 
   if (downloads.length === 0) {
-    downloadList.innerHTML = '<div class="empty-state">No active downloads</div>';
+    downloadList.innerHTML = `
+      <div class="empty-state">
+        <svg class="empty-state-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 5v10"></path>
+          <path d="M7 12l5 5 5-5"></path>
+          <path d="M5 19h14"></path>
+        </svg>
+        <div class="empty-state-title">Paste a video link to get started</div>
+        <div class="empty-state-hint">YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn</div>
+      </div>
+    `;
     scheduleWindowResize();
     return;
   }
@@ -445,6 +476,29 @@ async function handleMenuAction(action, downloadId) {
   if (!download) return;
   
   switch (action) {
+    case "open-file":
+      if (download.filePath) {
+        try {
+          const openerModule = await import("@tauri-apps/plugin-opener");
+          const openPath = openerModule.openPath || openerModule.default?.openPath;
+          if (openPath) {
+            await openPath(download.filePath.trim());
+          } else {
+            const open = openerModule.open || openerModule.default?.open;
+            if (open) await open(download.filePath.trim());
+          }
+        } catch (err) {
+          try {
+            if (window.__TAURI__?.core?.invoke) {
+              await window.__TAURI__.core.invoke("reveal_in_finder", { path: download.filePath.trim() });
+            }
+          } catch {
+            showToast("Could not open file");
+          }
+        }
+      }
+      break;
+
     case "show-in-finder":
       if (download.filePath) {
         console.log("Attempting to show in Finder:", download.filePath);
@@ -494,11 +548,9 @@ async function handleMenuAction(action, downloadId) {
           }
         }
         
-        // If all methods failed
-        alert(`Failed to show file in Finder.\n\nFile path: ${filePath}\n\nPlease check the browser console (DevTools) for details.`);
+        showToast("Could not show file in Finder");
       } else {
-        console.warn("No file path available for download:", downloadId);
-        alert("No file path available for this download.");
+        showToast("No file path available");
       }
       break;
       
@@ -506,19 +558,16 @@ async function handleMenuAction(action, downloadId) {
       try {
         if (download.url) {
           await navigator.clipboard.writeText(download.url);
-          console.log("Link copied to clipboard:", download.url);
-        } else {
-          console.warn("No URL available for download:", downloadId);
+          showToast("Link copied");
         }
       } catch (err) {
-        console.error("Failed to copy link:", err);
-        // Fallback: try using Tauri clipboard API if available
         try {
           if (window.__TAURI__?.core?.invoke) {
             await window.__TAURI__.core.invoke("copy_to_clipboard", { text: download.url });
+            showToast("Link copied");
           }
         } catch (err2) {
-          console.error("Clipboard fallback also failed:", err2);
+          showToast("Failed to copy link");
         }
       }
       break;
@@ -558,7 +607,7 @@ async function cancelDownload(downloadId) {
     stopConversionProgress(downloadId);
   } catch (err) {
     console.error("Failed to cancel download:", err);
-    alert("Could not cancel this download.");
+    showToast("Could not cancel download");
   }
 }
 
@@ -698,6 +747,7 @@ function createDownloadItemHTML(download) {
             </svg>
           </button>
           <div class="download-item-menu" id="menu-${download.id}">
+            ${download.filePath ? `<button class="menu-item" data-action="open-file" data-download-id="${download.id}">Open File</button>` : ""}
             <button class="menu-item" data-action="show-in-finder" data-download-id="${download.id}">Show in Finder</button>
             <button class="menu-item" data-action="copy-link" data-download-id="${download.id}">Copy Link Address</button>
             ${canRetry ? `<button class="menu-item" data-action="retry" data-download-id="${download.id}">Retry Download</button>` : ""}
@@ -866,16 +916,43 @@ function startConversionProgress(downloadId) {
   conversionState.set(downloadId, { timer });
 }
 
+function isHistoryEnabled() {
+  return keepHistoryEnabled?.checked === true;
+}
+
 function scheduleSaveDownloads() {
-  // Intentionally no-op: download list should reset on every app launch.
+  if (!isHistoryEnabled()) return;
+  clearTimeout(saveDownloadsTimer);
+  saveDownloadsTimer = setTimeout(() => saveDownloads(), SAVE_DOWNLOADS_DEBOUNCE_MS);
 }
 
-function loadDownloads() {
-  downloads = [];
+async function loadDownloads() {
+  if (!isHistoryEnabled()) {
+    downloads = [];
+    return;
+  }
+  try {
+    if (!window.__TAURI__?.core?.invoke) return;
+    const json = await window.__TAURI__.core.invoke("load_download_history");
+    const parsed = JSON.parse(json || "[]");
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      downloads = parsed;
+      downloadIdCounter = downloads.length;
+    }
+  } catch {
+    downloads = [];
+  }
 }
 
-function saveDownloads() {
-  // Intentionally no-op: download list should reset on every app launch.
+async function saveDownloads() {
+  if (!isHistoryEnabled()) return;
+  try {
+    if (!window.__TAURI__?.core?.invoke) return;
+    const serializable = downloads.filter(d => isTerminalStatus(d.status));
+    await window.__TAURI__.core.invoke("save_download_history", {
+      data: JSON.stringify(serializable)
+    });
+  } catch {}
 }
 
 function scheduleWindowResize() {
@@ -1045,6 +1122,9 @@ function loadSettings() {
   if (autoStartClipboardEnabled) {
     autoStartClipboardEnabled.checked = false;
   }
+  if (keepHistoryEnabled) {
+    keepHistoryEnabled.checked = settings.keepHistory === true;
+  }
   // Keep user preferences but force safety defaults OFF on each launch.
   saveSettings();
 }
@@ -1057,6 +1137,7 @@ function saveSettings() {
     audioOnlyEnabled: audioOnlyEnabled?.checked === true,
     autoStartClipboardEnabled: autoStartClipboardEnabled?.checked === true,
     theme: themeLightEnabled?.checked === true ? "light" : "dark",
+    keepHistory: keepHistoryEnabled?.checked === true,
     outputFormat: "mp4" // Always use MP4 for best compatibility
   };
   localStorage.setItem("appSettings", JSON.stringify(settings));
@@ -1092,7 +1173,7 @@ async function browseForLocation() {
     }
   } catch (err) {
     console.error("Folder picker failed:", err);
-    alert("Could not open folder picker. Please type the path manually.\n\nExample: ~/Downloads or /Users/yourname/Movies");
+    showToast("Could not open folder picker — type the path manually");
     downloadLocation.focus();
     downloadLocation.select();
   }
@@ -1103,21 +1184,21 @@ async function startDownloadForUrl(url, options = {}) {
   const { silent = false, focusAfterStart = false } = options;
   if (!url) {
     if (!silent) {
-      alert("Please paste a URL first");
+      showToast("Paste a URL first");
     }
     return "empty";
   }
 
   if (!isValidURL(url)) {
     if (!silent) {
-      alert("Invalid URL");
+      showToast("Invalid URL");
     }
     return "invalid";
   }
 
   if (!isVideoURL(url)) {
     if (!silent) {
-      alert("Not a supported video URL.\nSupported: YouTube, TikTok, X/Twitter, Vimeo, Instagram, Facebook, LinkedIn");
+      showToast("Not a supported video URL");
     }
     return "unsupported";
   }
@@ -1406,6 +1487,17 @@ startClipboardWatcher();
 syncAutoAddUiState();
 setSettingsOpen(false);
 
+// Dynamic version from Tauri
+(async () => {
+  try {
+    const version = await window.__TAURI__.app.getVersion();
+    const versionLabel = document.querySelector("#version-label");
+    if (versionLabel && version) {
+      versionLabel.textContent = `v${version}`;
+    }
+  } catch {}
+})();
+
 
 clearBtn.addEventListener("click", clearInput);
 settingsBtn.addEventListener("click", toggleSettings);
@@ -1441,6 +1533,14 @@ if (themeLightEnabled) {
   themeLightEnabled.addEventListener("change", () => {
     applyTheme(themeLightEnabled.checked ? "light" : "dark");
     saveSettings();
+  });
+}
+if (keepHistoryEnabled) {
+  keepHistoryEnabled.addEventListener("change", () => {
+    saveSettings();
+    if (keepHistoryEnabled.checked) {
+      scheduleSaveDownloads();
+    }
   });
 }
 
