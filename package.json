@@ -1,0 +1,19 @@
+{
+  "name": "super-downloads",
+  "private": true,
+  "version": "1.1.0",
+  "type": "module",
+  "scripts": {
+    "tauri": "tauri",
+    "check:frontend": "node --check src/main.js",
+    "check:rust": "cd src-tauri && cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings && cargo test",
+    "check": "npm run check:frontend && npm run check:rust"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2"
+  },
+  "dependencies": {
+    "@tauri-apps/plugin-dialog": "^2.6.0",
+    "@tauri-apps/plugin-opener": "^2.5.3"
+  }
+}

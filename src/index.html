@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Super Downloads</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app">
+      <div class="top-bar">
+        <div class="input-wrapper">
+          <input
+            type="text"
+            id="url-input"
+            placeholder="Paste video link (YouTube, TikTok, X, Vimeo...)"
+            aria-label="Video URL"
+          />
+          <button class="clear-btn" aria-label="Clear" title="Clear">×</button>
+        </div>
+        <button class="download-btn" id="download-btn">
+          <span class="btn-text">Download</span>
+        </button>
+        <button class="clear-list-btn icon-only" id="clear-list-btn" aria-label="Clear list" title="Clear all downloads">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 6h18"></path>
+            <path d="M8 6V4h8v2"></path>
+            <rect x="6" y="6" width="12" height="14" rx="2"></rect>
+            <path d="M10 10v6"></path>
+            <path d="M14 10v6"></path>
+          </svg>
+        </button>
+        <button class="settings-btn" aria-label="Settings" title="Settings" id="settings-toggle">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="4" y1="6" x2="20" y2="6"></line>
+            <line x1="4" y1="12" x2="20" y2="12"></line>
+            <line x1="4" y1="18" x2="20" y2="18"></line>
+            <circle cx="8" cy="6" r="2" fill="currentColor"></circle>
+            <circle cx="16" cy="12" r="2" fill="currentColor"></circle>
+            <circle cx="10" cy="18" r="2" fill="currentColor"></circle>
+          </svg>
+        </button>
+      </div>
+
+      <div class="main-content">
+        <div class="download-list" id="download-list">
+          <!-- Download items will be inserted here -->
+        </div>
+
+        <!-- Integrated Settings Panel -->
+        <div class="settings-panel" id="settings-panel">
+          <div class="settings-panel-content">
+            <div class="setting-item settings-info-item">
+              <button class="settings-info-btn" id="settings-info-btn" type="button" aria-label="Open settings guide">
+                <span class="info-dot" aria-hidden="true">i</span>
+                <span>How these settings work</span>
+              </button>
+            </div>
+            <div class="setting-item">
+              <label class="setting-label" for="download-location">Download Location</label>
+              <p class="setting-help">Where completed files are saved.</p>
+              <div class="setting-control">
+                <input type="text" id="download-location" placeholder="~/Downloads" />
+                <button class="browse-btn" id="browse-btn">Browse</button>
+              </div>
+            </div>
+            <div class="setting-item">
+              <label class="setting-label" for="video-quality">Video Quality</label>
+              <p class="setting-help">Choose target quality for video downloads.</p>
+              <select id="video-quality">
+                <option value="best">Best Available</option>
+                <option value="1080p">1080p</option>
+                <option value="720p">720p</option>
+              </select>
+            </div>
+            <div class="setting-item setting-toggle">
+              <label class="checkbox-label" for="audio-only-enabled">
+                <input type="checkbox" id="audio-only-enabled" />
+                <span>MP3 only mode</span>
+              </label>
+            </div>
+            <div class="setting-item setting-toggle">
+              <label class="checkbox-label" for="auto-start-clipboard-enabled">
+                <input type="checkbox" id="auto-start-clipboard-enabled" />
+                <span>Auto add</span>
+              </label>
+            </div>
+            <div class="setting-item setting-toggle">
+              <label class="checkbox-label" for="theme-light-enabled">
+                <input type="checkbox" id="theme-light-enabled" />
+                <span>Light theme</span>
+              </label>
+            </div>
+            <div class="setting-item version-info">
+              <span class="version-label" id="version-label">v1.1.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="settings-guide-modal" id="settings-guide-modal" aria-hidden="true" role="dialog" aria-label="Settings guide">
+        <div class="settings-guide-card">
+          <div class="settings-guide-title">Quick Guide</div>
+          <p><strong>Video quality</strong>: picking <strong>1080p</strong> or <strong>720p</strong> is usually faster because the app often gets an H.264 stream directly. <strong>Best Available</strong> may pick higher formats that can take longer and may require conversion to H.264 for editing compatibility.</p>
+          <p><strong>MP3 only mode</strong>: outputs only an <strong>.mp3</strong> file (audio only). No video file is saved.</p>
+          <p><strong>Auto add</strong>: watches your clipboard for supported links and starts downloading automatically. This is off by default when the app opens.</p>
+          <button class="settings-guide-close" id="settings-guide-close" type="button">Got it</button>
+        </div>
+      </div>
+      <div class="auto-add-ribbon" id="auto-add-ribbon" aria-live="polite" aria-hidden="true">
+        <span class="dot" aria-hidden="true"></span>
+        <span class="label">Clipboard Auto Add Active</span>
+      </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+  </body>
+</html>
