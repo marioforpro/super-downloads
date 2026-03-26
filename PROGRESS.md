@@ -150,3 +150,34 @@ f2a8c14 feat: Phase 1 must-haves — toast system, empty state, open file, histo
 - Nameservers changed to Hostinger's real NS (aster/helios.dns-parking.com)
 - Propagation in progress — may take up to 24 hours
 - Once propagated: `superdownloads.app` will serve landing with auto HTTPS
+
+---
+
+## Session 4 — 2026-03-26 — LemonSqueezy Billing Integration
+
+### Phase 4 Progress: Billing Infrastructure
+- Added `reqwest`, `uuid`, `hostname` crates to Cargo.toml
+- Built 3 new Tauri commands: `activate_license`, `validate_license`, `deactivate_license`
+- LemonSqueezy license API integration (activate/validate/deactivate endpoints)
+- Machine identification via hostname for license instance binding
+- Full license UI in settings panel:
+  - License status badge (Free / Pro with customer name)
+  - License key input + Activate button
+  - Active license display (masked key + Deactivate button)
+  - "Get Pro — €29" upgrade link (opens LemonSqueezy checkout in browser)
+- License state persisted in localStorage (key, instance_id, customer_name)
+- Deactivation with confirmation modal
+
+### Landing Page Updates
+- Wired download buttons to GitHub Releases URLs (Apple Silicon + Intel DMGs)
+- Wired "Get Pro" pricing button to LemonSqueezy checkout URL (placeholder)
+- Landing builds clean
+
+### DNS Diagnosis
+- `www.superdownloads.app` — live and working (200 OK via Vercel)
+- `superdownloads.app` (bare domain) — still not resolving
+- NS records still show Hostinger parking nameservers
+- Bare domain needs A record `@ → 76.76.21.21` in Hostinger hPanel
+
+### Code Quality
+- All checks pass: `npm run check` clean (frontend + fmt + clippy + 3 tests)

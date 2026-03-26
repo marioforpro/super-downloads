@@ -1,7 +1,7 @@
-# Siguiente Sesión — Guía de Acciones para el Founder
+# Siguiente Sesion — Guia de Acciones para el Founder
 
-> Lee esto al empezar la próxima sesión de trabajo.
-> Estas son las tareas que necesitan TU acción directa antes de seguir avanzando con Claude.
+> Lee esto al empezar la proxima sesion de trabajo.
+> Estas son las tareas que necesitan TU accion directa antes de seguir avanzando con Claude.
 
 ---
 
@@ -10,132 +10,132 @@
 ```
 Phase 0: Foundation        — COMPLETE
 Phase 1: App Polish        — COMPLETE
-Phase 2: Product Infra     — COMPLETE (auto-updater done)
-Phase 3: Landing Page      — NEAR COMPLETE (deployed, DNS propagating)
-Phase 4: Billing           — NOT STARTED
+Phase 2: Product Infra     — COMPLETE
+Phase 3: Landing Page      — NEAR COMPLETE (www works, bare domain DNS pending)
+Phase 4: Billing           — IN PROGRESS (app-side done, needs LemonSqueezy account)
 Phase 5: Pre-Launch        — NOT STARTED
 Phase 6: Launch            — NOT STARTED
 ```
 
-**Lo que se hizo en Session 3 (2026-03-26):**
-- Auto-updater: Ed25519 keys generated, tauri-plugin-updater configured
-- GitHub repo created (`marioforpro/super-downloads`, private)
-- Landing deployed to Vercel → `super-downloads.vercel.app`
-- Domain `superdownloads.app` + `www` added to Vercel
-- Hostinger: email verification completed, DNS configured, nameservers switched
-- PostHog analytics integrated in landing
-- OG/Twitter image meta tags added
-- Clippy fix, cargo fmt, all checks pass
+**Lo que se hizo en Session 4 (2026-03-26):**
+- LemonSqueezy license validation integrated in Rust backend (activate/validate/deactivate)
+- License UI in settings panel (activate key, deactivate, upgrade link)
+- Landing page download buttons wired to GitHub Releases URLs
+- Landing page "Get Pro" button wired to LemonSqueezy checkout (placeholder URL)
+- All checks pass: frontend + fmt + clippy + tests
 
 ---
 
-## TAREAS QUE NECESITAS HACER TÚ
+## TAREAS QUE NECESITAS HACER TU
 
-### 1. Verificar DNS propagación
+### 1. Fix DNS — Bare domain `superdownloads.app`
 
-Espera unas horas y luego comprueba:
+`www.superdownloads.app` works, but `superdownloads.app` (bare domain) does not resolve.
+
+**In Hostinger hPanel:**
+1. Go to Domain → DNS Zone for `superdownloads.app`
+2. Add or edit the **A record** for `@` → `76.76.21.21`
+3. Make sure there's no conflicting A record (parking IP)
+4. Wait 5-30 min for propagation
+
+Verify:
 ```bash
 dig superdownloads.app +short
-# Debe devolver: 76.76.21.21
+# Should return: 76.76.21.21
 ```
 
-O simplemente visita `https://superdownloads.app` en el navegador. Si ves tu landing, el DNS propagó.
+---
 
-Si después de 24h no funciona, contactar a Hostinger soporte — los nameservers se cambiaron correctamente pero la propagación puede requerir verificación adicional.
+### 2. Create LemonSqueezy account + product
+
+This is **required** to complete Phase 4.
+
+1. Go to [lemonsqueezy.com](https://lemonsqueezy.com) and create account
+2. Complete onboarding (tax info, bank account)
+3. Create a **Store** (e.g., "Super Downloads")
+4. Create product: **"Super Downloads Pro"**
+   - Price: **€29** one-time
+   - License key: **enabled**, 3 activations max
+5. Create promo code: **LAUNCH30** (30% off)
+6. Note down these values:
+   - **Checkout URL** (from the product page → Share → Direct link)
 
 ---
 
-### 2. Probar la app (si no lo has hecho)
+### 3. Update checkout URL in code
 
-```bash
-cd /Users/supermac/Desktop/DEV/SUPER-DOWNLOADS
-npm run tauri dev
+Once you have the LemonSqueezy checkout URL, replace the placeholder in two places:
+
+**File 1:** `src/main.js` (line ~100)
 ```
+const LEMONSQUEEZY_CHECKOUT_URL = "https://superdownloads.lemonsqueezy.com/checkout/buy/TODO";
+```
+Replace `TODO` with your actual product checkout path.
 
-**Cosas que probar:**
-- [ ] Empty state, onboarding, download counter
-- [ ] Descargar un vídeo de YouTube, TikTok, Instagram
-- [ ] Drag & drop un link desde el navegador
-- [ ] Theme switching (Dark/Light/System)
-- [ ] About screen (click versión en settings)
-
----
-
-### 3. Crear cuenta en LemonSqueezy
-
-1. Ve a [lemonsqueezy.com](https://lemonsqueezy.com) y crea una cuenta
-2. Completa onboarding (datos fiscales, cuenta bancaria)
-3. Crea un Store
-4. Crea producto **"Super Downloads Pro"** (€29, one-time, license key, 3 activaciones)
-5. Crea promo code **LAUNCH30** (30% off)
-6. Anota: **API Key**, **Store ID**, **Product ID**, **Checkout URL**
+**File 2:** `web/src/pages/index.astro` (pricing section)
+```
+href="https://superdownloads.lemonsqueezy.com/checkout/buy/TODO"
+```
+Same replacement.
 
 ---
 
-### 4. Build nuevos DMGs
+### 4. Create GitHub Release + Upload DMGs
+
+Build the DMGs and create a GitHub release so download buttons work:
 
 ```bash
 cd /Users/supermac/Desktop/DEV/SUPER-DOWNLOADS
 
 # Apple Silicon
-npm run tauri build -- --target aarch64-apple-darwin --bundles app
+npm run tauri build -- --target aarch64-apple-darwin --bundles dmg
 
 # Intel
-npm run tauri build -- --target x86_64-apple-darwin --bundles app
-
-# Crear DMGs
-./create-dmg.sh
+npm run tauri build -- --target x86_64-apple-darwin --bundles dmg
 ```
 
+Then create a release on GitHub:
+```bash
+# Find the DMG files
+find src-tauri/target -name "*.dmg" 2>/dev/null
+
+# Create release and upload (adjust filenames)
+gh release create v1.1.0 --title "Super Downloads v1.1.0" --notes "Initial release" \
+  path/to/Super-Downloads_aarch64.dmg \
+  path/to/Super-Downloads_x64.dmg
+```
+
+The landing page download buttons already point to:
+- `https://github.com/marioforpro/super-downloads/releases/latest/download/Super-Downloads_aarch64.dmg`
+- `https://github.com/marioforpro/super-downloads/releases/latest/download/Super-Downloads_x64.dmg`
+
+Make sure the uploaded filenames match exactly.
+
 ---
 
-## QUÉ HACER CON CLAUDE EN LA SIGUIENTE SESIÓN
+## QUE HACER CON CLAUDE EN LA SIGUIENTE SESION
 
-Con las tareas de arriba completadas:
-
-1. **Confirmar DNS** — Verificar que `superdownloads.app` sirve la landing
-2. **LemonSqueezy integration** (Phase 4) — License validation en la app, checkout URL en landing
-3. **Actualizar landing** con URLs reales (DMGs + checkout)
-4. **Build DMGs con updater** — Los nuevos DMGs incluirán el auto-updater
-5. **OG image** — Crear imagen para social sharing
-6. **Pre-launch prep** (Phase 5) — Screenshots, beta testing, copy
-
----
-
-## TEMAS ESTRATÉGICOS PENDIENTES
-
-### Platform Reliability & Monitoring
-- Health checks automáticos para detectar cuando yt-dlp se rompe en cada plataforma
-- Auto-update de yt-dlp sin requerir update de toda la app
-- Comunicación clara al usuario cuando una plataforma está down
-- **Decisión pendiente**: ¿dónde corren los health checks? ¿Script simple en launchd o servicio cloud?
-
-### UI Polish — Inspiración Transmission
-- Auto-resize de ventana según número de descargas
-- Diseño más clean/compacto de la lista de descargas
-- **Prerrequisito**: Probar la app actual y anotar qué te molesta visualmente
-
-### Browser Extension (Phase 8 — Future)
-- Extensión que envía URLs directamente a la app via deep link
-- No prioritario hasta post-launch
+1. **Verify DNS** — Confirm bare domain works
+2. **Plug in LemonSqueezy URL** — Quick find/replace once you have it
+3. **Test license flow** — Activate a test license in the app
+4. **OG image** — Create social sharing image for landing
+5. **Pre-launch prep** (Phase 5) — Screenshots, beta testing, copy
 
 ---
 
 ## ARCHIVOS IMPORTANTES
 
-| Archivo | Para qué |
+| Archivo | Para que |
 |---------|----------|
 | `ROADMAP.md` | Estado de cada fase |
 | `PROGRESS.md` | Log detallado de lo hecho |
 | `docs/DECISIONS.md` | Todas las decisiones tomadas |
 | `docs/LAUNCH.md` | Checklist de lanzamiento |
-| `docs/APP-AUDIT.md` | Auditoría de UX/diseño |
-| `docs/BRAND.md` | Reglas de marca |
 
 ## CLAVES Y SECRETOS
 
-| Archivo | Qué es | En git? |
+| Archivo | Que es | En git? |
 |---------|--------|---------|
 | `src-tauri/.tauri-update-key` | Clave privada del updater | NO (.gitignore) |
-| `src-tauri/.tauri-update-key.pub` | Clave pública del updater | SÍ (committed) |
+| `src-tauri/.tauri-update-key.pub` | Clave publica del updater | SI (committed) |
 | `.env` (futuro) | API keys de LemonSqueezy | NO |

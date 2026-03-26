@@ -13,16 +13,18 @@ Stack: Tauri 2.x (Rust backend + Vanilla JS frontend). Bundled yt-dlp + ffmpeg +
 Landing: Astro v6 in `web/` subfolder. Deploy on Vercel.
 Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 
-## Current State (after Session 3, 2026-03-26)
+## Current State (after Session 4, 2026-03-26)
 
 - **Phase 0-1:** COMPLETE (foundation + app polish)
 - **Phase 2:** COMPLETE (freemium + onboarding + auto-updater configured)
-- **Phase 3:** Near complete (landing deployed on Vercel, DNS configured, awaiting propagation)
-- **Phase 4+:** Not started (billing, pre-launch, launch)
+- **Phase 3:** Near complete (www works, bare domain DNS needs A record fix in Hostinger)
+- **Phase 4:** IN PROGRESS (license validation done, needs LemonSqueezy account + checkout URL)
+- **Phase 5+:** Not started (pre-launch, launch)
 - **GitHub:** `marioforpro/super-downloads` (private)
 - **Vercel:** `super-downloads.vercel.app` (live, auto-deploy on push)
-- **Domain:** `superdownloads.app` — DNS pointing to Vercel, propagation pending
+- **Domain:** `www.superdownloads.app` working, bare domain needs DNS fix
 - **Analytics:** PostHog integrated in landing
+- **Billing:** LemonSqueezy (account not yet created, app-side validation ready)
 - **Founder actions pending:** See `docs/NEXT-SESSION.md`
 
 ## Critical Context

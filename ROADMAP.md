@@ -95,25 +95,26 @@
 - [x] Analytics web (PostHog snippet integrated)
 - [x] Apuntar dominio superdownloads.app a Vercel (DNS configured, propagating)
 - [x] OG/Twitter image meta tags (placeholder — needs real image)
-- [ ] Conectar URLs de descarga a DMGs reales
+- [x] Conectar URLs de descarga a DMGs reales (GitHub Releases URLs)
 - [ ] OG image asset (screenshot o diseño)
 - [ ] DNS propagation confirmed + HTTPS active
 
 ---
 
-## Phase 4: Billing — NOT STARTED
+## Phase 4: Billing — IN PROGRESS
 
 > Objetivo: Monetización funcionando. El usuario puede pagar por Pro.
 
 **Criterio de completado:** Un usuario puede comprar la licencia Pro y desbloquear features.
 
-- [ ] LemonSqueezy: cuenta, producto "Super Downloads Pro" (€29 lifetime)
-- [ ] License key generation (3 activaciones por key)
-- [ ] Promo code LAUNCH30 (30% off)
-- [ ] License validation en la app (LemonSqueezy API)
-- [ ] Flujo: web checkout → license key → app activation
-- [ ] Restauración de licencia
-- [ ] Email de confirmación de compra
+- [ ] LemonSqueezy: cuenta, producto "Super Downloads Pro" (€29 lifetime) — **FOUNDER ACTION**
+- [ ] License key generation (3 activaciones por key) — **FOUNDER ACTION** (LemonSqueezy config)
+- [ ] Promo code LAUNCH30 (30% off) — **FOUNDER ACTION** (LemonSqueezy config)
+- [x] License validation en la app (LemonSqueezy API) — activate, validate, deactivate commands
+- [x] License UI en settings (input, activate, deactivate, upgrade link)
+- [ ] Flujo: web checkout → license key → app activation — needs real checkout URL
+- [ ] Restauración de licencia — works via activate with same key
+- [ ] Email de confirmación de compra — LemonSqueezy handles this
 
 ---
 

@@ -100,6 +100,21 @@
                 <span>Keep download history</span>
               </label>
             </div>
+            <div class="setting-item license-section" id="license-section">
+              <label class="setting-label">License</label>
+              <div id="license-status" class="license-status">
+                <span class="license-badge free">Free</span>
+              </div>
+              <div id="license-input-row" class="license-input-row">
+                <input type="text" id="license-key-input" placeholder="Paste license key" spellcheck="false" autocomplete="off" />
+                <button class="browse-btn" id="activate-license-btn">Activate</button>
+              </div>
+              <div id="license-active-row" class="license-active-row" style="display:none;">
+                <span class="license-key-display" id="license-key-display"></span>
+                <button class="browse-btn license-deactivate-btn" id="deactivate-license-btn">Deactivate</button>
+              </div>
+              <a href="#" id="upgrade-pro-link" class="upgrade-pro-link">Get Pro — €29</a>
+            </div>
             <div class="setting-item version-info">
               <span class="version-label" id="version-label">v1.1.0</span>
             </div>

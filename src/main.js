@@ -93,7 +93,11 @@ const CLIPBOARD_WATCH_INTERVAL_MS = 1200;
 const FREE_DAILY_LIMIT = 5;
 const DOWNLOAD_COUNTER_KEY = "dailyDownloadCounter";
 const LICENSE_KEY_STORAGE = "proLicenseKey";
+const LICENSE_INSTANCE_STORAGE = "proLicenseInstance";
+const LICENSE_NAME_STORAGE = "proLicenseName";
 const FIRST_RUN_KEY = "hasSeenOnboarding";
+// LemonSqueezy checkout URL — replace with your real checkout URL after creating the product
+const LEMONSQUEEZY_CHECKOUT_URL = "https://superdownloads.lemonsqueezy.com/checkout/buy/TODO";
 let lastRequestedMinWindowHeight = 0;
 let lastAutoFilledClipboardText = "";
 let clipboardWatchTimer = null;
@@ -145,6 +149,80 @@ function updateDownloadCounterUI() {
     counterEl.textContent = `${remaining}/${FREE_DAILY_LIMIT}`;
     counterEl.className = `download-counter ${remaining === 0 ? "exhausted" : remaining <= 2 ? "low" : ""}`;
   }
+}
+
+// License UI
+function updateLicenseUI() {
+  const statusEl = document.querySelector("#license-status");
+  const inputRow = document.querySelector("#license-input-row");
+  const activeRow = document.querySelector("#license-active-row");
+  const keyDisplay = document.querySelector("#license-key-display");
+  const upgradeLink = document.querySelector("#upgrade-pro-link");
+  if (!statusEl) return;
+
+  if (isProUser()) {
+    const key = localStorage.getItem(LICENSE_KEY_STORAGE) || "";
+    const name = localStorage.getItem(LICENSE_NAME_STORAGE) || "";
+    const maskedKey = key.length > 8 ? key.slice(0, 4) + "..." + key.slice(-4) : key;
+    statusEl.innerHTML = `<span class="license-badge pro">Pro${name ? " — " + name : ""}</span>`;
+    inputRow.style.display = "none";
+    activeRow.style.display = "flex";
+    keyDisplay.textContent = maskedKey;
+    upgradeLink.classList.add("hidden");
+  } else {
+    statusEl.innerHTML = `<span class="license-badge free">Free — ${FREE_DAILY_LIMIT}/day</span>`;
+    inputRow.style.display = "flex";
+    activeRow.style.display = "none";
+    upgradeLink.classList.remove("hidden");
+    upgradeLink.href = LEMONSQUEEZY_CHECKOUT_URL;
+  }
+  updateDownloadCounterUI();
+}
+
+async function handleActivateLicense() {
+  const licenseInput = document.querySelector("#license-key-input");
+  const btn = document.querySelector("#activate-license-btn");
+  const key = licenseInput.value.trim();
+  if (!key) { showToast("Paste your license key first"); return; }
+
+  btn.textContent = "Activating...";
+  btn.disabled = true;
+  try {
+    const result = await window.__TAURI__.core.invoke("activate_license", { key });
+    if (result.valid) {
+      localStorage.setItem(LICENSE_KEY_STORAGE, key);
+      if (result.instance_id) localStorage.setItem(LICENSE_INSTANCE_STORAGE, result.instance_id);
+      if (result.customer_name) localStorage.setItem(LICENSE_NAME_STORAGE, result.customer_name);
+      updateLicenseUI();
+      showToast("Pro license activated!");
+    } else {
+      showToast(result.error || "Invalid license key");
+    }
+  } catch (e) {
+    showToast("Activation failed — check your connection");
+  }
+  btn.textContent = "Activate";
+  btn.disabled = false;
+}
+
+async function handleDeactivateLicense() {
+  const key = localStorage.getItem(LICENSE_KEY_STORAGE);
+  const instanceId = localStorage.getItem(LICENSE_INSTANCE_STORAGE);
+  if (!key) return;
+
+  const confirmed = await showConfirm("Deactivate your Pro license on this device?\n\nYou can reactivate it later.");
+  if (!confirmed) return;
+
+  if (instanceId) {
+    try {
+      await window.__TAURI__.core.invoke("deactivate_license", { key, instanceId });
+    } catch {}
+  }
+  localStorage.removeItem(LICENSE_KEY_STORAGE);
+  localStorage.removeItem(LICENSE_INSTANCE_STORAGE);
+  localStorage.removeItem(LICENSE_NAME_STORAGE);
+  updateLicenseUI();
+  showToast("License deactivated");
 }
 
 // First-run onboarding
@@ -1696,8 +1774,17 @@ if (!hasSeenOnboarding()) {
   setTimeout(() => showOnboarding(), 300);
 }
 
-// Initialize download counter UI
+// Initialize download counter & license UI
 updateDownloadCounterUI();
+updateLicenseUI();
+
+// License button listeners
+document.querySelector("#activate-license-btn")?.addEventListener("click", handleActivateLicense);
+document.querySelector("#deactivate-license-btn")?.addEventListener("click", handleDeactivateLicense);
+document.querySelector("#upgrade-pro-link")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  window.__TAURI__.opener.openUrl(LEMONSQUEEZY_CHECKOUT_URL);
+});
 
 // Dynamic version from Tauri
 (async () => {

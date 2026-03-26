@@ -1961,6 +1961,143 @@ fn show_notification(title: String, body: String) -> Result<(), String> {
     }
 }
 
+// --- License validation (LemonSqueezy) ---
+
+#[derive(serde::Serialize)]
+struct LicenseResult {
+    valid: bool,
+    error: String,
+    license_key_id: Option<u64>,
+    instance_id: Option<String>,
+    customer_name: Option<String>,
+}
+
+fn get_instance_name() -> String {
+    hostname::get()
+        .map(|h| h.to_string_lossy().to_string())
+        .unwrap_or_else(|_| uuid::Uuid::new_v4().to_string())
+}
+
+#[tauri::command]
+async fn activate_license(key: String) -> Result<LicenseResult, String> {
+    let instance_name = get_instance_name();
+    let client = reqwest::Client::new();
+    let resp = client
+        .post("https://api.lemonsqueezy.com/v1/licenses/activate")
+        .form(&[
+            ("license_key", key.as_str()),
+            ("instance_name", instance_name.as_str()),
+        ])
+        .send()
+        .await
+        .map_err(|e| format!("Network error: {}", e))?;
+
+    let body: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("Invalid response: {}", e))?;
+
+    let activated = body
+        .get("activated")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let error_msg = body
+        .get("error")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let instance_id = body
+        .get("instance")
+        .and_then(|i| i.get("id"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+    let license_key_id = body
+        .get("license_key")
+        .and_then(|l| l.get("id"))
+        .and_then(|v| v.as_u64());
+    let customer_name = body
+        .get("meta")
+        .and_then(|m| m.get("customer_name"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+
+    Ok(LicenseResult {
+        valid: activated,
+        error: error_msg,
+        license_key_id,
+        instance_id,
+        customer_name,
+    })
+}
+
+#[tauri::command]
+async fn validate_license(key: String, instance_id: String) -> Result<LicenseResult, String> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post("https://api.lemonsqueezy.com/v1/licenses/validate")
+        .form(&[
+            ("license_key", key.as_str()),
+            ("instance_id", instance_id.as_str()),
+        ])
+        .send()
+        .await
+        .map_err(|e| format!("Network error: {}", e))?;
+
+    let body: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("Invalid response: {}", e))?;
+
+    let valid = body.get("valid").and_then(|v| v.as_bool()).unwrap_or(false);
+    let error_msg = body
+        .get("error")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .to_string();
+    let license_key_id = body
+        .get("license_key")
+        .and_then(|l| l.get("id"))
+        .and_then(|v| v.as_u64());
+    let customer_name = body
+        .get("meta")
+        .and_then(|m| m.get("customer_name"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+
+    Ok(LicenseResult {
+        valid,
+        error: error_msg,
+        license_key_id,
+        instance_id: Some(instance_id),
+        customer_name,
+    })
+}
+
+#[tauri::command]
+async fn deactivate_license(key: String, instance_id: String) -> Result<bool, String> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post("https://api.lemonsqueezy.com/v1/licenses/deactivate")
+        .form(&[
+            ("license_key", key.as_str()),
+            ("instance_id", instance_id.as_str()),
+        ])
+        .send()
+        .await
+        .map_err(|e| format!("Network error: {}", e))?;
+
+    let body: serde_json::Value = resp
+        .json()
+        .await
+        .map_err(|e| format!("Invalid response: {}", e))?;
+
+    let deactivated = body
+        .get("deactivated")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    Ok(deactivated)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -1978,7 +2115,10 @@ pub fn run() {
             save_download_history,
             load_download_history,
             delete_cached_thumbnail,
-            show_notification
+            show_notification,
+            activate_license,
+            validate_license,
+            deactivate_license
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
