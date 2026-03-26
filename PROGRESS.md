@@ -78,3 +78,75 @@ f2a8c14 feat: Phase 1 must-haves — toast system, empty state, open file, histo
 - Phase 4: Billing (LemonSqueezy integration, license validation in app)
 - Phase 5: Pre-Launch (screenshots, assets, beta testing)
 - Phase 3 remaining: Vercel deploy, DNS, OG image
+
+---
+
+## Session 2 — 2026-03-25 — Strategic Planning & Documentation
+
+### No code changes — Planning session only
+
+**Temas documentados para próxima sesión:**
+
+1. **Dominio Hostinger** — superdownloads.app muestra "pending verified". Necesita verificación antes de configurar DNS. Añadido a NEXT-SESSION.md.
+
+2. **Platform Reliability System** — Diseñar sistema de monitoreo para detectar cuando YouTube/TikTok/Instagram cambian protecciones y rompen yt-dlp. Incluye: health checks automáticos, alertas, dashboard de estado, protocolo de respuesta, auto-update de yt-dlp independiente, comunicación clara al usuario. Sección completa en NEXT-SESSION.md.
+
+3. **UI Polish — Inspiración Transmission** — Dos mejoras clave: (a) auto-resize de ventana según número de descargas (crece/encoge dinámicamente), (b) diseño más clean y compacto de la lista de descargas. Documentado en NEXT-SESSION.md.
+
+4. **Browser Extension** — Nueva Phase 8 añadida al roadmap. Extensión que permite descargar directo desde el navegador sin copiar/pegar URLs. Comunicación via deep link / URL scheme.
+
+### Documentation health check
+- 11 archivos de documentación verificados, todos presentes y consistentes
+- ROADMAP.md actualizado con Phase 8
+- NEXT-SESSION.md ampliado con 3 temas estratégicos nuevos
+- Memory del proyecto creada para platform reliability
+
+---
+
+## Session 3 — 2026-03-26 — Infrastructure & Deploy
+
+### Phase 2 Completion: Auto-Updater
+- Generated Ed25519 signing keypair for Tauri updater
+- Added `tauri-plugin-updater` dependency to Cargo.toml
+- Configured updater in `tauri.conf.json` (public key, endpoint URL)
+- Registered updater plugin in Rust backend
+- Added updater permission to capabilities
+- Private key excluded via `.gitignore`
+- **Phase 2 is now COMPLETE**
+
+### Phase 3 Progress: Landing Deploy + Domain
+- Created GitHub repo `marioforpro/super-downloads` (private)
+- Deployed landing to Vercel → `super-downloads.vercel.app` (live)
+- Added `superdownloads.app` + `www.superdownloads.app` domains to Vercel
+- Domain verification completed on Hostinger (email verification)
+- DNS configured on Hostinger:
+  - A record: `@ → 76.76.21.21` (Vercel)
+  - CNAME: `www → cname.vercel-dns.com`
+  - Old parking A record deleted
+  - Nameservers switched from `dns-parking.com` to Hostinger real NS
+- Added PostHog analytics snippet to landing layout
+- Added canonical URL and OG/Twitter image meta tags
+- Fixed clippy warning (collapsible else-if in error formatting)
+
+### Code Quality
+- Ran `cargo fmt --all` to fix Rust formatting
+- Fixed clippy warning (collapsible else-if block)
+- All checks pass: `npm run check` clean
+- Code review: ~3,874 lines across main.js + lib.rs — no major issues found
+
+### Configuration
+- Auto-approve (`bypassPermissions`) set globally in `~/.claude/settings.json`
+- Vercel CLI authenticated for `monteirolabs`
+
+### Commits
+```
+<hash> feat: landing page improvements — PostHog analytics, OG image tags, canonical URL
+<hash> fix: clippy warning (collapsible else-if) + add updater key to gitignore
+<hash> feat: Phase 2 — Tauri auto-updater setup
+<hash> docs: session 3 closing — documentation update
+```
+
+### DNS Status
+- Nameservers changed to Hostinger's real NS (aster/helios.dns-parking.com)
+- Propagation in progress — may take up to 24 hours
+- Once propagated: `superdownloads.app` will serve landing with auto HTTPS

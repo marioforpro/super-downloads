@@ -9,26 +9,43 @@
 
 ```
 Phase 0: Foundation        — COMPLETE
-Phase 1: App Polish        — COMPLETE (13/14 items)
-Phase 2: Product Infra     — NEAR COMPLETE (falta auto-updater)
-Phase 3: Landing Page      — IN PROGRESS (código hecho, falta deploy)
+Phase 1: App Polish        — COMPLETE
+Phase 2: Product Infra     — COMPLETE (auto-updater done)
+Phase 3: Landing Page      — NEAR COMPLETE (deployed, DNS propagating)
 Phase 4: Billing           — NOT STARTED
 Phase 5: Pre-Launch        — NOT STARTED
 Phase 6: Launch            — NOT STARTED
 ```
 
-**Lo que se hizo en Session 1 (2026-03-24):**
-- 8 commits, ~7,000 líneas de código
-- Auditoría completa + plan estratégico + documentación
-- App polish: toast system, drag & drop, notificaciones macOS, system theme, freemium, onboarding, about screen
-- Landing page Astro: hero, features, pricing, download, FAQ, legal
-- Investigación: dominios, Tauri updater, LemonSqueezy, 4K Download pricing
+**Lo que se hizo en Session 3 (2026-03-26):**
+- Auto-updater: Ed25519 keys generated, tauri-plugin-updater configured
+- GitHub repo created (`marioforpro/super-downloads`, private)
+- Landing deployed to Vercel → `super-downloads.vercel.app`
+- Domain `superdownloads.app` + `www` added to Vercel
+- Hostinger: email verification completed, DNS configured, nameservers switched
+- PostHog analytics integrated in landing
+- OG/Twitter image meta tags added
+- Clippy fix, cargo fmt, all checks pass
 
 ---
 
 ## TAREAS QUE NECESITAS HACER TÚ
 
-### 1. Probar la app con todos los cambios
+### 1. Verificar DNS propagación
+
+Espera unas horas y luego comprueba:
+```bash
+dig superdownloads.app +short
+# Debe devolver: 76.76.21.21
+```
+
+O simplemente visita `https://superdownloads.app` en el navegador. Si ves tu landing, el DNS propagó.
+
+Si después de 24h no funciona, contactar a Hostinger soporte — los nameservers se cambiaron correctamente pero la propagación puede requerir verificación adicional.
+
+---
+
+### 2. Probar la app (si no lo has hecho)
 
 ```bash
 cd /Users/supermac/Desktop/DEV/SUPER-DOWNLOADS
@@ -36,40 +53,26 @@ npm run tauri dev
 ```
 
 **Cosas que probar:**
-- [ ] Empty state (abrir app sin descargas)
-- [ ] Onboarding (borrar localStorage para verlo otra vez, o abrir en perfil limpio)
-- [ ] Descargar un vídeo — verificar que el toast funciona
-- [ ] Verificar el counter de descargas (X/5 en el top bar)
-- [ ] Copiar un link — verificar toast "Link copied"
-- [ ] Click derecho en descarga completada → "Open File"
+- [ ] Empty state, onboarding, download counter
+- [ ] Descargar un vídeo de YouTube, TikTok, Instagram
 - [ ] Drag & drop un link desde el navegador
-- [ ] Cambiar theme a System y verificar que sigue macOS
-- [ ] Click en la versión (settings) → About screen
-- [ ] Probar "Keep download history" toggle
-
-**Anotar**: cualquier cosa que no te guste, bugs, o mejoras que quieras.
+- [ ] Theme switching (Dark/Light/System)
+- [ ] About screen (click versión en settings)
 
 ---
 
-### 2. Generar las claves del auto-updater
+### 3. Crear cuenta en LemonSqueezy
 
-El auto-updater de Tauri necesita un par de claves (Ed25519). La generación es interactiva (pide contraseña).
-
-```bash
-cd /Users/supermac/Desktop/DEV/SUPER-DOWNLOADS
-npx tauri signer generate -w src-tauri/.tauri-update-key
-```
-
-- Te pedirá una contraseña — puedes dejarla vacía (Enter) o poner una.
-- Genera dos archivos: la clave privada (`.tauri-update-key`) y la pública (`.tauri-update-key.pub`).
-- **IMPORTANTE**: Añadir `.tauri-update-key` al `.gitignore` (es secreta).
-- La clave pública se usa en `tauri.conf.json` para verificar updates.
+1. Ve a [lemonsqueezy.com](https://lemonsqueezy.com) y crea una cuenta
+2. Completa onboarding (datos fiscales, cuenta bancaria)
+3. Crea un Store
+4. Crea producto **"Super Downloads Pro"** (€29, one-time, license key, 3 activaciones)
+5. Crea promo code **LAUNCH30** (30% off)
+6. Anota: **API Key**, **Store ID**, **Product ID**, **Checkout URL**
 
 ---
 
-### 3. Build nuevos DMGs
-
-Con todos los cambios de la app, necesitas builds frescos:
+### 4. Build nuevos DMGs
 
 ```bash
 cd /Users/supermac/Desktop/DEV/SUPER-DOWNLOADS
@@ -84,88 +87,37 @@ npm run tauri build -- --target x86_64-apple-darwin --bundles app
 ./create-dmg.sh
 ```
 
-Los DMGs se generan en `dist/`. Estos son los que se enlazarán en la landing page.
-
----
-
-### 4. Deploy de la landing page en Vercel
-
-**Opción A: Desde la web de Vercel**
-1. Ve a [vercel.com](https://vercel.com) y logéate
-2. Import the git repository (o conecta el directorio)
-3. **Root Directory:** `web` (importante — no la raíz del proyecto)
-4. **Framework Preset:** Astro (Vercel lo detecta automáticamente)
-5. Deploy
-
-**Opción B: Desde el CLI**
-```bash
-cd /Users/supermac/Desktop/DEV/SUPER-DOWNLOADS/web
-npx vercel
-# Seguir los prompts, seleccionar "web" como root
-```
-
----
-
-### 5. Apuntar el dominio a Vercel
-
-En **Hostinger** (donde registraste superdownloads.app):
-
-1. Ve a la configuración DNS de superdownloads.app
-2. Añade un registro CNAME:
-   - **Nombre:** `@` (o vacío para el dominio raíz)
-   - **Valor:** `cname.vercel-dns.com`
-3. O usa los registros A que Vercel te indica en el dashboard del proyecto
-
-Luego en **Vercel**:
-1. Ve a Settings → Domains del proyecto
-2. Añade `superdownloads.app`
-3. Vercel verificará el DNS automáticamente
-
----
-
-### 6. Crear cuenta en LemonSqueezy
-
-1. Ve a [lemonsqueezy.com](https://lemonsqueezy.com) y crea una cuenta
-2. Completa el onboarding (datos fiscales, cuenta bancaria para payouts)
-3. Crea un Store
-4. Crea un Producto:
-   - **Nombre:** Super Downloads Pro
-   - **Precio:** €29 (one-time)
-   - **Tipo:** License key
-   - **Activaciones por key:** 3
-   - **Variante:** Lifetime
-5. Crea un Promotion Code:
-   - **Código:** LAUNCH30
-   - **Descuento:** 30%
-   - **Tipo:** First payment
-6. Anota:
-   - **API Key** (Settings → API)
-   - **Store ID**
-   - **Product ID**
-   - **Checkout URL** (para enlazar desde la landing y la app)
-
----
-
-### 7. Actualizar URLs en la landing
-
-Una vez tengas los DMGs y el checkout de LemonSqueezy, necesitarás actualizar en `web/src/pages/index.astro`:
-
-- Los `href="#"` de los botones de descarga → URLs reales de los DMGs
-- El botón "Get Pro" → URL de checkout de LemonSqueezy
-
-Esto lo puedes hacer tú o pedirle a Claude en la siguiente sesión.
-
 ---
 
 ## QUÉ HACER CON CLAUDE EN LA SIGUIENTE SESIÓN
 
-Una vez hayas completado las tareas de arriba, la siguiente sesión con Claude debería:
+Con las tareas de arriba completadas:
 
-1. **Integrar LemonSqueezy** en la app (license validation, activation flow)
-2. **Configurar Tauri updater** con las claves generadas
+1. **Confirmar DNS** — Verificar que `superdownloads.app` sirve la landing
+2. **LemonSqueezy integration** (Phase 4) — License validation en la app, checkout URL en landing
 3. **Actualizar landing** con URLs reales (DMGs + checkout)
-4. **Tomar screenshots** de la app para OG image y marketing
-5. **Preparar pre-launch** (assets, beta testing, copy de lanzamiento)
+4. **Build DMGs con updater** — Los nuevos DMGs incluirán el auto-updater
+5. **OG image** — Crear imagen para social sharing
+6. **Pre-launch prep** (Phase 5) — Screenshots, beta testing, copy
+
+---
+
+## TEMAS ESTRATÉGICOS PENDIENTES
+
+### Platform Reliability & Monitoring
+- Health checks automáticos para detectar cuando yt-dlp se rompe en cada plataforma
+- Auto-update de yt-dlp sin requerir update de toda la app
+- Comunicación clara al usuario cuando una plataforma está down
+- **Decisión pendiente**: ¿dónde corren los health checks? ¿Script simple en launchd o servicio cloud?
+
+### UI Polish — Inspiración Transmission
+- Auto-resize de ventana según número de descargas
+- Diseño más clean/compacto de la lista de descargas
+- **Prerrequisito**: Probar la app actual y anotar qué te molesta visualmente
+
+### Browser Extension (Phase 8 — Future)
+- Extensión que envía URLs directamente a la app via deep link
+- No prioritario hasta post-launch
 
 ---
 
@@ -176,8 +128,14 @@ Una vez hayas completado las tareas de arriba, la siguiente sesión con Claude d
 | `ROADMAP.md` | Estado de cada fase |
 | `PROGRESS.md` | Log detallado de lo hecho |
 | `docs/DECISIONS.md` | Todas las decisiones tomadas |
-| `docs/LAUNCH.md` | Checklist de lanzamiento (6 gates) |
+| `docs/LAUNCH.md` | Checklist de lanzamiento |
 | `docs/APP-AUDIT.md` | Auditoría de UX/diseño |
 | `docs/BRAND.md` | Reglas de marca |
-| `docs/MARKETING.md` | Plan de marketing |
-| `CHANGELOG.md` | Historial de versiones |
+
+## CLAVES Y SECRETOS
+
+| Archivo | Qué es | En git? |
+|---------|--------|---------|
+| `src-tauri/.tauri-update-key` | Clave privada del updater | NO (.gitignore) |
+| `src-tauri/.tauri-update-key.pub` | Clave pública del updater | SÍ (committed) |
+| `.env` (futuro) | API keys de LemonSqueezy | NO |

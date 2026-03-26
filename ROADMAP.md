@@ -59,7 +59,7 @@
 
 ---
 
-## Phase 2: Product Infrastructure — IN PROGRESS
+## Phase 2: Product Infrastructure — COMPLETE
 
 > Objetivo: Añadir la lógica de negocio y sistemas de distribución sobre el producto pulido.
 
@@ -69,14 +69,14 @@
 - [x] UI de límite alcanzado (toast + counter en top bar)
 - [x] Download counter visible (X/5 badge, color-coded)
 - [x] Pro user detection (license key in localStorage)
-- [ ] Sistema de auto-update (Tauri updater plugin — keys need interactive generation)
+- [x] Sistema de auto-update (Tauri updater plugin — Ed25519 keys generated, plugin configured)
 - [x] First-run onboarding / welcome screen (icon, features, free limit note)
 - [x] About screen (version, email, website — click version label)
 - [ ] Analytics básico (telemetría anónima opt-in) — deferred to post-launch
 
 ---
 
-## Phase 3: Landing Page — IN PROGRESS
+## Phase 3: Landing Page — NEAR COMPLETE
 
 > Objetivo: Presencia web pública. Lugar donde enviar tráfico. Canal de descarga.
 
@@ -89,13 +89,15 @@
 - [x] Página de pricing integrada en landing (free vs pro, €29 lifetime, LAUNCH30)
 - [x] Sección de descarga (Apple Silicon + Intel, instrucciones de instalación)
 - [x] Legal: Terms of Service + Privacy Policy (pages completas)
-- [x] SEO básico (meta tags, OG tags, description)
+- [x] SEO básico (meta tags, OG tags, description, canonical URL)
 - [x] Favicon SVG (icono de la app)
+- [x] Configurar Vercel deployment (super-downloads.vercel.app — live)
+- [x] Analytics web (PostHog snippet integrated)
+- [x] Apuntar dominio superdownloads.app a Vercel (DNS configured, propagating)
+- [x] OG/Twitter image meta tags (placeholder — needs real image)
 - [ ] Conectar URLs de descarga a DMGs reales
-- [ ] OG image (screenshot o diseño)
-- [ ] Configurar Vercel deployment
-- [ ] Analytics web (PostHog o Plausible)
-- [ ] Apuntar dominio superdownloads.app a Vercel
+- [ ] OG image asset (screenshot o diseño)
+- [ ] DNS propagation confirmed + HTTPS active
 
 ---
 
@@ -153,6 +155,18 @@
 - [ ] Más plataformas de descarga
 - [ ] Features avanzadas (batch download, subtítulos, etc.)
 - [ ] Posible expansión a Windows/Linux
+
+---
+
+## Phase 8: Browser Extension — FUTURE
+
+> Objetivo: Hacer el flujo de descarga aún más rápido. El usuario no debería tener que copiar/pegar URLs.
+
+- [ ] Extensión de navegador (Chrome/Safari/Firefox) que detecta vídeos en la página actual
+- [ ] Botón "Download with Super Downloads" que envía la URL directo a la app
+- [ ] Deep link / URL scheme (`superdownloads://download?url=...`) para comunicación browser → app
+- [ ] Integración bidireccional: la extensión puede mostrar el estado de la descarga
+- [ ] Posible: detección automática de plataformas soportadas (highlight del botón solo en YouTube, TikTok, etc.)
 
 ---
 
