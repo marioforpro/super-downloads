@@ -80,8 +80,8 @@ fn is_error_line(line: &str) -> bool {
         || line.contains("impersonate")
         || line.contains("unauthentic")
         || line.contains("Vimeo");
-    let is_ignorable = line.contains("Operation not permitted")
-        || line.contains("Cookies.binarycookies");
+    let is_ignorable =
+        line.contains("Operation not permitted") || line.contains("Cookies.binarycookies");
     has_error && !is_ignorable
 }
 
@@ -1253,14 +1253,13 @@ fn download_video(
                 }
 
                 // Check if this is an auth-required error that can be retried with cookies
-                let combined_error_text = format!(
-                    "{} {} {}",
-                    error_messages.join(" "),
-                    all_stderr,
-                    all_stdout
-                );
+                let combined_error_text =
+                    format!("{} {} {}", error_messages.join(" "), all_stderr, all_stdout);
                 let should_retry_with_cookies = is_auth_required_error(&combined_error_text)
-                    && (is_youtube || is_vimeo || url.contains("facebook.com") || url.contains("fb.watch"));
+                    && (is_youtube
+                        || is_vimeo
+                        || url.contains("facebook.com")
+                        || url.contains("fb.watch"));
 
                 if should_retry_with_cookies {
                     eprintln!("Auth-required content detected, retrying with browser cookies...");
@@ -1278,20 +1277,28 @@ fn download_video(
                     // Build retry command with cookies
                     let mut retry_cmd = Command::new(&ytdlp_path);
                     retry_cmd
-                        .arg("-f").arg(format_selector)
+                        .arg("-f")
+                        .arg(format_selector)
                         .arg("--continue")
-                        .arg("--retries").arg("10")
-                        .arg("--fragment-retries").arg("10")
-                        .arg("--concurrent-fragments").arg("4")
-                        .arg("--socket-timeout").arg("30")
-                        .arg("--ffmpeg-location").arg(&ffmpeg_dir)
+                        .arg("--retries")
+                        .arg("10")
+                        .arg("--fragment-retries")
+                        .arg("10")
+                        .arg("--concurrent-fragments")
+                        .arg("4")
+                        .arg("--socket-timeout")
+                        .arg("30")
+                        .arg("--ffmpeg-location")
+                        .arg(&ffmpeg_dir)
                         .arg("--newline");
 
                     if is_audio_only {
                         retry_cmd
                             .arg("-x")
-                            .arg("--audio-format").arg("mp3")
-                            .arg("--audio-quality").arg("0");
+                            .arg("--audio-format")
+                            .arg("mp3")
+                            .arg("--audio-quality")
+                            .arg("0");
                     } else {
                         retry_cmd.arg("--merge-output-format").arg(output_format);
                     }
@@ -1302,10 +1309,13 @@ fn download_video(
                     }
 
                     retry_cmd
-                        .arg("--user-agent").arg(DEFAULT_USER_AGENT)
-                        .arg("--cookies-from-browser").arg("chrome")
+                        .arg("--user-agent")
+                        .arg(DEFAULT_USER_AGENT)
+                        .arg("--cookies-from-browser")
+                        .arg("chrome")
                         .arg("--no-warnings")
-                        .arg("-o").arg(&planned_output_path)
+                        .arg("-o")
+                        .arg(&planned_output_path)
                         .arg(&url)
                         .stdout(Stdio::piped())
                         .stderr(Stdio::piped());
@@ -1734,8 +1744,7 @@ fn resize_window_height(window: Window, height: u32) -> Result<(), String> {
     // Convert physical pixel delta to logical pixels
     let chrome_delta_height =
         (outer_size.height.saturating_sub(inner_size.height) as f64) / scale_factor;
-    let target_outer_height =
-        (target_inner_height + chrome_delta_height).clamp(220.0, 1200.0);
+    let target_outer_height = (target_inner_height + chrome_delta_height).clamp(220.0, 1200.0);
 
     window
         .set_size(Size::Logical(LogicalSize::new(
@@ -1761,8 +1770,7 @@ fn set_min_window_height(window: Window, height: u32) -> Result<(), String> {
     // Convert physical pixel delta to logical pixels
     let chrome_delta_height =
         (outer_size.height.saturating_sub(inner_size.height) as f64) / scale_factor;
-    let target_outer_min_height =
-        (target_inner_height + chrome_delta_height).clamp(220.0, 1200.0);
+    let target_outer_min_height = (target_inner_height + chrome_delta_height).clamp(220.0, 1200.0);
     window
         .set_min_size(Some(Size::Logical(LogicalSize::new(
             400.0,
