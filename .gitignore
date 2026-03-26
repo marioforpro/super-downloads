@@ -17,6 +17,9 @@ src-tauri/gen
 # Bundled binaries (large files ~300MB total)
 src-tauri/binaries/
 
+# Tauri updater signing key (private — NEVER commit)
+src-tauri/.tauri-update-key
+
 # Astro build output
 web/dist/
 web/.astro/

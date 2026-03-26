@@ -1421,12 +1421,10 @@ fn download_video(
                         } else {
                             msg
                         }
+                    } else if msg.len() > 300 {
+                        format!("{}...", &msg[..300])
                     } else {
-                        if msg.len() > 300 {
-                            format!("{}...", &msg[..300])
-                        } else {
-                            msg
-                        }
+                        msg
                     }
                 } else if !all_stderr.trim().is_empty() {
                     let stderr_trimmed = all_stderr.trim();
