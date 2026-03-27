@@ -6,6 +6,76 @@ import Layout from '../layouts/Layout.astro';
   title="Super Downloads — The video downloader built for editors"
   description="Download videos from YouTube, TikTok, X, Vimeo, Instagram, Facebook & LinkedIn. Every download is Premiere Pro ready — H.264/MP4. Native macOS app."
 >
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "What is Super Downloads?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Super Downloads is a native macOS app that downloads videos from YouTube, TikTok, X/Twitter, Vimeo, Instagram, Facebook, and LinkedIn. Every download is automatically converted to H.264/MP4, so files are ready to edit in Premiere Pro, DaVinci Resolve, or Final Cut Pro without conversion."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Who is Super Downloads for?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Super Downloads is built for video editors, content creators, and creative professionals who need to download reference footage, client assets, or social media clips and edit them immediately. The automatic H.264 conversion eliminates the format compatibility issues editors commonly face."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does macOS warn me about the app?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The app is not signed with an Apple Developer ID yet. macOS Gatekeeper will show a warning the first time you open it. Right-click the app, choose Open, then click Open again. This only happens once."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What video quality can I download?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can choose Best Available, 1080p, or 720p. All downloads are automatically converted to H.264/MP4 for editing compatibility. Picking 1080p or 720p is often faster since it avoids conversion."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do I need an internet connection?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, to download videos. But the app itself runs 100% locally — no account needed, no cloud processing, no data sent anywhere."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use Super Downloads on Windows or Linux?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Not yet. Super Downloads is currently macOS only, supporting both Apple Silicon (M1/M2/M3/M4) and Intel Macs. Other platforms may come in the future."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How much does Super Downloads cost?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Super Downloads has a free plan with 5 downloads per day and all features included. The Pro license is a one-time payment of €29 for lifetime access with unlimited downloads and up to 3 devices."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I get a refund?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Email support@superdownloads.app within 14 days of purchase for a full refund, no questions asked."
+        }
+      }
+    ]
+  })} />
   <!-- Nav -->
   <nav class="nav">
     <div class="nav-inner">
@@ -150,6 +220,18 @@ import Layout from '../layouts/Layout.astro';
     <div class="section-inner">
       <h2 class="section-title">FAQ</h2>
       <div class="faq-list">
+        <details class="faq-item">
+          <summary>What is Super Downloads?</summary>
+          <p>Super Downloads is a native macOS app that downloads videos from YouTube, TikTok, X/Twitter, Vimeo, Instagram, Facebook, and LinkedIn. Every download is automatically converted to H.264/MP4, so files are ready to edit in Premiere Pro, DaVinci Resolve, or Final Cut Pro without conversion.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Who is Super Downloads for?</summary>
+          <p>Video editors, content creators, and creative professionals who need to download reference footage, client assets, or social media clips and edit them immediately. The automatic H.264 conversion eliminates the format compatibility issues editors commonly face.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How much does Super Downloads cost?</summary>
+          <p>There's a free plan with 5 downloads per day and all features included. The Pro license is a one-time payment of €29 for lifetime access with unlimited downloads and up to 3 devices.</p>
+        </details>
         <details class="faq-item">
           <summary>Why does macOS warn me about the app?</summary>
           <p>The app is not signed with an Apple Developer ID yet. This means macOS Gatekeeper will show a warning the first time you open it. Right-click the app, choose Open, then click Open again. This only happens once.</p>
