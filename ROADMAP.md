@@ -1,181 +1,60 @@
-# Roadmap — Super Downloads
-
-> Plan de ejecución por fases. Cada fase tiene criterios de completado claros.
+# ROADMAP — Super Downloads
 
 ---
-
-## Phase 0: Foundation — COMPLETE
-
-> Objetivo: Base documental, branding, y quick wins técnicos. Todo lo necesario antes de construir.
-
-- [x] Inicializar git repo
-- [x] Definir identidad visual (icono confirmado, paleta azul definida)
-- [x] Crear BRAND.md con reglas de marca
-- [x] Fix Cargo.toml author
-- [x] Dominio decidido: `superdownloads.app`
-- [x] Definir estructura freemium (5/día free, ilimitado pro, €29 lifetime)
-- [x] Decidir code signing (diferido, Tauri updater no lo requiere)
-- [x] Decidir plataforma de pago (LemonSqueezy)
-- [x] Crear documentación completa (DIAGNOSTIC, DECISIONS, LAUNCH, MARKETING, CHANGELOG)
-- [x] Fix CSP en tauri.conf.json
-- [x] Añadir versión visible en la UI (settings panel)
-- [x] Registrar dominio superdownloads.app (Hostinger)
-- [x] Registrar email support@superdownloads.app
-- [x] Initial git commit con estado actual
-
+scope: project:SUPER-DOWNLOADS
+prefix: SD
+lifecycle: pre-launch
+current_phase: Phase 4 — Billing (blocked on Mario)
+next_milestone: launch on LemonSqueezy
+updated: 2026-04-23
 ---
 
-## Phase 1: App Polish — COMPLETE
+> Forward-motion view for Super Downloads at LifeOS level.
+> Schema contract: `docs/protocols/ROADMAP-SCHEMA.md`.
+> Phase 0–3 history preserved below and in git. Day-to-day code-level detail (per-phase checkbox lists) is NOT tracked here any more — that was task-manager territory. This file tracks launch-level forward motion only.
 
-> Objetivo: Convertir la herramienta en un producto pulido. Diseño, UX, y funcionalidad.
-> Referencia: `docs/APP-AUDIT.md` para detalle completo de cada item.
+## Roadmap
 
-**Criterio de completado:** La app se siente profesional. Un desconocido puede usarla sin ayuda.
+- **R-SD-001** · P0 · blocked · Submit Super Downloads to LemonSqueezy for approval
+  - blocker: demo video not recorded + account setup pending Mario (since 2026-03-28)
+  - next: record 30–60s screen capture per `docs/LAUNCH.md`, then create LemonSqueezy product (€29 lifetime) + LAUNCH30 promo + license-key issuance rules
+  - target: 2026-04-30
+  - source: docs/LAUNCH.md, docs/NEXT-SESSION.md
+  - moved: 2026-03-28
+- **R-SD-002** · P1 · next · Publish launch announcement (Reddit r/macapps + HN Show HN)
+  - next: draft copy once R-SD-001 clears + LemonSqueezy checkout URL is live
+  - depends_on: R-SD-001
+  - source: docs/MARKETING.md
+  - moved: 2026-04-23
 
-### Must-haves (bloquean el lanzamiento)
+## Shipped (last 30d)
 
-- [x] **Empty state inspirador** — Icono + hint + plataformas soportadas
-- [x] **Toast notifications** — Reemplazados todos los `alert()` con toasts in-app
-- [x] **Copy link feedback** — Toast "Link copied" al copiar
-- [x] **"Open file" en context menu** — Abre vídeo con player por defecto
-- [x] **Versión dinámica** — Lee versión desde Tauri API (`app.getVersion()`)
-- [x] **Persistencia del historial** — Toggle "Keep download history" en settings (OFF por defecto)
-- [x] **Audio-only/auto-add reset** — Confirmado intencional, documentado
+_(no shipped roadmap items this window — open items all blocked on R-SD-001)_
 
-### Should-haves (mejoran significativamente la experiencia)
+## Backlog (unranked)
 
-- [x] **Drag & drop de URLs** — Drop zone en toda la ventana, soporte multi-URL
-- [x] **Notificaciones nativas macOS** — Notificación al terminar (solo cuando app no tiene foco)
-- [x] **System theme** — Selector Dark/Light/System con listener para cambios de OS
-- [x] **Limpiar console.logs** — Eliminados 12 debug logs, mantenidos warn/error
+- OG image asset (screenshot or custom design)
+- DNS propagation + HTTPS verified on bare `superdownloads.app` domain
+- Screenshots / assets / demo GIF for launch day polish (distinct from the demo video under R-SD-001)
+- Batch URL paste feature
+- Analytics telemetry opt-in (from Phase 2 deferred list)
+- Windows/Linux expansion
+- Browser extension (was Phase 8 in prior roadmap — legitimately future work)
+- MacUpdate / AlternativeTo directory submissions
+- Product Hunt launch (timing TBD)
 
-### Could-haves (polish extra)
+## Prior Phases — history (one-line summary)
 
-- [x] **Custom confirm modal** — Reemplazados ambos `window.confirm()` con modal in-app
-- [x] **Eliminar settings-compact** — ~180 líneas de CSS muerto eliminadas
-- [ ] Batch URL paste (múltiples URLs de una vez) — deferred to post-launch
+Earlier phase-oriented roadmap (Phases 0–8) is preserved in git history of this file. High-level status at 2026-04-23:
 
-**Requiere input del founder:** Decisión sobre persistencia del historial, decisión sobre reset de settings.
+- **Phase 0: Foundation** — COMPLETE (branding, domain, payment choice, docs).
+- **Phase 1: App Polish** — COMPLETE (empty state, toasts, drag-and-drop, native notifications, theme).
+- **Phase 2: Product Infrastructure** — COMPLETE (freemium counter, auto-updater, onboarding, license UI).
+- **Phase 3: Landing Page** — NEAR COMPLETE (live at `www.superdownloads.app` via Vercel; PostHog integrated; bare-domain DNS pending).
+- **Phase 4: Billing** — IN PROGRESS → tracked as **R-SD-001** above.
+- **Phase 5: Pre-Launch** — NOT STARTED → rolled into **R-SD-001** (demo video is the gating asset) and backlog (screenshots, copy).
+- **Phase 6: Launch** — NOT STARTED → tracked as **R-SD-002** and backlog (directory submits).
+- **Phase 7: Post-Launch** — future work, not in scope until R-SD-001 clears.
+- **Phase 8: Browser Extension** — future, backlog.
 
----
-
-## Phase 2: Product Infrastructure — COMPLETE
-
-> Objetivo: Añadir la lógica de negocio y sistemas de distribución sobre el producto pulido.
-
-**Criterio de completado:** App con freemium funcional, auto-updater, y onboarding.
-
-- [x] Lógica freemium (contador de 5 descargas/día, persistente, reset midnight)
-- [x] UI de límite alcanzado (toast + counter en top bar)
-- [x] Download counter visible (X/5 badge, color-coded)
-- [x] Pro user detection (license key in localStorage)
-- [x] Sistema de auto-update (Tauri updater plugin — Ed25519 keys generated, plugin configured)
-- [x] First-run onboarding / welcome screen (icon, features, free limit note)
-- [x] About screen (version, email, website — click version label)
-- [ ] Analytics básico (telemetría anónima opt-in) — deferred to post-launch
-
----
-
-## Phase 3: Landing Page — NEAR COMPLETE
-
-> Objetivo: Presencia web pública. Lugar donde enviar tráfico. Canal de descarga.
-
-**Criterio de completado:** Web live con descarga directa, info del producto, y pricing.
-
-**Stack:** Astro v6 (sitio estático en `web/`, deploy en Vercel)
-
-- [x] Diseño de landing page (hero, features, pricing, download, FAQ)
-- [x] Desarrollo de la landing (index.astro, responsive)
-- [x] Página de pricing integrada en landing (free vs pro, €29 lifetime, LAUNCH30)
-- [x] Sección de descarga (Apple Silicon + Intel, instrucciones de instalación)
-- [x] Legal: Terms of Service + Privacy Policy (pages completas)
-- [x] SEO básico (meta tags, OG tags, description, canonical URL)
-- [x] Favicon SVG (icono de la app)
-- [x] Configurar Vercel deployment (super-downloads.vercel.app — live)
-- [x] Analytics web (PostHog snippet integrated)
-- [x] Apuntar dominio superdownloads.app a Vercel (DNS configured, propagating)
-- [x] OG/Twitter image meta tags (placeholder — needs real image)
-- [x] Conectar URLs de descarga a DMGs reales (GitHub Releases URLs)
-- [ ] OG image asset (screenshot o diseño)
-- [ ] DNS propagation confirmed + HTTPS active
-
----
-
-## Phase 4: Billing — IN PROGRESS
-
-> Objetivo: Monetización funcionando. El usuario puede pagar por Pro.
-
-**Criterio de completado:** Un usuario puede comprar la licencia Pro y desbloquear features.
-
-- [ ] LemonSqueezy: cuenta, producto "Super Downloads Pro" (€29 lifetime) — **FOUNDER ACTION**
-- [ ] License key generation (3 activaciones por key) — **FOUNDER ACTION** (LemonSqueezy config)
-- [ ] Promo code LAUNCH30 (30% off) — **FOUNDER ACTION** (LemonSqueezy config)
-- [x] License validation en la app (LemonSqueezy API) — activate, validate, deactivate commands
-- [x] License UI en settings (input, activate, deactivate, upgrade link)
-- [ ] Flujo: web checkout → license key → app activation — needs real checkout URL
-- [ ] Restauración de licencia — works via activate with same key
-- [ ] Email de confirmación de compra — LemonSqueezy handles this
-
----
-
-## Phase 5: Pre-Launch — NOT STARTED
-
-> Objetivo: Todo preparado para anunciar públicamente.
-
-**Criterio de completado:** Launch checklist completada (ver `docs/LAUNCH.md`).
-
-- [ ] Screenshots profesionales de la app (3-5 capturas)
-- [ ] Vídeo demo / GIF animado
-- [ ] Assets para redes sociales
-- [ ] Copy de lanzamiento
-- [ ] Canal de soporte (support@superdownloads.app)
-- [ ] FAQ / documentación de usuario
-- [ ] Testeo con 3-5 beta testers
-- [ ] Última ronda de bug fixing
-
----
-
-## Phase 6: Launch — NOT STARTED
-
-> Objetivo: Producto público. Primeros usuarios reales.
-
-- [ ] Publicar web en superdownloads.app
-- [ ] Anunciar en redes sociales
-- [ ] Submits a directorios de apps Mac (MacUpdate, AlternativeTo, etc.)
-- [ ] Publicar en Product Hunt (cuando tenga sentido)
-- [ ] Monitorizar feedback y bugs
-
----
-
-## Phase 7: Post-Launch — FUTURE
-
-> Iteración basada en datos reales.
-
-- [ ] Análisis de métricas (descargas, activaciones, conversiones)
-- [ ] Iterar basado en feedback
-- [ ] Más plataformas de descarga
-- [ ] Features avanzadas (batch download, subtítulos, etc.)
-- [ ] Posible expansión a Windows/Linux
-
----
-
-## Phase 8: Browser Extension — FUTURE
-
-> Objetivo: Hacer el flujo de descarga aún más rápido. El usuario no debería tener que copiar/pegar URLs.
-
-- [ ] Extensión de navegador (Chrome/Safari/Firefox) que detecta vídeos en la página actual
-- [ ] Botón "Download with Super Downloads" que envía la URL directo a la app
-- [ ] Deep link / URL scheme (`superdownloads://download?url=...`) para comunicación browser → app
-- [ ] Integración bidireccional: la extensión puede mostrar el estado de la descarga
-- [ ] Posible: detección automática de plataformas soportadas (highlight del botón solo en YouTube, TikTok, etc.)
-
----
-
-## Parallel Track: Social Presence
-
-> Se puede iniciar en cualquier momento. No bloquea ninguna fase.
-
-- [ ] Cuentas creadas (X, Instagram como mínimo)
-- [ ] Bio y avatar configurados
-- [ ] Primeros posts de producto
-- [ ] Estrategia de contenido definida
+Full phase-level detail (with per-task checkboxes) can be retrieved with `git show HEAD~:01_Projects/SUPER-DOWNLOADS/ROADMAP.md` until a formal `PROGRESS.md` is created.
