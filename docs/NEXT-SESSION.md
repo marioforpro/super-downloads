@@ -1,7 +1,69 @@
 # Siguiente Sesion — Guia de Acciones para el Founder
 
-> Lee esto al empezar la proxima sesion de trabajo.
-> Estas son las tareas que necesitan TU accion directa antes de seguir avanzando con Claude.
+> Abre este archivo → graba el demo → responde a Vishnu. Sin pensar.
+
+---
+
+## 🎬 EXECUTE — R-SD-001 demo video (target 2026-04-30)
+
+### Prerequisite (do first)
+
+- [ ] Confirm LemonSqueezy product is in **test mode** (checkout functional, no real charge). If live-only, flip to test mode before recording.
+
+### Shot list — 60–75s total
+
+**Scene 1 · App UX (0:00–0:20) — 20s**
+- `0:00` Open Super Downloads (clean empty state)
+- `0:04` Paste YouTube URL into input
+- `0:08` Click Download → progress bar fills
+- `0:15` File appears in Finder → drag into Premiere Pro timeline
+
+**Scene 2 · Fulfillment (0:20–1:00) — 40s** ← what LS actually cares about
+- `0:20` In-app: click "Get Pro" (€29)
+- `0:23` LemonSqueezy checkout opens (test mode) → fill card → confirm
+- `0:32` Purchase success screen
+- `0:35` Switch to Mail → LemonSqueezy license-key email (show key)
+- `0:42` Back to Super Downloads → Settings → paste license key → Activate
+- `0:52` "Pro · unlimited downloads" state visible
+- `0:58` Quick close
+
+**Scene 3 · Outro (1:00–1:10) — 10s**
+- `1:00` Logo + superdownloads.app
+- `1:05` End
+
+### Upload
+
+- [ ] Export MP4 → upload to YouTube (unlisted) or Loom
+- [ ] Copy share URL
+
+### Reply to Vishnu — thread `{#HS:3271250731-516790#}`
+
+```
+Hola Vishnu,
+
+Adjunto los dos items que pediste:
+
+1) Demo video (60-75s): [PASTE YOUTUBE URL]
+   Muestra: descarga de un vídeo, integración con Premiere,
+   checkout en LemonSqueezy y flow de activación de licencia.
+
+2) Perfiles para verificación:
+   - LinkedIn:  https://linkedin.com/in/mariomonteirotv
+   - X:         https://x.com/mariomonteiro
+   - Portfolio: https://mariomonteiro.tv
+
+Quedamos a la espera del approval para activar la store en producción.
+
+Gracias,
+Mario
+```
+
+- [ ] Send reply
+- [ ] Mark R-SD-001 as unblocked in `ROADMAP.md` once LS confirms approval
+
+### Launch-order reminder
+
+DMGs + GitHub Release can proceed in parallel — they don't depend on LS approval. Do NOT publicly announce launch until: (1) LS approved, (2) real €29 purchase verified end-to-end.
 
 ---
 
