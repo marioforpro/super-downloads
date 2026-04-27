@@ -4,6 +4,38 @@
 
 ---
 
+## ⏸ PAUSED — 2026-04-27
+
+> Founder switched focus to other work. Do NOT auto-resume R-SD-001 in next Mission Control. Resume only when founder explicitly says so.
+
+### Resume entry point
+Open this file. The checklist below is the resume plan — pick up at step 3.
+
+### Checklist progress at pause
+
+- [x] **1 · DNS verified for `superdownloads.app`** — verified 2026-04-28 with `dig superdownloads.app +short` returning `216.198.79.1`.
+- [x] **2 · DMGs present locally** — verified 2026-04-28 in `dist/`: `SuperDownloads_v1.1_AppleSilicon.dmg` and `SuperDownloads_v1.1_Intel.dmg`.
+- [ ] **3 · GitHub Release v1.1.0** — does not exist. Upload the existing local DMGs with release asset names the landing page expects:
+  - `dist/SuperDownloads_v1.1_AppleSilicon.dmg#Super-Downloads_aarch64.dmg`
+  - `dist/SuperDownloads_v1.1_Intel.dmg#Super-Downloads_x64.dmg`
+- [ ] **4 · Verify LemonSqueezy product** — UUID `21db1cfb-37f8-4371-8085-b5e30f89645f` (already wired in both `src/main.js:99` and `web/src/pages/index.astro:184`). Confirm: product exists, **test mode active** (required for Scene 2 recording), €29 one-time, license key generation enabled (3 activations max), `LAUNCH30` promo code present, checkout URL loads.
+- [ ] **5 · Record demo + reply to Vishnu** — per shot list below. Last step. Do not start until 1–4 are green.
+
+### State changes already shipped (do NOT redo on resume)
+
+- ✅ `src/main.js:99` — in-app `LEMONSQUEEZY_CHECKOUT_URL` wired to real product UUID (commit `cba5d29` in SUPER-DOWNLOADS repo, 2026-04-27). Was placeholder `/checkout/buy/TODO` before.
+- ✅ Demo execution plan persisted (this file) — script intact below.
+- ✅ Vishnu reply template ready (below).
+
+### What's NOT pending (verified 2026-04-28)
+
+- `superdownloads.app` DNS — resolves to Vercel (`216.198.79.1`).
+- `www.superdownloads.app` DNS — resolves correctly through Vercel CNAME.
+- DMGs — present locally in `dist/`.
+- LemonSqueezy URL on landing page — already wired to real product UUID.
+
+---
+
 ## 🎬 EXECUTE — R-SD-001 demo video (target 2026-04-30)
 
 ### Prerequisite (do first)
@@ -90,20 +122,14 @@ Phase 6: Launch            — NOT STARTED
 
 ## TAREAS QUE NECESITAS HACER TU
 
-### 1. Fix DNS — Bare domain `superdownloads.app`
+### 1. Verify DNS — Bare domain `superdownloads.app`
 
-`www.superdownloads.app` works, but `superdownloads.app` (bare domain) does not resolve.
-
-**In Hostinger hPanel:**
-1. Go to Domain → DNS Zone for `superdownloads.app`
-2. Add or edit the **A record** for `@` → `76.76.21.21`
-3. Make sure there's no conflicting A record (parking IP)
-4. Wait 5-30 min for propagation
+`www.superdownloads.app` works and `superdownloads.app` currently resolves to Vercel. Only re-open Hostinger if this check fails.
 
 Verify:
 ```bash
 dig superdownloads.app +short
-# Should return: 76.76.21.21
+# Should return: 216.198.79.1
 ```
 
 ---

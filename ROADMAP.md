@@ -4,9 +4,9 @@
 scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: pre-launch
-current_phase: Phase 4 — Billing (blocked on Mario)
+current_phase: Phase 4 — Billing (PAUSED 2026-04-27 by founder; focus switched to other work)
 next_milestone: launch on LemonSqueezy
-updated: 2026-04-23
+updated: 2026-04-27
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -15,12 +15,12 @@ updated: 2026-04-23
 
 ## Roadmap
 
-- **R-SD-001** · P0 · blocked · Submit Super Downloads to LemonSqueezy for approval
-  - blocker: demo video not recorded + account setup pending Mario (since 2026-03-28)
-  - next: record 30–60s screen capture per `docs/LAUNCH.md`, then create LemonSqueezy product (€29 lifetime) + LAUNCH30 promo + license-key issuance rules
-  - target: 2026-04-30
+- **R-SD-001** · P0 · paused · Submit Super Downloads to LemonSqueezy for approval
+  - paused_reason: founder switched focus to other work on 2026-04-27. Resume from `docs/NEXT-SESSION.md`.
+  - next: when resuming, follow the remaining checklist in `docs/NEXT-SESSION.md` (DMGs → GitHub Release v1.1.0 → LS verify → record demo)
+  - target: 2026-04-30 (will slip on resume — re-baseline at that time)
   - source: docs/LAUNCH.md, docs/NEXT-SESSION.md
-  - moved: 2026-03-28
+  - moved: 2026-04-27
 - **R-SD-002** · P1 · next · Publish launch announcement (Reddit r/macapps + HN Show HN)
   - next: draft copy once R-SD-001 clears + LemonSqueezy checkout URL is live
   - depends_on: R-SD-001
@@ -34,7 +34,6 @@ _(no shipped roadmap items this window — open items all blocked on R-SD-001)_
 ## Backlog (unranked)
 
 - OG image asset (screenshot or custom design)
-- DNS propagation + HTTPS verified on bare `superdownloads.app` domain
 - Screenshots / assets / demo GIF for launch day polish (distinct from the demo video under R-SD-001)
 - Batch URL paste feature
 - Analytics telemetry opt-in (from Phase 2 deferred list)
@@ -50,7 +49,7 @@ Earlier phase-oriented roadmap (Phases 0–8) is preserved in git history of thi
 - **Phase 0: Foundation** — COMPLETE (branding, domain, payment choice, docs).
 - **Phase 1: App Polish** — COMPLETE (empty state, toasts, drag-and-drop, native notifications, theme).
 - **Phase 2: Product Infrastructure** — COMPLETE (freemium counter, auto-updater, onboarding, license UI).
-- **Phase 3: Landing Page** — NEAR COMPLETE (live at `www.superdownloads.app` via Vercel; PostHog integrated; bare-domain DNS pending).
+- **Phase 3: Landing Page** — COMPLETE (live at `superdownloads.app` and `www.superdownloads.app` via Vercel; PostHog integrated).
 - **Phase 4: Billing** — IN PROGRESS → tracked as **R-SD-001** above.
 - **Phase 5: Pre-Launch** — NOT STARTED → rolled into **R-SD-001** (demo video is the gating asset) and backlog (screenshots, copy).
 - **Phase 6: Launch** — NOT STARTED → tracked as **R-SD-002** and backlog (directory submits).

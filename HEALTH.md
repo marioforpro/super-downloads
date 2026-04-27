@@ -26,7 +26,7 @@ repo: marioforpro/super-downloads
 macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS frontend. Astro-based landing page.
 
 ## Revenue Model
-- Freemium (planned)
+- Freemium: 5 downloads/day free; Pro is €29 one-time lifetime with up to 3 devices
 
 ## Key Decisions Pending
 - Founder decision to resume R-SD-001
@@ -44,5 +44,5 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 
 ## Notes
 - Bundles yt-dlp/ffmpeg binaries — large files, must stay gitignored
-- No Vercel deployment (native macOS app)
+- Landing page deploys on Vercel; native app release ships through DMG/GitHub Release
 - As of 2026-04-27 this project is paused, not an active blocker. `docs/NEXT-SESSION.md` is the resume checklist.
