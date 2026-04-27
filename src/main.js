@@ -96,8 +96,7 @@ const LICENSE_KEY_STORAGE = "proLicenseKey";
 const LICENSE_INSTANCE_STORAGE = "proLicenseInstance";
 const LICENSE_NAME_STORAGE = "proLicenseName";
 const FIRST_RUN_KEY = "hasSeenOnboarding";
-// LemonSqueezy checkout URL — replace with your real checkout URL after creating the product
-const LEMONSQUEEZY_CHECKOUT_URL = "https://superdownloads.lemonsqueezy.com/checkout/buy/TODO";
+const LEMONSQUEEZY_CHECKOUT_URL = "https://superdownloads.lemonsqueezy.com/checkout/buy/21db1cfb-37f8-4371-8085-b5e30f89645f";
 let lastRequestedMinWindowHeight = 0;
 let lastAutoFilledClipboardText = "";
 let clipboardWatchTimer = null;
