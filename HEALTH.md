@@ -1,7 +1,16 @@
 ---
 name: Super Downloads
+slug: SUPER-DOWNLOADS
+emoji: "🔵"
 type: product
 status: pre-launch
+lifecycle: pre-launch
+blocked: false
+blocker_reason: null
+resolution_factor: 1.0
+validity_factor: 1.0
+next_milestone: paused — resume R-SD-001 from docs/NEXT-SESSION.md only when founder explicitly says so
+last_updated: 2026-04-28
 stack: Tauri v2, Rust, vanilla JS, Astro
 repo: marioforpro/super-downloads
 ---
@@ -20,8 +29,8 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 - Freemium (planned)
 
 ## Key Decisions Pending
-- Launch date and distribution strategy
-- Pricing tiers for premium features
+- Founder decision to resume R-SD-001
+- Re-baseline launch target once work resumes
 
 ## LifeOS Integration
 - **Domain**: 01_Projects (Product)
@@ -36,3 +45,4 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 ## Notes
 - Bundles yt-dlp/ffmpeg binaries — large files, must stay gitignored
 - No Vercel deployment (native macOS app)
+- As of 2026-04-27 this project is paused, not an active blocker. `docs/NEXT-SESSION.md` is the resume checklist.
