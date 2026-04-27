@@ -8,14 +8,27 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+node_modules.nosync/
+node_modules.nosync
+node_modules\ 2
 dist
 dist-ssr
 *.local
 src-tauri/target
+src-tauri/target.nosync/
+src-tauri/target.nosync
+src-tauri/target\ 2
 src-tauri/gen
+.git.nosync/
+.git.nosync
+*.nosync/
+*.nosync
 
 # Bundled binaries (large files ~300MB total)
 src-tauri/binaries/
+src-tauri/binaries
+src-tauri/binaries.nosync/
+src-tauri/binaries.nosync
 
 # Tauri updater signing key (private — NEVER commit)
 src-tauri/.tauri-update-key
