@@ -29,7 +29,7 @@ updated: 2026-04-27
 
 ## Shipped (last 30d)
 
-_(no shipped roadmap items this window — open items all blocked on R-SD-001)_
+_(no shipped roadmap items this window — R-SD-001 is paused by founder direction)_
 
 ## Backlog (unranked)
 
@@ -50,7 +50,7 @@ Earlier phase-oriented roadmap (Phases 0–8) is preserved in git history of thi
 - **Phase 1: App Polish** — COMPLETE (empty state, toasts, drag-and-drop, native notifications, theme).
 - **Phase 2: Product Infrastructure** — COMPLETE (freemium counter, auto-updater, onboarding, license UI).
 - **Phase 3: Landing Page** — COMPLETE (live at `superdownloads.app` and `www.superdownloads.app` via Vercel; PostHog integrated).
-- **Phase 4: Billing** — IN PROGRESS → tracked as **R-SD-001** above.
+- **Phase 4: Billing** — PAUSED → tracked as **R-SD-001** above.
 - **Phase 5: Pre-Launch** — NOT STARTED → rolled into **R-SD-001** (demo video is the gating asset) and backlog (screenshots, copy).
 - **Phase 6: Launch** — NOT STARTED → tracked as **R-SD-002** and backlog (directory submits).
 - **Phase 7: Post-Launch** — future work, not in scope until R-SD-001 clears.
