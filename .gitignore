@@ -41,6 +41,9 @@ web/.astro/
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# Claude Code (LifeOS wrapper hygiene — parity with SUPER-PROMPTS, 2026-04-29)
+.claude/
 .DS_Store
 *.suo
 *.ntvs*
