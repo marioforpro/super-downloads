@@ -4,22 +4,31 @@
 
 ---
 
-## ⏸ PAUSED — 2026-04-27
+## ✅ v1.1.0 SHIPPED — 2026-05-06 (Session 161)
 
-> Founder switched focus to other work. Do NOT auto-resume R-SD-001 in next Mission Control. Resume only when founder explicitly says so.
+GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.1.0
+Anonymous download URLs verified HTTP 200 (`releases/latest/download/Super-Downloads_<arch>.dmg`).
+Repo flipped private → public 2026-05-06; landing-page download buttons now reach end users.
 
 ### Resume entry point
-Open this file. The checklist below is the resume plan — pick up at step 3.
+Open this file. The checklist below is the resume plan — pick up at step 4.
 
-### Checklist progress at pause
+### Checklist progress
 
-- [x] **1 · DNS verified for `superdownloads.app`** — verified 2026-04-28 with `dig superdownloads.app +short` returning `216.198.79.1`.
-- [x] **2 · DMGs present locally** — verified 2026-04-28 in `dist/`: `SuperDownloads_v1.1_AppleSilicon.dmg` and `SuperDownloads_v1.1_Intel.dmg`.
-- [ ] **3 · GitHub Release v1.1.0** — does not exist. Upload the existing local DMGs with release asset names the landing page expects:
-  - `dist/SuperDownloads_v1.1_AppleSilicon.dmg#Super-Downloads_aarch64.dmg`
-  - `dist/SuperDownloads_v1.1_Intel.dmg#Super-Downloads_x64.dmg`
-- [ ] **4 · Verify LemonSqueezy product** — UUID `21db1cfb-37f8-4371-8085-b5e30f89645f` (already wired in both `src/main.js:99` and `web/src/pages/index.astro:184`). Confirm: product exists, **test mode active** (required for Scene 2 recording), €29 one-time, license key generation enabled (3 activations max), `LAUNCH30` promo code present, checkout URL loads.
-- [ ] **5 · Record demo + reply to Vishnu** — per shot list below. Last step. Do not start until 1–4 are green.
+- [x] **1 · DNS verified for `superdownloads.app`** — `dig` returns `216.198.79.1`.
+- [x] **2 · DMGs present locally** — original 2026-04-28 check verified file presence only; the DMGs in `dist/` predated the LS-URL fix `cba5d29` by 7 weeks (build mtime 2026-03-05 vs fix 2026-04-27). False invariant caught Session 161 pre-publish; stale DMGs quarantined to `dist/_stale/`. Now enforced via `scripts/check-release-artifacts.sh` (build-provenance gate, see `docs/OPS.md` §Release verification).
+- [x] **3 · GitHub Release v1.1.0** — published 2026-05-06 from HEAD `cfbc320` (post `cba5d29`). Both assets uploaded:
+  - `Super-Downloads_aarch64.dmg` — sha256 `ea0df1b2edee5161e8bb177ed93d4a29edeeaa6e2430974f06a374c8f86d4419`
+  - `Super-Downloads_x64.dmg`     — sha256 `768beac78921be8a6e75d6ebab2534d6c31a64ea3a67ab56c2a589ef839e4216`
+- [ ] **4 · LemonSqueezy E2E verification** — strict end-to-end. Product UUID `21db1cfb-37f8-4371-8085-b5e30f89645f` (wired in `src/main.js:99` + `web/src/pages/index.astro:184`). All six gates must pass before R-SD-001 closes:
+  1. Checkout URL loads in browser (test mode active)
+  2. Test-mode payment succeeds with a Stripe test card (€29)
+  3. License key generated and emailed by LemonSqueezy
+  4. App accepts the license key in Settings → Activate (RPC round-trip succeeds against `api.lemonsqueezy.com/v1/licenses/activate`)
+  5. Free-tier limit (5 downloads/day) enforced before activation; unlimited downloads after activation
+  6. `LAUNCH30` promo code applies a 30% discount at checkout
+  At step-4 close: product is **commercially operational**, even before the demo/video layer.
+- [ ] **5 · Record demo + reply to Vishnu** — per shot list below. Do not start until step 4 is fully green.
 
 ### State changes already shipped (do NOT redo on resume)
 

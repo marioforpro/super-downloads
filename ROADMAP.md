@@ -4,9 +4,9 @@
 scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: pre-launch
-current_phase: Phase 4 — Billing (PAUSED 2026-04-27 by founder; focus switched to other work)
-next_milestone: launch on LemonSqueezy
-updated: 2026-04-27
+current_phase: Phase 4 — Billing (resumed 2026-05-06; v1.1.0 published, LemonSqueezy E2E verification next)
+next_milestone: LemonSqueezy E2E verification (checkout · payment · license · activation · limits · LAUNCH30)
+updated: 2026-05-06
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -15,12 +15,12 @@ updated: 2026-04-27
 
 ## Roadmap
 
-- **R-SD-001** · P0 · paused · Submit Super Downloads to LemonSqueezy for approval
-  - paused_reason: founder switched focus to other work on 2026-04-27. Resume from `docs/NEXT-SESSION.md`.
-  - next: when resuming, follow the remaining checklist in `docs/NEXT-SESSION.md` (DMGs → GitHub Release v1.1.0 → LS verify → record demo)
-  - target: 2026-04-30 (will slip on resume — re-baseline at that time)
-  - source: docs/LAUNCH.md, docs/NEXT-SESSION.md
-  - moved: 2026-04-27
+- **R-SD-001** · P0 · active · Submit Super Downloads to LemonSqueezy for approval
+  - progress: v1.1.0 published 2026-05-06 (3/5 checklist items shipped — DNS verified · fresh DMGs from HEAD `cfbc320` · GitHub Release reachable anonymously after repo flipped public). Pre-publish caught a stale-artifact false invariant (DMGs in `dist/` predated LS-URL fix `cba5d29` by 7 weeks); resolved by `scripts/check-release-artifacts.sh` build-provenance gate.
+  - next: LemonSqueezy E2E verification (six gates per `docs/NEXT-SESSION.md` step 4: checkout loads · test-mode payment · license generated · in-app activation · free/pro limit behavior · LAUNCH30 promo). On pass, product is commercially operational; demo recording (step 5) follows.
+  - target: re-baseline at LS-verify session start
+  - source: docs/LAUNCH.md, docs/NEXT-SESSION.md, docs/OPS.md
+  - moved: 2026-05-06
 - **R-SD-002** · P1 · next · Publish launch announcement (Reddit r/macapps + HN Show HN)
   - next: draft copy once R-SD-001 clears + LemonSqueezy checkout URL is live
   - depends_on: R-SD-001
