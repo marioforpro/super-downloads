@@ -9,8 +9,8 @@ blocked: false
 blocker_reason: null
 resolution_factor: 1.0
 validity_factor: 1.0
-next_milestone: paused — resume R-SD-001 from docs/NEXT-SESSION.md only when founder explicitly says so
-last_updated: 2026-04-28
+next_milestone: Submit Super Downloads to LemonSqueezy for approval
+last_updated: 2026-05-07
 stack: Tauri v2, Rust, vanilla JS, Astro
 repo: marioforpro/super-downloads
 ---
