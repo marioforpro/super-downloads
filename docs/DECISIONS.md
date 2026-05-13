@@ -4,6 +4,16 @@
 
 ---
 
+## 2026-05-13 — License gate hardened to Tier 1 (planned, not implemented) — Session 201
+**Context:** Founder hit 5/day cap with no real Lemon license yet (Lemon checkout still pending). Bypassed gate in 60s via raw SQLite localStorage inject. Discovery: `isProUser()` is local-only, no revalidation on launch.
+**Decision:** Two follow-up items added to ROADMAP.md Backlog:
+  1. Issue real founder comp license via Lemon dashboard once product is live (replaces the local stop-gap).
+  2. Implement Tier 1 hardening (periodic Lemon revalidation + signed offline grace cache). NOT Tier 2 (server-side metering) or Tier 3 (Keychain + signed integrity) — diminishing returns at €29/copy pre-launch.
+**Why:** €29 one-time consumer app does not warrant full DRM. Tier 1 kills the trivial inject path (90%+ of realistic pirates) at ~1 day cost; higher tiers wait for evidence of meaningful piracy at scale. Detailed threat model + tier comparison in `docs/SECURITY-NOTES.md`.
+**Consequence:** Pre-launch hardening item, not launch-blocker. Sequence: real founder comp license MUST land before Tier 1 ships, otherwise the founder stop-gap key fails revalidation.
+
+---
+
 ## 2026-03-24 — Commercial model: Freemium
 **Context:** Defining how to monetize Super Downloads before building any payment infrastructure.
 **Decision:** Freemium model — free tier with limits, paid Pro tier for full features.

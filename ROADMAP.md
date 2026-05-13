@@ -41,6 +41,8 @@ _(no shipped roadmap items this window — R-SD-001 is paused by founder directi
 - Browser extension (was Phase 8 in prior roadmap — legitimately future work)
 - MacUpdate / AlternativeTo directory submissions
 - Product Hunt launch (timing TBD)
+- **Founder comp license via LemonSqueezy** — issue real comp license through Lemon dashboard (Product → Licenses → Issue License Key, comp/free) for `supermariomonteiro@gmail.com`, replace local `FOUNDER-MARIO-001` stop-gap (Session 201 inject, see `docs/SECURITY-NOTES.md`). Validates the full activation flow end-to-end with a real Lemon-tracked record. Depends on: Lemon product live (linked to R-SD-001 Phase 4 LS-verify).
+- **License hardening / anti-crack security review** — current freemium gate is bypassable in 60s via raw SQLite localStorage inject (`proLicenseKey` set → `isProUser()` returns true forever, no re-validation). Documented attack vector in `docs/SECURITY-NOTES.md`. Scope: pick + implement a hardening level appropriate for €29 one-time consumer app (recommended: periodic Lemon revalidation + signed cache, NOT full DRM). Pre-launch hardening item, not launch-blocker.
 
 ## Prior Phases — history (one-line summary)
 
