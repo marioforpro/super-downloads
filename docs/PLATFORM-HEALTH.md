@@ -87,13 +87,33 @@ Exit code is **non-zero if any FAIL**, so the script is CI/automation-friendly.
    *system* yt-dlp over the bundled one, so on dev machines staleness can hide.
    End users without yt-dlp rely on the bundle — keep the bundle fresh.
 
-## Cadence & automation (future)
+## Cadence & automation (installed 2026-05-31)
 
-- **Now (manual):** run the script as part of the daily founder check; it takes ~30s.
-- **Next (automated):** a `launchd` agent runs the check each morning and pushes a
-  macOS notification only on FAIL (silent on all-pass). Plist uses absolute paths
-  per the LifeOS launchd rule. Tracked as the *platform-health monitor* idea in
-  `IDEAS.md` and the matching ROADMAP backlog item.
+A `launchd` agent runs the check **daily at 10:00** automatically:
+
+- Agent: `scripts/platform-health-notify.sh` (wrapper) via
+  `scripts/com.superdownloads.health-check.plist` → installed at
+  `~/Library/LaunchAgents/com.superdownloads.health-check.plist`.
+- **Change-detection:** posts a macOS notification ONLY when the set of failing
+  platforms *changes* (a platform newly breaks, or recovers). A persistently
+  broken platform does NOT re-notify daily — you're alerted the moment something
+  stops working, which is the point. State: `~/Library/Application Support/SuperDownloads/health-failing.txt`.
+- Every run is logged to `~/Library/Logs/super-downloads-health.log`.
+- The plist uses absolute paths via the `/Users/supermac/Desktop/DEV` symlink
+  (LifeOS launchd rule: no `$HOME`/`~`/shell vars in plists).
+
+Manage it:
+```bash
+launchctl kickstart gui/$(id -u)/com.superdownloads.health-check   # run now
+launchctl print     gui/$(id -u)/com.superdownloads.health-check   # status
+launchctl bootout   gui/$(id -u)/com.superdownloads.health-check   # disable
+# re-enable: launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.superdownloads.health-check.plist
+```
+
+> The daily run uses no cookies, so auth platforms (LinkedIn/Instagram/Facebook/X)
+> show WARN, not FAIL — they don't trigger alerts. Hard signal comes from the
+> no-auth platforms (YouTube, Vimeo, TikTok). Run `--cookies` manually to truly
+> verify the auth platforms.
 
 ## Probe URL maintenance
 

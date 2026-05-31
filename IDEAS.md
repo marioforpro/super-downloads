@@ -28,7 +28,7 @@
   - What: Opt-in telemetry to learn which platforms / formats / failures matter.
   - Why: Without telemetry, roadmap priorities are guesses.
   - Where: SUPER-DOWNLOADS / analytics
-- 2026-05-31 | Platform-health monitor — daily automated check that all 7 platforms still extract, alert on failure [size: M] [confidence: 4] [presence: high]
+- 2026-05-31 | Platform-health monitor — daily automated check that all 7 platforms still extract, alert on failure [size: M] [confidence: 4] [presence: high] [shipped→launchd 2026-05-31]
   - What: Scheduled (launchd) daily run of `scripts/platform-health-check.sh`; macOS notification only on FAIL (silent on all-pass). Detects extractor breakage AND silent quality degradation (the 360p fallback) before users hit it.
   - Why: yt-dlp breaks per-platform constantly; today we only learn when a user complains. A daily green/red signal turns reactive firefighting into proactive patch releases.
   - Where: SUPER-DOWNLOADS / reliability ops (protocol live in docs/PLATFORM-HEALTH.md + script shipped)
