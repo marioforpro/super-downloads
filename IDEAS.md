@@ -32,7 +32,7 @@
   - What: Scheduled (launchd) daily run of `scripts/platform-health-check.sh`; macOS notification only on FAIL (silent on all-pass). Detects extractor breakage AND silent quality degradation (the 360p fallback) before users hit it.
   - Why: yt-dlp breaks per-platform constantly; today we only learn when a user complains. A daily green/red signal turns reactive firefighting into proactive patch releases.
   - Where: SUPER-DOWNLOADS / reliability ops (protocol live in docs/PLATFORM-HEALTH.md + script shipped)
-- 2026-05-31 | One-click in-app auto-update UX — "Update" button → app relaunches itself (Claude Code / Codex desktop style) [size: M] [confidence: 4] [presence: high]
+- 2026-05-31 | One-click in-app auto-update UX — "Update" button → app relaunches itself (Claude Code / Codex desktop style) [size: M] [confidence: 4] [presence: high] [shipped→v1.1.1]
   - What: When a new release exists, surface an "Update" button in-app; one click downloads, installs, and relaunches with zero user steps. Tauri updater infra (pubkey + endpoints) is already configured in tauri.conf.json — the gap is the frontend check/prompt/relaunch flow (no updater UI in src/main.js yet).
   - Why: Frictionless updates are how we ship yt-dlp/extractor fixes fast (ties directly to platform-health). Users on stale builds = the 360p bug recurring forever. Bar is set by Claude Code / Codex desktop: click Update, done.
   - Where: SUPER-DOWNLOADS / app UX + release pipeline
