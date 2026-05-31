@@ -50,6 +50,7 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 | Progress log | `PROGRESS.md` |
 | Decisions | `docs/DECISIONS.md` |
 | App UX audit | `docs/APP-AUDIT.md` |
+| Platform health protocol | `docs/PLATFORM-HEALTH.md` |
 | Product audit & gaps | `docs/DIAGNOSTIC.md` |
 | Architecture | `docs/ARCHITECTURE.md` |
 | Development guide | `docs/DEVELOPMENT.md` |
