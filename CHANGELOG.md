@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.1.1] — 2026-05-31 (pending release)
+
+### Fixed
+- **YouTube downloads capped at 360p** — bundled `yt-dlp` was 4 months stale
+  (`2026.01.29`), which lost access to high-resolution DASH formats and silently
+  fell back to 360p on 4K/1080p videos. Refreshed bundled `yt-dlp` → `2026.03.17`;
+  YouTube now downloads up to 4K again. Also fixes assorted "video won't download"
+  failures caused by outdated extractors.
+
+### Added
+- `scripts/platform-health-check.sh` + `docs/PLATFORM-HEALTH.md` — daily smoke
+  test across the 7 supported platforms to catch extractor breakage before users do.
+
+---
+
 ## [1.1.0] — 2026-05-06 (released)
 
 GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.1.0

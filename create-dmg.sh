@@ -8,8 +8,8 @@ DIST_DIR="${ROOT_DIR}/dist"
 AARCH_APP="${ROOT_DIR}/src-tauri/target/aarch64-apple-darwin/release/bundle/macos/${APP_NAME}.app"
 INTEL_APP="${ROOT_DIR}/src-tauri/target/x86_64-apple-darwin/release/bundle/macos/${APP_NAME}.app"
 
-AARCH_DMG="${DIST_DIR}/SuperDownloads_v1.1_AppleSilicon.dmg"
-INTEL_DMG="${DIST_DIR}/SuperDownloads_v1.1_Intel.dmg"
+AARCH_DMG="${DIST_DIR}/SuperDownloads_v1.1.1_AppleSilicon.dmg"
+INTEL_DMG="${DIST_DIR}/SuperDownloads_v1.1.1_Intel.dmg"
 
 if [[ ! -d "${AARCH_APP}" ]]; then
   echo "Error: Apple Silicon app bundle missing:"

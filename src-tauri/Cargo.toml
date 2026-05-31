@@ -1,6 +1,6 @@
 [package]
 name = "super-downloads"
-version = "1.1.0"
+version = "1.1.1"
 description = "A Tauri App"
 authors = ["Mario Monteiro"]
 edition = "2021"
