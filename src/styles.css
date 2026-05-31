@@ -1479,3 +1479,53 @@ select:focus {
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* ── Auto-update banner ───────────────────────────────────────────── */
+.update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  color: #07121f;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.update-banner[hidden] {
+  display: none;
+}
+
+.update-banner-text {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.update-banner-btn {
+  flex: 0 0 auto;
+  padding: 5px 16px;
+  border: none;
+  border-radius: 6px;
+  background: #07121f;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.1s ease;
+}
+
+.update-banner-btn:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.update-banner-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.update-banner-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}

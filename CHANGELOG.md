@@ -14,6 +14,11 @@ All notable changes to this project will be documented in this file.
   failures caused by outdated extractors.
 
 ### Added
+- **One-click auto-update** — when a new release exists, an "Update" banner
+  appears in-app; one click downloads, installs, and relaunches automatically
+  (no re-download). Powered by the Tauri updater plugin with a static
+  `latest.json` manifest published on GitHub Releases. Release pipeline scripted
+  in `scripts/make-release.sh`.
 - `scripts/platform-health-check.sh` + `docs/PLATFORM-HEALTH.md` — daily smoke
   test across the 7 supported platforms to catch extractor breakage before users do.
 

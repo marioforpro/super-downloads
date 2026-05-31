@@ -10,6 +10,7 @@ use std::{
 };
 
 use tauri::{AppHandle, Emitter, LogicalSize, Manager, Size, Window};
+use tauri_plugin_updater::UpdaterExt;
 
 const WINDOW_LOGICAL_WIDTH: f64 = 480.0;
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -2098,6 +2099,59 @@ async fn deactivate_license(key: String, instance_id: String) -> Result<bool, St
     Ok(deactivated)
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// Auto-update (Tauri updater plugin + static latest.json on GitHub Releases)
+// ─────────────────────────────────────────────────────────────────────────
+
+#[derive(serde::Serialize)]
+struct UpdateInfo {
+    version: String,
+    notes: String,
+}
+
+/// Check the configured updater endpoint for a newer release.
+/// Returns Some(info) when an update is available, None when up to date.
+#[tauri::command]
+async fn check_for_update(app: AppHandle) -> Result<Option<UpdateInfo>, String> {
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    match updater.check().await {
+        Ok(Some(update)) => Ok(Some(UpdateInfo {
+            version: update.version.clone(),
+            notes: update.body.clone().unwrap_or_default(),
+        })),
+        Ok(None) => Ok(None),
+        Err(e) => Err(e.to_string()),
+    }
+}
+
+/// Download + install the available update, emitting `update-progress`
+/// (downloaded, total) events, then relaunch the app into the new version.
+#[tauri::command]
+async fn install_update(app: AppHandle, window: Window) -> Result<(), String> {
+    let updater = app.updater().map_err(|e| e.to_string())?;
+    let update = updater
+        .check()
+        .await
+        .map_err(|e| e.to_string())?
+        .ok_or_else(|| "No update available".to_string())?;
+
+    let win = window.clone();
+    let mut downloaded: u64 = 0;
+    update
+        .download_and_install(
+            move |chunk_len, content_len| {
+                downloaded += chunk_len as u64;
+                let _ = win.emit("update-progress", (downloaded, content_len));
+            },
+            move || {},
+        )
+        .await
+        .map_err(|e| e.to_string())?;
+
+    // download_and_install replaced the app bundle; relaunch into the new version.
+    app.restart();
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
@@ -2118,7 +2172,9 @@ pub fn run() {
             show_notification,
             activate_license,
             validate_license,
-            deactivate_license
+            deactivate_license,
+            check_for_update,
+            install_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

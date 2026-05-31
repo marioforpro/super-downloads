@@ -108,3 +108,26 @@ version-less names the landing page links to via `releases/latest/download/`).
 
 Verify the fix shipped: mount a DMG and check `Super Downloads.app/Contents/MacOS/yt-dlp --version`.
 Then run `./scripts/check-release-artifacts.sh dist/Super-Downloads_*.dmg` before publishing.
+
+## Releasing an update (one-click auto-update)
+The app ships a Tauri updater that polls a static `latest.json` on GitHub
+Releases (`tauri.conf.json` → `plugins.updater.endpoints`). When a newer
+`version` is published, installed apps show an in-app **Update** banner that
+downloads + installs + relaunches automatically.
+
+`scripts/make-release.sh` automates the whole release:
+```bash
+# Ed25519 signing password is required (the key src-tauri/.tauri-update-key is
+# encrypted). NEVER commit it — pass it inline for the command only:
+export TAURI_SIGNING_PRIVATE_KEY_PASSWORD='<password>'
+
+./scripts/make-release.sh            # build both arches + sign + stage + latest.json
+./scripts/make-release.sh --publish  # also `gh release create` with all assets
+```
+It builds with `createUpdaterArtifacts: true` (produces `.app.tar.gz` +
+`.app.tar.gz.sig`), stages DMGs + updater artifacts into `dist/`, generates
+`dist/latest.json`, and uploads everything (incl. `latest.json`) to the release.
+
+**Every release MUST include `latest.json` as an asset** — it is what the
+updater endpoint (`releases/latest/download/latest.json`) serves. Forgetting it
+means no one auto-updates.

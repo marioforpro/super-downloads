@@ -1796,6 +1796,75 @@ document.querySelector("#upgrade-pro-link")?.addEventListener("click", (e) => {
   } catch {}
 })();
 
+// ── Auto-update (one-click) ─────────────────────────────────────────
+let sdUpdateInProgress = false;
+
+function showUpdateBanner(info) {
+  const banner = document.getElementById("update-banner");
+  const text = document.getElementById("update-banner-text");
+  if (!banner || !text) return;
+  text.textContent = `Version ${info.version} is available`;
+  banner.hidden = false;
+}
+
+async function checkForUpdate({ silent = true } = {}) {
+  if (!window.__TAURI__?.core?.invoke) return;
+  try {
+    const info = await window.__TAURI__.core.invoke("check_for_update");
+    if (info) {
+      showUpdateBanner(info);
+    } else if (!silent) {
+      showToast("You're on the latest version");
+    }
+  } catch (e) {
+    console.error("Update check failed:", e);
+    if (!silent) showToast("Could not check for updates");
+  }
+}
+
+async function startUpdate() {
+  if (sdUpdateInProgress || !window.__TAURI__?.core?.invoke) return;
+  sdUpdateInProgress = true;
+  const btn = document.getElementById("update-banner-btn");
+  const text = document.getElementById("update-banner-text");
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = "Updating…";
+  }
+  if (text) text.textContent = "Starting update…";
+  try {
+    // Downloads, installs, and relaunches the app — no further user action.
+    await window.__TAURI__.core.invoke("install_update");
+  } catch (e) {
+    console.error("Update failed:", e);
+    sdUpdateInProgress = false;
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Retry";
+    }
+    if (text) text.textContent = "Update failed";
+    showToast("Update failed: " + e);
+  }
+}
+
+// Live download progress in the banner.
+window.__TAURI__.event.listen("update-progress", (event) => {
+  const text = document.getElementById("update-banner-text");
+  if (!text) return;
+  const [downloaded, total] = event.payload || [];
+  if (total) {
+    const pct = Math.min(100, Math.round((downloaded / total) * 100));
+    text.textContent = `Downloading update… ${pct}%`;
+  } else {
+    text.textContent = "Downloading update…";
+  }
+});
+
+document.getElementById("update-banner-btn")?.addEventListener("click", startUpdate);
+
+// Silent check on startup — only reveals the banner if an update exists.
+setTimeout(() => checkForUpdate({ silent: true }), 1500);
+
 
 clearBtn.addEventListener("click", clearInput);
 settingsBtn.addEventListener("click", toggleSettings);
