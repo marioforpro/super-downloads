@@ -67,7 +67,6 @@ fi
 
 # ── 2. Stage artifacts ───────────────────────────────────────────────────
 mkdir -p dist
-declare -A ARCH_DIR=( [aarch64]="aarch64-apple-darwin" [x64]="x86_64-apple-darwin" )
 
 stage() {
   local label="$1" triple="$2"
@@ -87,8 +86,8 @@ stage() {
   echo "  staged ${label}: DMG + updater artifact + sig"
 }
 
-stage aarch64 "${ARCH_DIR[aarch64]}"
-stage x64     "${ARCH_DIR[x64]}"
+stage aarch64 "aarch64-apple-darwin"
+stage x64     "x86_64-apple-darwin"
 
 # ── 3. Generate latest.json ──────────────────────────────────────────────
 SIG_AARCH64="$(cat "dist/Super-Downloads_${VERSION}_aarch64.app.tar.gz.sig")"
