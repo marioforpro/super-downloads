@@ -82,3 +82,29 @@ chmod +x src-tauri/binaries/yt-dlp-*
 2. `package.json` → `version`
 3. `src-tauri/Cargo.toml` → `version`
 4. `create-dmg.sh` → DMG filenames
+5. `src-tauri/Cargo.lock` — rebuilds to the new version automatically; **commit it** (the release gate checks the tree is clean on this path)
+6. `CHANGELOG.md` → new version entry
+
+## Building release DMGs
+```bash
+npm run tauri build -- --target aarch64-apple-darwin --bundles dmg   # Apple Silicon
+npm run tauri build -- --target x86_64-apple-darwin  --bundles dmg   # Intel
+```
+Output: `src-tauri/target/<triple>/release/bundle/dmg/Super Downloads_<ver>_<arch>.dmg`.
+Copy to `dist/` as `Super-Downloads_aarch64.dmg` / `Super-Downloads_x64.dmg` (the
+version-less names the landing page links to via `releases/latest/download/`).
+
+> **Intel cross-compile gotcha (this machine):** two Rust installs coexist —
+> Homebrew's `/opt/homebrew/bin/cargo` (native aarch64 only) shadows `rustup` in
+> PATH. The Intel build then fails with `error[E0463]: can't find crate for core`.
+> Fix: build x86_64 with the rustup toolchain forced onto PATH:
+> ```bash
+> TC="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin"
+> PATH="$TC:$PATH" RUSTUP_TOOLCHAIN=stable npm run tauri build -- --target x86_64-apple-darwin --bundles dmg
+> ```
+> (Apple Silicon builds fine with either toolchain.) Don't run both arch builds in
+> parallel — release builds can OOM. Permanent fix: `brew uninstall rust` and use
+> rustup exclusively.
+
+Verify the fix shipped: mount a DMG and check `Super Downloads.app/Contents/MacOS/yt-dlp --version`.
+Then run `./scripts/check-release-artifacts.sh dist/Super-Downloads_*.dmg` before publishing.
