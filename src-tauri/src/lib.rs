@@ -116,10 +116,45 @@ fn find_bundled_binary(name: &str) -> Option<String> {
     None
 }
 
+// Managed yt-dlp self-update support.
+// A self-updated copy lives in the app-support dir and is preferred over the
+// bundled binary so extractor fixes ship in hours without an app release.
+const BUNDLE_IDENTIFIER: &str = "com.supermac.super-downloads";
+const YTDLP_UPDATE_INTERVAL_SECS: u64 = 7 * 24 * 60 * 60; // weekly
+
+// app-support bin dir: ~/Library/Application Support/<identifier>/bin
+fn managed_bin_dir() -> Option<PathBuf> {
+    let home = std::env::var("HOME").ok()?;
+    if home.is_empty() {
+        return None;
+    }
+    Some(
+        PathBuf::from(home)
+            .join("Library/Application Support")
+            .join(BUNDLE_IDENTIFIER)
+            .join("bin"),
+    )
+}
+
+// Path to the managed yt-dlp if it exists on disk.
+fn find_managed_ytdlp() -> Option<String> {
+    let path = managed_bin_dir()?.join("yt-dlp");
+    if path.exists() {
+        return path.to_str().map(|s| s.to_string());
+    }
+    None
+}
+
 // Find yt-dlp executable in common locations
-// Prioritizes bundled binary > homebrew > pipx > system
+// Prioritizes managed self-update > bundled binary > homebrew > pipx > system
 fn find_ytdlp() -> Option<String> {
-    // FIRST: Try bundled binary (for distributed app)
+    // FIRST: managed self-updated copy (freshest extractor, decoupled from app releases)
+    if let Some(managed) = find_managed_ytdlp() {
+        eprintln!("Using managed (self-updated) yt-dlp at: {}", managed);
+        return Some(managed);
+    }
+
+    // SECOND: bundled binary (for distributed app)
     if let Some(bundled) = find_bundled_binary("yt-dlp") {
         return Some(bundled);
     }
@@ -2153,11 +2188,149 @@ async fn install_update(app: AppHandle, window: Window) -> Result<(), String> {
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
+#[derive(serde::Serialize)]
+struct YtdlpUpdateResult {
+    updated: bool,
+    version: Option<String>,
+    message: String,
+}
+
+fn ytdlp_last_check_path() -> Option<PathBuf> {
+    Some(managed_bin_dir()?.join(".last-update-check"))
+}
+
+// Weekly throttle: true if never checked or the interval has elapsed.
+fn should_check_ytdlp_update() -> bool {
+    match ytdlp_last_check_path() {
+        Some(path) => match fs::metadata(&path).and_then(|m| m.modified()) {
+            Ok(modified) => modified
+                .elapsed()
+                .map(|e| e.as_secs() >= YTDLP_UPDATE_INTERVAL_SECS)
+                .unwrap_or(true),
+            Err(_) => true, // never checked yet
+        },
+        None => false, // no HOME → skip silently
+    }
+}
+
+fn touch_ytdlp_check() {
+    if let Some(path) = ytdlp_last_check_path() {
+        if let Some(dir) = path.parent() {
+            let _ = fs::create_dir_all(dir);
+        }
+        let _ = fs::write(&path, b"");
+    }
+}
+
+// Download the latest standalone macOS yt-dlp into the managed bin dir.
+// Atomic: download → chmod → verify --version → rename into place.
+// Returns the new version tag on success. Never touches the bundled binary.
+async fn download_latest_ytdlp() -> Result<String, String> {
+    let bin_dir = managed_bin_dir().ok_or("Could not resolve app-support dir")?;
+    fs::create_dir_all(&bin_dir).map_err(|e| format!("Could not create bin dir: {}", e))?;
+
+    let client = reqwest::Client::builder()
+        .user_agent("super-downloads")
+        .build()
+        .map_err(|e| format!("HTTP client error: {}", e))?;
+
+    let release: serde_json::Value = client
+        .get("https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest")
+        .send()
+        .await
+        .map_err(|e| format!("Network error: {}", e))?
+        .json()
+        .await
+        .map_err(|e| format!("Invalid release response: {}", e))?;
+
+    let tag = release
+        .get("tag_name")
+        .and_then(|v| v.as_str())
+        .ok_or("No tag_name in latest release")?
+        .to_string();
+
+    let url = format!(
+        "https://github.com/yt-dlp/yt-dlp/releases/download/{}/yt-dlp_macos",
+        tag
+    );
+    let bytes = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| format!("Download error: {}", e))?
+        .bytes()
+        .await
+        .map_err(|e| format!("Read error: {}", e))?;
+
+    // Sanity: the standalone macOS binary is tens of MB; reject truncated/HTML responses.
+    if bytes.len() < 1_000_000 {
+        return Err(format!(
+            "Downloaded yt-dlp too small ({} bytes)",
+            bytes.len()
+        ));
+    }
+
+    let tmp_path = bin_dir.join("yt-dlp.tmp");
+    let final_path = bin_dir.join("yt-dlp");
+    fs::write(&tmp_path, &bytes).map_err(|e| format!("Write failed: {}", e))?;
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut perms = fs::metadata(&tmp_path)
+            .map_err(|e| format!("Stat failed: {}", e))?
+            .permissions();
+        perms.set_mode(0o755);
+        fs::set_permissions(&tmp_path, perms).map_err(|e| format!("chmod failed: {}", e))?;
+    }
+
+    // Verify the freshly downloaded binary actually runs before promoting it.
+    let runs = Command::new(&tmp_path)
+        .arg("--version")
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false);
+    if !runs {
+        let _ = fs::remove_file(&tmp_path);
+        return Err("Downloaded yt-dlp failed its --version check".to_string());
+    }
+
+    // Atomic promote — a partial/corrupt download never becomes the active binary.
+    fs::rename(&tmp_path, &final_path).map_err(|e| format!("Promote failed: {}", e))?;
+    Ok(tag)
+}
+
+// Manual, user-initiated update (ignores the weekly throttle).
+#[tauri::command]
+async fn update_ytdlp() -> Result<YtdlpUpdateResult, String> {
+    let version = download_latest_ytdlp().await?;
+    touch_ytdlp_check();
+    Ok(YtdlpUpdateResult {
+        updated: true,
+        message: format!("yt-dlp updated to {}", version),
+        version: Some(version),
+    })
+}
+
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
+        .setup(|_app| {
+            // Weekly background yt-dlp self-update. Non-blocking; on any failure
+            // the bundled binary remains the fallback (see find_ytdlp).
+            if should_check_ytdlp_update() {
+                touch_ytdlp_check();
+                tauri::async_runtime::spawn(async {
+                    match download_latest_ytdlp().await {
+                        Ok(v) => eprintln!("yt-dlp self-update: updated to {}", v),
+                        Err(e) => eprintln!("yt-dlp self-update skipped: {}", e),
+                    }
+                });
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             download_video,
             reveal_in_finder,
@@ -2174,7 +2347,8 @@ pub fn run() {
             validate_license,
             deactivate_license,
             check_for_update,
-            install_update
+            install_update,
+            update_ytdlp
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
