@@ -2,6 +2,8 @@
 
 > Implementation log. One entry per session.
 
+> ⚠️ **SUPERSEDED after Session 4 (2026-03-26).** This log was not maintained through the v1.1.0 → v1.1.1 cycle. For current state see **ROADMAP.md** ("Shipped" section) + **CHANGELOG.md**. Everything below the Session-4 entry is historical and its phase labels (e.g. Phase 3 "IN PROGRESS") do NOT reflect reality — Phases 0–3 are COMPLETE and v1.1.1 shipped 2026-05-31. Project PARKED 2026-06-15.
+
 ---
 
 ## Session 1 — 2026-03-24 — Full Project Bootstrap

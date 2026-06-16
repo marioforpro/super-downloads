@@ -2,6 +2,8 @@
 
 > First product launch in the Super ecosystem.
 > Based on Launch-Playbook.md template.
+> **Launch-day execution only** (channels · copy · metrics). For launch readiness gates, `docs/LAUNCH.md` is the single source of truth.
+> **Status: PARKED 2026-06-15** — reopen on real signal. v1.1.0 + v1.1.1 shipped; one open gate = LemonSqueezy E2E (see LAUNCH.md Gate 4).
 
 ---
 
@@ -22,9 +24,9 @@
 - [x] LemonSqueezy product created (€29, 3 activations)
 - [x] Checkout URL wired in main.js + index.astro
 - [x] DNS bare domain fixed (A record → 216.198.79.1)
-- [x] **Build DMGs** (Intel + Apple Silicon; present in `dist/`)
-- [ ] **Create GitHub Release** (attach DMGs)
-- [ ] **Create LAUNCH30 promo code** in LemonSqueezy (30% off)
+- [x] **Build DMGs** (Intel + Apple Silicon)
+- [x] **Create GitHub Release** — v1.1.0 (2026-05-06) + v1.1.1 (2026-05-31), DMGs + SHA256 attached
+- [ ] **Create LAUNCH30 promo code** in LemonSqueezy (30% off) — verify in LS
 - [ ] Launch copy written
 - [ ] Screenshots / demo GIF ready
 

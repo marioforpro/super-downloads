@@ -4,7 +4,28 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [1.1.1] — 2026-05-31 (pending release)
+## [Unreleased]
+
+### Added
+- **Runtime yt-dlp self-update** — the app now keeps a managed copy of `yt-dlp`
+  in `~/Library/Application Support/com.supermac.super-downloads/bin/` and prefers
+  it over the bundled binary (`find_ytdlp()` resolution order). A weekly,
+  non-blocking background check downloads the latest standalone `yt-dlp_macos`
+  from GitHub Releases (atomic: download → chmod → verify `--version` → rename);
+  any failure leaves the bundled binary as fallback. Also exposed as a manual
+  `update_ytdlp` Tauri command. Decouples extractor freshness from the app
+  release cycle — the structural fix for the recurring 360p/extractor-breakage class.
+  _Compiles clean (`cargo fmt`/`clippy -D warnings`/`test`); runtime network path
+  not yet E2E-verified (project parked)._
+
+---
+
+## [1.1.1] — 2026-05-31 (released)
+
+GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.1.1
+SHA-256:
+- `Super-Downloads_aarch64.dmg` — `dd3a39f2023291f36668819b0dbe39798a5b544222ef6a3273c8294a5c849fb0`
+- `Super-Downloads_x64.dmg`     — `75320c71adbce834e021c5e0bd14199cd08fdae19a1fcd798f96b6698f4208fd`
 
 ### Fixed
 - **YouTube downloads capped at 360p** — bundled `yt-dlp` was 4 months stale

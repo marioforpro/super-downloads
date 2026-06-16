@@ -20,6 +20,8 @@ Forbidden variants:
 
 Display name across ALL platforms: **Super Downloads**
 
+**Social handle (decided 2026-06-16):** launch announcement goes out from the personal account **@marioforpro**. No dedicated brand X/Twitter handle exists yet; a future one must NOT use the forbidden one-word `@SuperDownloads`. (Pending founder confirmation.)
+
 ---
 
 ## 2. Tagline (Locked)

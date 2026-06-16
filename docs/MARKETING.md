@@ -17,7 +17,7 @@
 **Audiencia principal:** Video editors, content creators, social media managers en macOS.
 
 **Pricing:**
-- Free: 5 downloads/day, 1 device, all features
+- Free: 5 downloads/day, all features (gated by download count, not by device)
 - Pro: €29 one-time (unlimited downloads, 3 devices)
 - Launch promo: LAUNCH30 (30% off = ~€20)
 
@@ -46,7 +46,7 @@
 **Regla:** Valor primero, promo después. Participar en conversaciones relevantes.
 
 ### 3. X / Twitter
-- Cuenta de producto: @SuperDownloads (o similar disponible)
+- Anuncio desde cuenta personal @marioforpro (decidido). Handle de marca dedicado: TBD — NO usar la forma de una palabra `@SuperDownloads` (prohibida por BRAND.md)
 - Contenido: tips de descarga, comparativas, detrás de cámaras del desarrollo
 - Formato: tweets cortos, GIFs de la app en acción
 

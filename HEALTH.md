@@ -9,8 +9,8 @@ blocked: false
 blocker_reason: null
 resolution_factor: 1.0
 validity_factor: 1.0
-next_milestone: Submit Super Downloads to LemonSqueezy for approval
-last_updated: 2026-05-07
+next_milestone: Parked 2026-06-15 — reopen on real signal (user pull / press / founder recommit)
+last_updated: 2026-06-16
 stack: Tauri v2, Rust, vanilla JS, Astro
 repo: marioforpro/super-downloads
 ---
@@ -18,9 +18,11 @@ repo: marioforpro/super-downloads
 # Super Downloads — Health Card
 
 ## Status
-- **Version**: v1.1 (DMGs ready)
-- **Phase**: Pre-launch — app built, landing page ready
+- **State**: PARKED 2026-06-15 — product shipped, commercially un-launched. Reopen only on real signal (user pull / press / founder recommit).
+- **Version**: v1.1.1 (shipped 2026-05-31 — yt-dlp 360p fix + one-click in-app auto-update)
+- **Phase**: Pre-launch. One open gate when reopened: LemonSqueezy E2E verification (R-SD-001)
 - **Build**: macOS DMGs (Apple Silicon + Intel)
+- **Monitoring**: daily platform health-check via launchd (shipped 2026-05-31)
 
 ## What It Does
 macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS frontend. Astro-based landing page.
@@ -29,8 +31,8 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 - Freemium: 5 downloads/day free; Pro is €29 one-time lifetime with up to 3 devices
 
 ## Key Decisions Pending
-- Founder decision to resume R-SD-001
-- Re-baseline launch target once work resumes
+- LemonSqueezy E2E verification — six gates per `docs/NEXT-SESSION.md` step 4 (closes R-SD-001)
+- Re-baseline launch target at LS-verify session start
 
 ## LifeOS Integration
 - **Domain**: 01_Projects (Product)
@@ -45,4 +47,4 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 ## Notes
 - Bundles yt-dlp/ffmpeg binaries — large files, must stay gitignored
 - Landing page deploys on Vercel; native app release ships through DMG/GitHub Release
-- As of 2026-04-27 this project is paused, not an active blocker. `docs/NEXT-SESSION.md` is the resume checklist.
+- Resumed 2026-05-06; v1.1.1 + auto-updater + daily launchd health monitor shipped 2026-05-31. `docs/NEXT-SESSION.md` step 4 is the live checklist (LemonSqueezy E2E).
