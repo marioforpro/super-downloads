@@ -601,6 +601,34 @@ body.theme-light .app.auto-add-active::after {
   filter: brightness(1.1);
 }
 
+.onboarding-terms {
+  font-size: 9px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+  line-height: 1.4;
+}
+
+.onboarding-terms a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.onboarding-terms a:hover {
+  color: var(--accent-blue);
+}
+
+/* Downloader engine section (Settings) */
+.engine-row {
+  align-items: center;
+}
+
+.engine-version {
+  flex: 1;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* About card */
 .about-card {
   text-align: center;

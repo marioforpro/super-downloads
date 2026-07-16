@@ -44,6 +44,114 @@ fn is_auth_required_error(error_text: &str) -> bool {
         || lower.contains("login required")
         || lower.contains("this video is private")
         || lower.contains("private video")
+        // YouTube bot-check wall — retrying with a logged-in browser session clears it
+        || lower.contains("confirm you're not a bot")
+        || lower.contains("confirm you are not a bot")
+        || lower.contains("sign in to confirm")
+        // Rate limiting — a session with cookies usually gets a higher quota
+        || lower.contains("http error 429")
+        || lower.contains("too many requests")
+        || lower.contains("rate-limit reached")
+        || lower.contains("rate limit")
+        // Instagram: served to logged-in users only
+        || lower.contains("empty media response")
+        || lower.contains("requested content is not available")
+        // yt-dlp's own hint that cookies would help
+        || lower.contains("use --cookies")
+}
+
+// Errors that TLS-fingerprint impersonation (curl_cffi) is known to clear —
+// Facebook's "Cannot parse data" is the canonical case.
+fn is_impersonation_fixable_error(error_text: &str) -> bool {
+    let lower = error_text.to_lowercase();
+    lower.contains("cannot parse data")
+        || lower.contains("unable to extract")
+        || (lower.contains("http error 403") && !lower.contains("fragment"))
+}
+
+// Whether the resolved yt-dlp supports --impersonate (standalone yt-dlp_macos
+// builds bundle curl_cffi; Homebrew/pip builds usually don't). Cached once.
+static IMPERSONATION_SUPPORTED: OnceLock<bool> = OnceLock::new();
+
+fn ytdlp_supports_impersonation(ytdlp_path: &str) -> bool {
+    *IMPERSONATION_SUPPORTED.get_or_init(|| {
+        Command::new(ytdlp_path)
+            .arg("--list-impersonate-targets")
+            .output()
+            .ok()
+            .map(|out| {
+                let text = format!(
+                    "{}{}",
+                    String::from_utf8_lossy(&out.stdout),
+                    String::from_utf8_lossy(&out.stderr)
+                );
+                text.contains("curl_cffi") && !text.contains("unavailable")
+            })
+            .unwrap_or(false)
+    })
+}
+
+// Map the user's default browser to a name yt-dlp's --cookies-from-browser
+// accepts. Falls back to chrome (the most common cookie store). Cached once.
+static COOKIE_BROWSER: OnceLock<String> = OnceLock::new();
+
+fn default_cookie_browser() -> &'static str {
+    COOKIE_BROWSER.get_or_init(|| {
+        // LaunchServices stores the default https handler. `defaults read`
+        // prints the handler list as text; find the block that declares the
+        // https scheme and take its LSHandlerRoleAll bundle id.
+        let handlers = Command::new("/usr/bin/defaults")
+            .args([
+                "read",
+                "com.apple.LaunchServices/com.apple.launchservices.secure",
+                "LSHandlers",
+            ])
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).to_lowercase())
+            .unwrap_or_default();
+
+        let mut bundle_id = String::new();
+        for block in handlers.split("}") {
+            if block.contains("lshandlerurlscheme = https") {
+                if let Some(role_line) = block.lines().find(|l| l.contains("lshandlerroleall =")) {
+                    bundle_id = role_line
+                        .split('=')
+                        .nth(1)
+                        .unwrap_or("")
+                        .trim()
+                        .trim_matches(|c| c == '"' || c == ';')
+                        .trim_matches('"')
+                        .to_string();
+                }
+                break;
+            }
+        }
+
+        let browser = match bundle_id.as_str() {
+            id if id.contains("com.google.chrome") => "chrome",
+            id if id.contains("com.apple.safari") => "safari",
+            id if id.contains("org.mozilla.firefox") => "firefox",
+            id if id.contains("com.brave.browser") => "brave",
+            id if id.contains("com.microsoft.edgemac") => "edge",
+            id if id.contains("com.vivaldi.vivaldi") => "vivaldi",
+            id if id.contains("org.chromium.chromium") => "chromium",
+            // Arc and anything unknown: yt-dlp cannot read their cookie store —
+            // fall back to chrome, the most likely one to exist alongside.
+            _ => "chrome",
+        };
+        eprintln!(
+            "Cookie browser resolved: {} (default https handler: {})",
+            browser,
+            if bundle_id.is_empty() {
+                "unknown"
+            } else {
+                &bundle_id
+            }
+        );
+        browser.to_string()
+    })
 }
 
 fn height_to_resolution_label(height: u64) -> String {
@@ -381,7 +489,7 @@ fn download_video(
                 abs_path
             }
             None => {
-                let error_msg = "yt-dlp not found. Please install it using:\nbrew install yt-dlp\nor\npip3 install yt-dlp[impersonate]\n\nIf installed, ensure it's in your PATH or at /opt/homebrew/bin/yt-dlp".to_string();
+                let error_msg = "The download engine is missing. Try 'Update downloader engine' in Settings, or reinstall the app from superdownloads.app.".to_string();
                 eprintln!("ERROR: {}", error_msg);
                 let _ = window.emit("download-error", (download_id.clone(), error_msg));
                 return;
@@ -434,7 +542,16 @@ fn download_video(
 
         // LinkedIn always requires authentication cookies for metadata
         if url.contains("linkedin.com") || url.contains("lnkd.in") {
-            metadata_cmd.arg("--cookies-from-browser").arg("chrome");
+            metadata_cmd
+                .arg("--cookies-from-browser")
+                .arg(default_cookie_browser());
+        }
+
+        // Facebook metadata needs browser impersonation too (TLS fingerprinting)
+        if (url.contains("facebook.com") || url.contains("fb.watch") || url.contains("fb.com"))
+            && ytdlp_supports_impersonation(&ytdlp_path)
+        {
+            metadata_cmd.arg("--impersonate").arg("chrome");
         }
 
         metadata_cmd.arg(&url);
@@ -563,7 +680,7 @@ fn download_video(
                 // For Vimeo, command spawn failure is non-fatal - continue without metadata
                 // For other sites, this might be a critical error
                 if !is_vimeo {
-                    let error_msg = format!("Failed to run yt-dlp ({}): {}\n\nPlease ensure yt-dlp is installed:\nbrew install yt-dlp\nor\npip3 install yt-dlp[impersonate]", ytdlp_path, e);
+                    let error_msg = format!("Failed to run the download engine ({}): {}\n\nTry 'Update downloader engine' in Settings, or reinstall the app.", ytdlp_path, e);
                     eprintln!("Metadata extraction error: {}", error_msg);
                     let _ = window.emit("download-error", (download_id.clone(), error_msg.clone()));
                     return;
@@ -768,9 +885,18 @@ fn download_video(
         cmd.arg("--user-agent").arg(DEFAULT_USER_AGENT);
         cmd.arg("--no-warnings");
 
+        // Facebook blocks non-browser TLS fingerprints ("Cannot parse data") —
+        // impersonate a real browser when the engine supports it (curl_cffi).
+        let is_facebook =
+            url.contains("facebook.com") || url.contains("fb.watch") || url.contains("fb.com");
+        if is_facebook && ytdlp_supports_impersonation(&ytdlp_path) {
+            cmd.arg("--impersonate").arg("chrome");
+        }
+
         // LinkedIn always requires authentication cookies
         if is_linkedin {
-            cmd.arg("--cookies-from-browser").arg("chrome");
+            cmd.arg("--cookies-from-browser")
+                .arg(default_cookie_browser());
         }
 
         cmd.arg("-o")
@@ -800,7 +926,7 @@ fn download_video(
                 child
             }
             Err(e) => {
-                let error_msg = format!("Failed to start download ({}): {}\n\nPlease ensure yt-dlp is installed:\nbrew install yt-dlp\nor\npip3 install yt-dlp[impersonate]\n\nError details: {:?}", ytdlp_path, e, e);
+                let error_msg = format!("Failed to start the download engine ({}): {}\n\nTry 'Update downloader engine' in Settings, or reinstall the app.", ytdlp_path, e);
                 eprintln!("ERROR starting yt-dlp: {}", error_msg);
                 let _ = window.emit("download-error", (download_id.clone(), error_msg));
                 return;
@@ -1291,14 +1417,30 @@ fn download_video(
                 // Check if this is an auth-required error that can be retried with cookies
                 let combined_error_text =
                     format!("{} {} {}", error_messages.join(" "), all_stderr, all_stdout);
-                let should_retry_with_cookies = is_auth_required_error(&combined_error_text)
-                    && (is_youtube
-                        || is_vimeo
-                        || url.contains("facebook.com")
-                        || url.contains("fb.watch"));
+                let cookie_retry_platform = is_youtube
+                    || is_vimeo
+                    || is_instagram
+                    || url.contains("facebook.com")
+                    || url.contains("fb.watch")
+                    || url.contains("tiktok.com")
+                    || url.contains("twitter.com")
+                    || url.contains("x.com");
+                let should_retry_with_cookies =
+                    is_auth_required_error(&combined_error_text) && cookie_retry_platform;
+                // Fingerprint-blocked extraction (e.g. Facebook "Cannot parse
+                // data") is cleared by impersonation, not cookies.
+                let should_retry_with_impersonation = !should_retry_with_cookies
+                    && is_impersonation_fixable_error(&combined_error_text)
+                    && ytdlp_supports_impersonation(&ytdlp_path);
 
-                if should_retry_with_cookies {
-                    eprintln!("Auth-required content detected, retrying with browser cookies...");
+                if should_retry_with_cookies || should_retry_with_impersonation {
+                    if should_retry_with_cookies {
+                        eprintln!(
+                            "Auth-required content detected, retrying with browser cookies..."
+                        );
+                    } else {
+                        eprintln!("Fingerprint-blocked extraction detected, retrying with browser impersonation...");
+                    }
                     let _ = window.emit(
                         "download-progress",
                         (
@@ -1344,11 +1486,17 @@ fn download_video(
                             .arg("ffmpeg:-threads 0 -c:v h264_videotoolbox -realtime true -prio_speed true -q:v 70 -profile:v high -pix_fmt yuv420p -c:a aac -b:a 320k -movflags +faststart");
                     }
 
+                    retry_cmd.arg("--user-agent").arg(DEFAULT_USER_AGENT);
+                    if should_retry_with_cookies {
+                        retry_cmd
+                            .arg("--cookies-from-browser")
+                            .arg(default_cookie_browser());
+                    }
+                    // Impersonation helps both retry flavors when available.
+                    if ytdlp_supports_impersonation(&ytdlp_path) {
+                        retry_cmd.arg("--impersonate").arg("chrome");
+                    }
                     retry_cmd
-                        .arg("--user-agent")
-                        .arg(DEFAULT_USER_AGENT)
-                        .arg("--cookies-from-browser")
-                        .arg("chrome")
                         .arg("--no-warnings")
                         .arg("-o")
                         .arg(&planned_output_path)
@@ -1441,7 +1589,7 @@ fn download_video(
                     if msg.contains("403") || msg.contains("Forbidden") || msg.contains("SABR") {
                         let mut final_msg = msg.clone();
                         if msg.contains("SABR") || msg.contains("youtube") {
-                            final_msg = format!("{}\n\nYouTube download failed. This is often due to YouTube's recent changes.\nTry updating yt-dlp: brew upgrade yt-dlp", msg);
+                            final_msg = format!("{}\n\nYouTube download failed — usually a YouTube-side change. Click 'Update downloader engine' in Settings and try again.", msg);
                         }
                         if final_msg.len() > 400 {
                             format!("{}...", &final_msg[..400])
@@ -2222,6 +2370,59 @@ fn touch_ytdlp_check() {
     }
 }
 
+fn binary_version(path: &str) -> Option<String> {
+    Command::new(path)
+        .arg("--version")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .filter(|v| !v.is_empty())
+}
+
+// After an app update the bundled yt-dlp may be fresher than an old managed
+// copy. yt-dlp versions are dates (YYYY.MM.DD), so a plain string comparison
+// orders them correctly. Delete the managed copy when it lost the race — the
+// bundled binary takes over until the next self-update.
+fn prune_stale_managed_ytdlp() {
+    let (Some(managed), Some(bundled)) = (find_managed_ytdlp(), find_bundled_binary("yt-dlp"))
+    else {
+        return;
+    };
+    let (Some(mv), Some(bv)) = (binary_version(&managed), binary_version(&bundled)) else {
+        return;
+    };
+    if mv < bv {
+        eprintln!(
+            "Managed yt-dlp {} is older than bundled {} — removing managed copy",
+            mv, bv
+        );
+        let _ = fs::remove_file(&managed);
+    }
+}
+
+#[derive(serde::Serialize)]
+struct YtdlpVersionInfo {
+    version: Option<String>,
+    source: String,
+}
+
+// Engine version shown in Settings next to the "Update engine" button.
+#[tauri::command]
+fn get_ytdlp_version() -> YtdlpVersionInfo {
+    let source = if find_managed_ytdlp().is_some() {
+        "self-updated"
+    } else if find_bundled_binary("yt-dlp").is_some() {
+        "bundled"
+    } else {
+        "system"
+    };
+    YtdlpVersionInfo {
+        version: find_ytdlp().and_then(|p| binary_version(&p)),
+        source: source.to_string(),
+    }
+}
+
 // Download the latest standalone macOS yt-dlp into the managed bin dir.
 // Atomic: download → chmod → verify --version → rename into place.
 // Returns the new version tag on success. Never touches the bundled binary.
@@ -2318,6 +2519,10 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|_app| {
+            // A stale managed copy must never shadow a fresher bundled binary
+            // (e.g. right after an app update). Cheap: two --version calls.
+            prune_stale_managed_ytdlp();
+
             // Weekly background yt-dlp self-update. Non-blocking; on any failure
             // the bundled binary remains the fallback (see find_ytdlp).
             if should_check_ytdlp_update() {
@@ -2348,7 +2553,8 @@ pub fn run() {
             deactivate_license,
             check_for_update,
             install_update,
-            update_ytdlp
+            update_ytdlp,
+            get_ytdlp_version
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

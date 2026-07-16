@@ -231,6 +231,25 @@ function hasSeenOnboarding() {
 
 function markOnboardingSeen() {
   localStorage.setItem(FIRST_RUN_KEY, "true");
+  // Clicking "Get Started" is the user's acceptance of the Terms of Service
+  // and Privacy Policy (linked in the onboarding card).
+  if (!localStorage.getItem("termsAcceptedAt")) {
+    localStorage.setItem("termsAcceptedAt", new Date().toISOString());
+  }
+}
+
+async function openExternal(url) {
+  try {
+    const openerModule = await import("@tauri-apps/plugin-opener");
+    const open = openerModule.openUrl || openerModule.open || openerModule.default?.open;
+    if (open) {
+      await open(url);
+      return;
+    }
+  } catch (err) {
+    console.warn("Opener plugin failed for external URL:", err);
+  }
+  window.open(url, "_blank");
 }
 
 function showOnboarding() {
@@ -264,10 +283,19 @@ function showOnboarding() {
       </div>
       <div class="onboarding-free-note">${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited</div>
       <button class="onboarding-start-btn">Get Started</button>
+      <p class="onboarding-terms">By clicking Get Started you agree to the <a href="#" id="onboarding-terms-link">Terms of Service</a> and <a href="#" id="onboarding-privacy-link">Privacy Policy</a></p>
     </div>
   `;
   document.body.appendChild(overlay);
   requestAnimationFrame(() => overlay.classList.add("visible"));
+  overlay.querySelector("#onboarding-terms-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    openExternal("https://superdownloads.app/terms");
+  });
+  overlay.querySelector("#onboarding-privacy-link").addEventListener("click", (e) => {
+    e.preventDefault();
+    openExternal("https://superdownloads.app/privacy");
+  });
   overlay.querySelector(".onboarding-start-btn").addEventListener("click", () => {
     markOnboardingSeen();
     overlay.classList.remove("visible");
@@ -307,8 +335,43 @@ function showAbout() {
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
 }
 
+// Downloader engine (yt-dlp) version display + manual update from Settings
+async function refreshEngineVersion() {
+  const el = document.querySelector("#engine-version");
+  if (!el || !window.__TAURI__?.core?.invoke) return;
+  try {
+    const info = await window.__TAURI__.core.invoke("get_ytdlp_version");
+    el.textContent = info.version ? `${info.version} · ${info.source}` : "not found";
+  } catch {
+    el.textContent = "unknown";
+  }
+}
+
+function setupEngineSection() {
+  const btn = document.querySelector("#update-engine-btn");
+  if (!btn) return;
+  btn.addEventListener("click", async () => {
+    if (!window.__TAURI__?.core?.invoke) return;
+    btn.disabled = true;
+    btn.textContent = "Updating…";
+    try {
+      await window.__TAURI__.core.invoke("update_ytdlp");
+      showToast("Downloader engine updated");
+    } catch (err) {
+      console.error("Engine update failed:", err);
+      showToast("Engine update failed — check your connection");
+    } finally {
+      await refreshEngineVersion();
+      btn.textContent = "Update engine";
+      btn.disabled = false;
+    }
+  });
+  refreshEngineVersion();
+}
+
 // Initialize
 loadSettings();
+setupEngineSection();
 loadDownloads().then(() => {
   renderDownloadList();
   scheduleWindowResize();
@@ -1317,7 +1380,7 @@ function getFriendlyErrorMessage(errorMessage) {
   }
 
   if (lowerMessage.includes("ffmpeg") && (lowerMessage.includes("not found") || lowerMessage.includes("no such file"))) {
-    return "ffmpeg is not available. Install it with `brew install ffmpeg` and try again.";
+    return "The video converter (ffmpeg) is unavailable. Reinstall the app from superdownloads.app to restore it.";
   }
 
   if (lowerMessage.includes("permission denied")) {
@@ -1329,7 +1392,11 @@ function getFriendlyErrorMessage(errorMessage) {
   }
 
   if (lowerMessage.includes("age-restricted") || lowerMessage.includes("sign in to confirm your age")) {
-    return "This video is age-restricted. Make sure you're logged into YouTube in Chrome and try again.";
+    return "This video is age-restricted. Make sure you're signed into YouTube in your browser and try again.";
+  }
+
+  if (lowerMessage.includes("instagram") || lowerMessage.includes("empty media response")) {
+    return "Instagram requires being signed in. Open instagram.com in your browser, log in, and try again. Note: Instagram support is best-effort — it can break temporarily on Instagram's side.";
   }
 
   if (lowerMessage.includes("tiktok") && (lowerMessage.includes("private") || lowerMessage.includes("unavailable"))) {
@@ -1337,11 +1404,11 @@ function getFriendlyErrorMessage(errorMessage) {
   }
 
   if ((lowerMessage.includes("facebook") || lowerMessage.includes("fb")) && (lowerMessage.includes("login") || lowerMessage.includes("auth"))) {
-    return "This Facebook video requires login. Log into Facebook in Chrome and try again.";
+    return "This Facebook video requires login. Sign into Facebook in your browser and try again.";
   }
 
   if (lowerMessage.includes("linkedin") && (lowerMessage.includes("login") || lowerMessage.includes("auth"))) {
-    return "LinkedIn videos require authentication. Make sure you're logged into LinkedIn in Chrome.";
+    return "LinkedIn videos require authentication. Make sure you're signed into LinkedIn in your browser.";
   }
 
   if ((lowerMessage.includes("twitter") || lowerMessage.includes("x.com")) && lowerMessage.includes("unavailable")) {
