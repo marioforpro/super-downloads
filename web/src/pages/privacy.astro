@@ -6,13 +6,13 @@ import Layout from '../layouts/Layout.astro';
   <div class="legal">
     <a href="/" class="back">&larr; Back</a>
     <h1>Privacy Policy</h1>
-    <p class="updated">Last updated: March 24, 2026</p>
+    <p class="updated">Last updated: July 16, 2026</p>
 
-    <h2>1. Overview</h2>
-    <p>Super Downloads is a desktop application that runs entirely on your computer. We are committed to your privacy and collect minimal data.</p>
+    <h2>1. Who We Are (Data Controller)</h2>
+    <p>Super Downloads is operated by Mario Monteiro, based in Spain (European Union). For anything related to this policy or your personal data, contact <a href="mailto:support@superdownloads.app">support@superdownloads.app</a>.</p>
 
-    <h2>2. What We Don't Collect</h2>
-    <p>The App does not collect, store, or transmit:</p>
+    <h2>2. The App — No Telemetry</h2>
+    <p>The Super Downloads desktop application runs entirely on your computer. The App does not collect, store, or transmit:</p>
     <ul>
       <li>URLs you download</li>
       <li>Video content or metadata</li>
@@ -20,25 +20,39 @@ import Layout from '../layouts/Layout.astro';
       <li>Personal information</li>
       <li>Usage analytics (the App has no telemetry)</li>
     </ul>
+    <p>Settings and download history are stored locally on your device using standard application storage. This data never leaves your computer.</p>
 
-    <h2>3. What We Collect</h2>
-    <p><strong>When you purchase a Pro license:</strong> Your email address and payment information are processed by our payment provider (LemonSqueezy). We receive your email and license key. We do not store your payment card details.</p>
-    <p><strong>When you contact support:</strong> We store your email and message content to respond to your inquiry.</p>
+    <h2>3. The Website — Anonymous, Cookieless Analytics</h2>
+    <p>This website (superdownloads.app) uses PostHog to understand aggregate traffic — page views, referrers, approximate country, browser and device type. This analytics setup is deliberately privacy-first:</p>
+    <ul>
+      <li><strong>Cookieless:</strong> no cookies or local storage are used for analytics, so no consent banner is shown.</li>
+      <li><strong>Anonymous:</strong> no user profiles are created and events are not linked to an identified person.</li>
+      <li><strong>No session recording:</strong> we do not record your screen, mouse movements, or keystrokes.</li>
+      <li><strong>Aggregated only:</strong> we look at totals and trends, not individuals.</li>
+    </ul>
+    <p>Analytics data is processed by PostHog Inc. on servers hosted in the United States. Transfers rely on PostHog's standard safeguards for international data transfers under GDPR.</p>
+    <p><strong>Legal basis:</strong> legitimate interest (Art. 6(1)(f) GDPR) in understanding aggregate website usage, using anonymous, cookieless measurement that does not profile visitors.</p>
 
-    <h2>4. Local Data</h2>
-    <p>The App stores settings and download history locally on your device using standard application storage. This data never leaves your computer.</p>
+    <h2>4. Purchases and License Keys</h2>
+    <p><strong>When you purchase a Pro license:</strong> your email address and payment information are processed by our payment provider, <a href="https://www.lemonsqueezy.com/privacy" rel="noopener">LemonSqueezy</a> (a Stripe company), which acts as merchant of record. We receive your email address and license key so we can deliver and manage your license. We never see or store your payment card details. LemonSqueezy's privacy policy applies to payment processing.</p>
+    <p><strong>When you contact support:</strong> we store your email and message content only to respond to your inquiry.</p>
 
-    <h2>5. Third-Party Services</h2>
-    <p>The App uses yt-dlp to process video URLs. Downloads are fetched directly from the source platform to your computer. No data passes through our servers.</p>
-    <p>Pro license purchases are processed by LemonSqueezy (a Stripe company). Their privacy policy applies to payment processing.</p>
+    <h2>5. Other Third-Party Services</h2>
+    <ul>
+      <li><strong>GitHub:</strong> the App and its updates are distributed via GitHub Releases, and the App downloads its yt-dlp component from GitHub. When you download from GitHub, GitHub's privacy policy applies to that connection.</li>
+      <li><strong>yt-dlp:</strong> the open-source download component runs locally on your computer. Video downloads go directly from the source platform to your device — no video data or URLs pass through our servers.</li>
+    </ul>
 
     <h2>6. Data Retention</h2>
-    <p>We retain customer email addresses for license management. You can request deletion at any time by contacting support@superdownloads.app.</p>
+    <p>We retain customer email addresses for as long as needed for license management, and support correspondence for as long as needed to resolve your inquiry. You can request deletion at any time.</p>
 
-    <h2>7. Changes</h2>
+    <h2>7. Your Rights (GDPR)</h2>
+    <p>If you are in the EU/EEA, you have the right to access, rectify, erase, and receive a copy of your personal data, to restrict or object to its processing, and to withdraw consent where processing is based on consent. To exercise any of these rights, email <a href="mailto:support@superdownloads.app">support@superdownloads.app</a> — we will respond within 30 days. You also have the right to lodge a complaint with your local supervisory authority (in Spain, the Agencia Española de Protección de Datos, <a href="https://www.aepd.es" rel="noopener">aepd.es</a>).</p>
+
+    <h2>8. Changes</h2>
     <p>We may update this policy. Changes will be posted on this page with an updated date.</p>
 
-    <h2>8. Contact</h2>
+    <h2>9. Contact</h2>
     <p>Questions about privacy? Contact us at <a href="mailto:support@superdownloads.app">support@superdownloads.app</a>.</p>
   </div>
 </Layout>

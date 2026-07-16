@@ -4,7 +4,7 @@ import Layout from '../layouts/Layout.astro';
 
 <Layout
   title="Super Downloads — The video downloader built for editors"
-  description="Download videos from YouTube, TikTok, X, Vimeo, Instagram, Facebook & LinkedIn. Every download is Premiere Pro ready — H.264/MP4. Native macOS app."
+  description="Save videos for your offline editing workflow — from YouTube, TikTok and Vimeo, plus Instagram, Facebook, X and LinkedIn with your browser login. Every download is Premiere Pro ready — H.264/MP4. Native macOS app."
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
@@ -15,7 +15,15 @@ import Layout from '../layouts/Layout.astro';
         "name": "What is Super Downloads?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Super Downloads is a native macOS app that downloads videos from YouTube, TikTok, X/Twitter, Vimeo, Instagram, Facebook, and LinkedIn. Every download is automatically converted to H.264/MP4, so files are ready to edit in Premiere Pro, DaVinci Resolve, or Final Cut Pro without conversion."
+          "text": "Super Downloads is a native macOS app for saving video to your offline editing workflow — your own content, licensed, Creative Commons, or authorized content. It works out of the box with YouTube, TikTok, and Vimeo, and also supports Instagram, Facebook, X/Twitter, and LinkedIn using your browser login. Every download is automatically converted to H.264/MP4, so files are ready to edit in Premiere Pro, DaVinci Resolve, or Final Cut Pro without conversion."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why do some platforms need my browser login?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Instagram, Facebook, X/Twitter, and LinkedIn only serve video to logged-in users, so downloads from these platforms work best when you are signed in. Super Downloads reads your existing local browser session to authenticate — it never asks for, sees, or stores your passwords. YouTube, TikTok, and Vimeo work out of the box without login."
         }
       },
       {
@@ -97,7 +105,7 @@ import Layout from '../layouts/Layout.astro';
       <div class="hero-badge">Native macOS App</div>
       <h1 class="hero-title">The video downloader<br /><span class="hero-accent">built for editors.</span></h1>
       <p class="hero-subtitle">
-        Download from YouTube, TikTok, X, Vimeo, Instagram, Facebook & LinkedIn.<br />
+        Download from YouTube, TikTok, Vimeo and more — including Instagram, Facebook, X and LinkedIn with your browser login.<br />
         Every video is Premiere Pro ready — H.264/MP4. No conversion needed.
       </p>
       <div class="hero-actions">
@@ -116,7 +124,7 @@ import Layout from '../layouts/Layout.astro';
         <div class="feature-card">
           <div class="feature-icon">7</div>
           <h3>7 Platforms</h3>
-          <p>YouTube, TikTok, X/Twitter, Vimeo, Instagram, Facebook, LinkedIn — one app for all.</p>
+          <p>Works out of the box: YouTube, TikTok, Vimeo. With your browser login: Instagram, Facebook, X/Twitter, LinkedIn — one app for all.</p>
         </div>
         <div class="feature-card">
           <div class="feature-icon">H.264</div>
@@ -222,7 +230,11 @@ import Layout from '../layouts/Layout.astro';
       <div class="faq-list">
         <details class="faq-item">
           <summary>What is Super Downloads?</summary>
-          <p>Super Downloads is a native macOS app that downloads videos from YouTube, TikTok, X/Twitter, Vimeo, Instagram, Facebook, and LinkedIn. Every download is automatically converted to H.264/MP4, so files are ready to edit in Premiere Pro, DaVinci Resolve, or Final Cut Pro without conversion.</p>
+          <p>Super Downloads is a native macOS app for saving video to your offline editing workflow — your own content, licensed, Creative Commons, or authorized content. It works out of the box with YouTube, TikTok, and Vimeo, and also supports Instagram, Facebook, X/Twitter, and LinkedIn using your browser login. Every download is automatically converted to H.264/MP4, so files are ready to edit in Premiere Pro, DaVinci Resolve, or Final Cut Pro without conversion.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Why do some platforms need my browser login?</summary>
+          <p>Instagram, Facebook, X/Twitter, and LinkedIn only serve video to logged-in users, so downloads from these platforms work best when you're signed in. Super Downloads reads your existing local browser session to authenticate — it never asks for, sees, or stores your passwords. YouTube, TikTok, and Vimeo work out of the box without login.</p>
         </details>
         <details class="faq-item">
           <summary>Who is Super Downloads for?</summary>
@@ -267,7 +279,9 @@ import Layout from '../layouts/Layout.astro';
         <a href="mailto:support@superdownloads.app">Support</a>
         <a href="/terms">Terms</a>
         <a href="/privacy">Privacy</a>
+        <a href="/copyright">Copyright</a>
       </div>
+      <p class="footer-disclaimer">Super Downloads does not host, store, or distribute any copyrighted content. Download only content you own or are authorized to download.</p>
       <div class="footer-copy">&copy; 2026 Super Downloads. All rights reserved.</div>
     </div>
   </footer>
@@ -729,6 +743,14 @@ import Layout from '../layouts/Layout.astro';
 
   .footer-links a {
     color: var(--gray-400);
+  }
+
+  .footer-disclaimer {
+    width: 100%;
+    font-size: 11px;
+    color: var(--gray-400);
+    line-height: 1.6;
+    text-align: center;
   }
 
   .footer-copy {
