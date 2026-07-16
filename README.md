@@ -1,13 +1,15 @@
 # Super Downloads
 
-macOS video download app built with Tauri 2.x. Downloads from YouTube, TikTok, X/Twitter, Vimeo, Instagram, Facebook, and LinkedIn. All videos are optimized for Premiere Pro compatibility (H.264/AAC/MP4).
+macOS video download app built with Tauri 2.x, made for editors. Downloads from YouTube, TikTok, and Vimeo, plus Instagram, Facebook, X/Twitter, and LinkedIn (these platforms typically require your browser's login session and are supported on a best-effort basis). All videos are optimized for Premiere Pro compatibility (H.264/AAC/MP4).
+
+Super Downloads is intended for downloading content you own, have licensed, or are otherwise authorized to download.
 
 ## Features
 
 - Paste any supported video URL and download
 - Queue-style list with live progress, speed, and metadata
 - Auto-converts to H.264 for Premiere Pro compatibility
-- Auto-retries with browser cookies for age-restricted/private content
+- Can use your browser's login session for platforms that require signing in (your session stays local; passwords are never seen or stored)
 - Dark and light themes
 - Auto-resize window, clipboard auto-add, MP3-only mode
 - Download list persists across restarts

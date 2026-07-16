@@ -1,6 +1,6 @@
 # Siguiente Sesion — Guia de Acciones para el Founder
 
-> **PARKED 2026-06-15** — producto enviado (v1.1.1), sin lanzar comercialmente. Reabrir solo on real signal (user pull / press / recomendación explícita del founder). Al reabrir, el único gate abierto es la verificación E2E de LemonSqueezy (paso 4 abajo).
+> **REOPENED 2026-07-16** — recommit explícito del founder. Plan activo: relaunch hardening (reliability + legal + payments), spec en `superpowers/specs/2026-07-16-relaunch-hardening-design.md`, orden de ejecución B → A → C. Estuvo PARKED 2026-06-15 (producto enviado v1.1.1, sin lanzar comercialmente). La verificación E2E de LemonSqueezy (paso 4 abajo) sigue vigente como **Track C2** del plan.
 
 ---
 

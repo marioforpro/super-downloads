@@ -3,8 +3,8 @@
 > Everything needed before going public. Items are ordered by dependency.
 > **This is the single source of truth for launch gates.** `LAUNCH-PLAN.md` is launch-day execution only (channels, copy, metrics).
 
-> **Status (reconciled 2026-06-16):** PARKED 2026-06-15 — product shipped (v1.1.0 + v1.1.1), commercially un-launched.
-> Gates 1–4 infra is largely DONE (shipped via v1.1.0/v1.1.1). The **one remaining launch blocker is the LemonSqueezy E2E verification** (Gate 4, marked ← OPEN GATE below; 6 checks in `NEXT-SESSION.md` step 4). Reopen on real signal, then run that gate.
+> **Status (updated 2026-07-16):** REOPENED 2026-07-16 (founder recommit — relaunch hardening, see `superpowers/specs/2026-07-16-relaunch-hardening-design.md`). Was PARKED 2026-06-15; product shipped (v1.1.0 + v1.1.1), commercially un-launched.
+> Gates 1–4 infra is largely DONE (shipped via v1.1.0/v1.1.1). The **one remaining launch blocker is the LemonSqueezy E2E verification** (Gate 4, marked ← OPEN GATE below; 6 checks in `NEXT-SESSION.md` step 4 — now Track C2 of the relaunch hardening plan).
 
 ---
 
@@ -33,9 +33,9 @@
 - [x] Landing page live
 - [x] Página de pricing visible
 - [x] Botones de descarga funcionales (→ GitHub Releases latest)
-- [ ] Terms of Service publicados
-- [ ] Privacy Policy publicada
-- [ ] Disclaimer de uso responsable
+- [x] Terms of Service publicados
+- [x] Privacy Policy publicada (rewrite en curso 2026-07-16: disclosure de PostHog cookieless — track B del relaunch hardening)
+- [ ] Disclaimer de uso responsable — se implementa hoy 2026-07-16 en la landing (track B del relaunch hardening)
 - [ ] OG image + meta tags (en backlog ROADMAP)
 - [x] Analytics web instalado (PostHog)
 

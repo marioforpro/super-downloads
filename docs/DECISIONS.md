@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-07-16 — Relaunch hardening decisions
+**Context:** Founder recommitted 2026-07-16 after the 2026-06-15 park. Live probe matrix + legal/payments audit (evidence in `docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`, the source of truth for this plan) surfaced: Instagram/Facebook broken, shipped builds running a stale bundled yt-dlp, legally toxic public copy, undisclosed PostHog analytics, and LemonSqueezy discretionary-suspension risk.
+**Decisions (4, founder-approved):**
+1. **Execution order B → A → C.** Track B urgent items first (GDPR + copy sanitation), then Track A reliability release v1.2.0 + robustness + health protocol v2, then Track C payments mitigations.
+2. **Tiered platform honesty.** Landing + app distinguish stable platforms (YouTube, TikTok, Vimeo) from "requires your browser login / best-effort" (Instagram, Facebook, LinkedIn, X). **Why:** broken downloads → refunds/chargebacks → payment-processor review; honesty is the cheapest insurance.
+3. **Stay on LemonSqueezy with 4 mitigations** (instead of migrating): (a) periodic license/customer export, (b) local activation cache in-app so an LS outage/ban never bricks Pro users, (c) written product description to LS support for an on-record OK, (d) chargeback monitoring. Re-evaluate Stripe-direct / FastSpring / Setapp only on real sales signal. Paddle permanently ruled out (prohibits "streaming downloaders").
+4. **PostHog stays, cookieless/anonymous mode, no consent banner.** Memory persistence, no person profiles; Privacy Policy rewritten to disclose it honestly.
+**Consequence:** Project unparked (R-SD-001 back to active; new R-SD-004 tracks the hardening). All sales copy reframed as "content you own / licensed / CC / authorized" — the Premiere Pro editing angle IS the legal positioning.
+
 ## 2026-05-13 — License gate hardened to Tier 1 (planned, not implemented) — Session 201
 **Context:** Founder hit 5/day cap with no real Lemon license yet (Lemon checkout still pending). Bypassed gate in 60s via raw SQLite localStorage inject. Discovery: `isProUser()` is local-only, no revalidation on launch.
 **Decision:** Two follow-up items added to ROADMAP.md Backlog:
@@ -181,3 +190,5 @@
 **Decision:** Adopt documentation patterns from Super Prompts, adapted for a desktop app context.
 **Why:** Proven system that works well for AI-assisted development. Saves time by reusing what works.
 **Files created:** CLAUDE.md, ROADMAP.md, BRAND.md, DECISIONS.md, DIAGNOSTIC.md, LAUNCH.md, MARKETING.md, PROGRESS.md
+
+---

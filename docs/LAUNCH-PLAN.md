@@ -3,7 +3,7 @@
 > First product launch in the Super ecosystem.
 > Based on Launch-Playbook.md template.
 > **Launch-day execution only** (channels · copy · metrics). For launch readiness gates, `docs/LAUNCH.md` is the single source of truth.
-> **Status: PARKED 2026-06-15** — reopen on real signal. v1.1.0 + v1.1.1 shipped; one open gate = LemonSqueezy E2E (see LAUNCH.md Gate 4).
+> **Status: REOPENED 2026-07-16** (founder recommit — relaunch hardening, see `superpowers/specs/2026-07-16-relaunch-hardening-design.md`). v1.1.0 + v1.1.1 shipped; LemonSqueezy E2E gate = Track C2 (see LAUNCH.md Gate 4).
 
 ---
 
@@ -41,7 +41,7 @@
 - [ ] mariomonteiro.tv: Add to portfolio / projects section
 
 **Launch copy draft** (to refine):
-> Super Downloads — a native macOS app for downloading media from YouTube, Vimeo, and 1000+ sites. One-time purchase, no subscription. Built with Tauri.
+> Super Downloads — a native macOS app built for editors. Download video from YouTube, TikTok, and Vimeo (Instagram, Facebook, X, and LinkedIn supported via your browser's login, best-effort), delivered edit-ready as H.264/MP4 for Premiere Pro. For content you own or are authorized to use. One-time purchase, no subscription. Built with Tauri.
 
 ---
 

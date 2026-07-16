@@ -4,9 +4,9 @@
 scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: pre-launch
-current_phase: Phase 4 — Billing · PARKED 2026-06-15 (v1.1.1 shipped; commercially un-launched; reopen on real signal)
-next_milestone: Parked — reopen on real signal (user pull / press / founder recommit); then LemonSqueezy E2E verification
-updated: 2026-06-16
+current_phase: Relaunch hardening (reliability + legal + payments) — reopened 2026-07-16 on founder recommit
+next_milestone: v1.2.0 reliability release + legal repositioning live
+updated: 2026-07-16
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -15,7 +15,8 @@ updated: 2026-06-16
 
 ## Roadmap
 
-- **R-SD-001** · P0 · paused · Submit Super Downloads to LemonSqueezy for approval
+- **R-SD-001** · P0 · active · Submit Super Downloads to LemonSqueezy for approval
+  - reopened: 2026-07-16 (founder recommit — relaunch hardening, see docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md)
   - paused: 2026-06-15 (founder direction, Weekly Loop) — blocked ~7 weeks with no external pull; formally parked. Reopen only on real signal (user pull / press / explicit founder recommit). Resolves the active↔paused header conflict flagged in the 2026-05-31 audit.
   - progress: v1.1.0 published 2026-05-06 (3/5 checklist items shipped — DNS verified · fresh DMGs from HEAD `cfbc320` · GitHub Release reachable anonymously after repo flipped public). Pre-publish caught a stale-artifact false invariant (DMGs in `dist/` predated LS-URL fix `cba5d29` by 7 weeks); resolved by `scripts/check-release-artifacts.sh` build-provenance gate.
   - next: LemonSqueezy E2E verification (six gates per `docs/NEXT-SESSION.md` step 4: checkout loads · test-mode payment · license generated · in-app activation · free/pro limit behavior · LAUNCH30 promo). On pass, product is commercially operational; demo recording (step 5) follows.
@@ -27,6 +28,10 @@ updated: 2026-06-16
   - depends_on: R-SD-001
   - source: docs/MARKETING.md
   - moved: 2026-04-23
+- **R-SD-004** · P0 · active · Relaunch hardening — download reliability (v1.2.0), legal repositioning, payments resilience
+  - added: 2026-07-16 (founder recommit)
+  - scope: execution order B → A → C — Track B legal urgent items (GDPR/PostHog cookieless, copy sanitation, legal surfaces, sales reframing) → Track A v1.2.0 reliability release + robustness + health protocol v2 → Track C LemonSqueezy mitigations + E2E verification (C2 = the six gates in docs/NEXT-SESSION.md step 4)
+  - source: docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md
 
 ## Shipped (last 30d)
 

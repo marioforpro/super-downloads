@@ -10,9 +10,11 @@
 
 **Ángulos de comunicación:**
 1. **Edit-ready:** "Every download is Premiere Pro ready. No conversion needed."
-2. **All-in-one:** "YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn. One app."
+2. **All-in-one:** "YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn. One app." — con honestidad por niveles (decisión 2026-07-16): YouTube/TikTok/Vimeo son estables; Instagram/Facebook/X/LinkedIn requieren la sesión de login de tu navegador y son best-effort. Todo claim público debe reflejar esa distinción.
 3. **Native & fast:** "Native macOS app. No browser. No bloat. No Electron."
 4. **Clipboard magic:** "Copy a link, download starts. That simple."
+
+**Marco de derechos (obligatorio en todo copy):** el pitch es "save video for your offline editing workflow — your content, licensed, CC or authorized". Nunca "download anything". El ángulo Premiere Pro ES el posicionamiento legal (ver `superpowers/specs/2026-07-16-relaunch-hardening-design.md`, Track B4).
 
 **Audiencia principal:** Video editors, content creators, social media managers en macOS.
 
