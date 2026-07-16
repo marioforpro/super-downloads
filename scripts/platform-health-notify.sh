@@ -20,14 +20,29 @@ STATE="$STATE_DIR/health-failing.txt"
 mkdir -p "$(dirname "$LOG")" "$STATE_DIR"
 
 ts="$(date '+%Y-%m-%d %H:%M:%S')"
-OUT="$(./scripts/platform-health-check.sh 2>&1)"
+
+# v2: daily run uses Chrome cookies so Tier-2 (browser-login) platforms are
+# genuinely monitored, and Mondays add a real-download pipeline probe.
+ARGS=(--cookies)
+[[ "$(date '+%u')" == "1" ]] && ARGS+=(--download-probe)
+
+OUT="$(./scripts/platform-health-check.sh "${ARGS[@]}" 2>&1)"
 RC=$?
+
+# Cookie extraction can fail in a launchd context (e.g. keychain locked). If the
+# run died before probing (no verdict line), degrade to a cookie-less run so the
+# Tier-1 signal is never lost.
+if ! printf '%s' "$OUT" | grep -q "Verdict:"; then
+  OUT="[cookie run failed — degraded to no-cookies pass]
+$(./scripts/platform-health-check.sh 2>&1)"
+  RC=$?
+fi
 
 { echo "===== $ts (rc=$RC) ====="; echo "$OUT"; echo; } >> "$LOG"
 
-# Current failing platforms: lines whose verdict column ($2) is exactly FAIL
-# (excludes the "Result: … N FAIL" summary line), sorted+unique.
-cur="$(printf '%s\n' "$OUT" | awk '$2=="FAIL"{print $1}' | sort -u)"
+# Current failing platforms: v2 line format is "platform TIER VERDICT (...)",
+# so the verdict is column $3 (excludes the "Result: … N FAIL" summary line).
+cur="$(printf '%s\n' "$OUT" | awk '$3=="FAIL"{print $1}' | sort -u)"
 prev="$(cat "$STATE" 2>/dev/null || true)"
 printf '%s\n' "$cur" > "$STATE"
 
@@ -40,7 +55,8 @@ if [ "$cur" != "$prev" ]; then
     list="$(printf '%s' "$cur" | paste -sd ', ' -)"
     notify "Platform check changed — now failing: ${list}"
   else
-    notify "All 7 platforms healthy again ✓"
+    verdict="$(printf '%s\n' "$OUT" | awk -F': ' '/ Verdict:/{print $2; exit}')"
+    notify "All platforms healthy again ✓ (${verdict:-certified})"
   fi
 fi
 
