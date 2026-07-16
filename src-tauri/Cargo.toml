@@ -1,6 +1,6 @@
 [package]
 name = "super-downloads"
-version = "1.1.1"
+version = "1.2.0"
 description = "Super Downloads — native macOS video downloader for editors. H.264/MP4 output ready for Premiere Pro."
 authors = ["Mario Monteiro"]
 edition = "2021"
