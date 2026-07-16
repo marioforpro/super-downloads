@@ -17,7 +17,7 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 
 - **State:** REOPENED 2026-07-16 (founder recommit) — was PARKED 2026-06-15. Product shipped, commercially un-launched.
 - **Active plan:** Relaunch hardening (R-SD-004) — download reliability (v1.2.0) + legal repositioning + payments resilience, execution order B → A → C. Spec: `docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`.
-- **Releases shipped:** v1.1.0 (2026-05-06) + v1.1.1 (2026-05-31). v1.1.1 = 360p fix (refreshed bundled yt-dlp) + one-click in-app auto-update + daily launchd platform-health monitor.
+- **Releases shipped:** v1.1.0 (2026-05-06) + v1.1.1 (2026-05-31) + v1.2.0 (2026-07-16, relaunch hardening). v1.1.1 = 360p fix (refreshed bundled yt-dlp) + one-click in-app auto-update + daily launchd platform-health monitor.
 - **Phase 0-3:** COMPLETE (foundation, app polish, freemium + onboarding + auto-updater, www + bare domain via Vercel)
 - **Phase 4 (Billing):** resumed 2026-05-06, re-parked 2026-06-15, reopened 2026-07-16. Open gate → LemonSqueezy E2E verification (never run; 6 checks in `docs/NEXT-SESSION.md` step 4 — now Track C2 of the relaunch hardening plan).
 - **GitHub:** `marioforpro/super-downloads` (public — Releases reachable anonymously)

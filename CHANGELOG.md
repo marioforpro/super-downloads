@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [1.2.0] — 2026-07-16 (artifacts built; publish pending founder go)
+## [1.2.0] — 2026-07-16 (released)
+
+GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.2.0
+Published 2026-07-16 on founder instruction; anonymous download URLs verified
+HTTP 200; updater endpoint serves `latest.json` v1.2.0 (both arches).
+SHA-256:
+- `Super-Downloads_aarch64.dmg` — `619c91c884d7a9000a3c7b4d75d48f4a99918623b43571b3b76e44248d4598d2`
+- `Super-Downloads_x64.dmg`     — `7c2b961a1272ebf99b9e3de3bb12485ccf2abd7b0dafb123f8241830c4f32f05`
 
 Relaunch hardening release — download reliability (Track A of
 `docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`).

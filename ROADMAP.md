@@ -32,7 +32,7 @@ updated: 2026-07-16
   - added: 2026-07-16 (founder recommit)
   - scope: execution order B → A → C — Track B legal urgent items (GDPR/PostHog cookieless, copy sanitation, legal surfaces, sales reframing) → Track A v1.2.0 reliability release + robustness + health protocol v2 → Track C LemonSqueezy mitigations + E2E verification (C2 = the six gates in docs/NEXT-SESSION.md step 4)
   - progress 2026-07-16: **Track B SHIPPED to production** (landing: PostHog cookieless, Privacy rewrite, Terms-as-EULA, /copyright page, tiered platform claims, footer disclaimer; docs/README sanitized). **Track A code COMPLETE** — health protocol v2 live (CERTIFIED OPERATIONAL at baseline) + v1.2.0 reliability code committed (impersonation, wider auth retry, default-browser cookies, engine UI, version guard, onboarding terms), bundled yt-dlp → 2026.07.04, `npm run check` green, signed artifacts built. **Track C1 prepped** (LS compliance email draft + mitigations checklist in NEXT-SESSION.md; local activation cache still pending — v1.2.x).
-  - next: founder go on publishing v1.2.0 (`./scripts/make-release.sh --no-build --publish`) → then C1 email + C2 E2E gates
+  - next: v1.2.0 PUBLISHED 2026-07-16 ✅ (release live, anonymous URLs 200, updater manifest serving) → post-release smoke test + C1 email + C2 E2E gates
   - source: docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md
 
 ## Shipped (last 30d)

@@ -4,21 +4,23 @@
 
 ---
 
-## ⏸️ RESUME POINT — sesión 2026-07-16 pausada aquí (retomar primero)
+## ✅ v1.2.0 PUBLISHED — 2026-07-16 23:05 (founder instruction, smoke test skipped)
 
-Estado al pausar: **Tracks B+A ejecutados y pusheados** (landing legal LIVE en Vercel · health protocol v2 activo y CERTIFIED · código v1.2.0 completo, `npm run check` verde). **v1.2.0 construida y firmada en `dist/`** (provenance gate ✅, `latest.json` ✅). NO publicada — el founder eligió smoke test primero.
+Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.2.0 — DMGs verificados HTTP 200 anónimo; updater endpoint sirve `latest.json` v1.2.0 (ambas arches). Los usuarios de v1.1.1 recibirán el banner de auto-update; los botones de la landing ya sirven la versión nueva.
 
-**Paso 1 — Smoke test v1.2.0 (2 min, founder):** instalar `dist/Super-Downloads_aarch64.dmg` (si macOS bloquea: clic derecho → Abrir, o `xattr -dr com.apple.quarantine`):
+**Siguiente sesión — retomar aquí:**
+
+**Paso 1 — Smoke test post-release (5 min, founder):** instala la versión pública (o la de `dist/`) y verifica en real:
 - [ ] Onboarding muestra la línea de Terms/Privacy bajo "Get Started"
 - [ ] Descarga de un vídeo de YouTube OK
 - [ ] Settings → Downloader engine muestra `2026.07.04 · bundled` + botón "Update engine" (pulsarlo prueba el camino de red del self-update — único punto sin E2E runtime)
+- [ ] En una instalación v1.1.1: el banner de auto-update aparece y actualiza a 1.2.0
 - [ ] Opcional: Facebook debería funcionar ya; Instagram puede fallar (roto upstream) pero con el mensaje honesto nuevo
+- Si algo grave apareciera: se puede despublicar el release en GitHub (`gh release delete v1.2.0`) — los updaters vuelven a ver v1.1.1 como latest.
 
-**Paso 2 — Publicar:** `source ~/.secrets && ./scripts/make-release.sh --no-build --publish` (sube release v1.2.0 a GitHub + auto-update a usuarios v1.1.1). Si se rehace el build antes de publicar, recordar el gate: commit → build → publish.
+**Paso 2 — Track C1:** enviar el email de compliance a LemonSqueezy (borrador abajo) + pasar una URL de post de LinkedIn con vídeo para el monitor (placeholder muerto en PROBES).
 
-**Paso 3 — Track C1:** enviar el email de compliance a LemonSqueezy (borrador abajo) + pasar una URL de post de LinkedIn con vídeo para el monitor (placeholder muerto en PROBES).
-
-**Pendientes v1.2.x (no bloquean publish):** cache local de activación de licencia (C1-d) · E2E LemonSqueezy (Track C2, paso 4 abajo) · format-fallback/concurrencia/timeouts (spec Track A2, excluidos de v1.2.0 a propósito).
+**Pendientes v1.2.x:** cache local de activación de licencia (C1-d) · E2E LemonSqueezy (Track C2, paso 4 abajo) · format-fallback/concurrencia/timeouts (spec Track A2, excluidos de v1.2.0 a propósito).
 
 ---
 
