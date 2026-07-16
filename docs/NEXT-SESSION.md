@@ -4,6 +4,26 @@
 
 ---
 
+## 🟠 Track C1 — Acciones founder (payments resilience, añadido 2026-07-16)
+
+- [ ] **C1-a · Email a soporte de LemonSqueezy** — pedir OK por escrito sobre el producto (tu mejor seguro ante una suspensión discrecional). Enviar desde el dashboard de LS o a su email de soporte. Borrador listo:
+
+  > **Subject:** Product compliance check — Super Downloads (macOS video downloader for editors)
+  >
+  > Hi — before scaling up sales I'd like to confirm my product complies with your acceptable use policy.
+  >
+  > **Product:** Super Downloads (superdownloads.app), a native macOS desktop app for video editors. It saves online videos to the user's own computer so they can edit them offline in Premiere Pro / DaVinci / Final Cut (H.264/MP4 output). One-time €29 license, freemium (5 downloads/day free).
+  >
+  > **What it is / isn't:** The app runs entirely on the user's machine (it embeds the open-source yt-dlp engine). We host no content and no downloads pass through our servers. It does not and cannot circumvent DRM. Our Terms/EULA require users to download only content they own, have licensed, or are authorized to download (see superdownloads.app/terms and /copyright — we also operate a rights-holder abuse contact).
+  >
+  > Comparable tools (4K Video Downloader, Downie, PullTube) are sold via Stripe/FastSpring today. Could you confirm whether Super Downloads is acceptable to sell via Lemon Squeezy, so I have it on record?
+  >
+  > Thanks! — Mario Monteiro, supermariomonteiro@gmail.com
+
+- [ ] **C1-b · Export periódico de licencias** — LS Dashboard → Store → Licenses → export CSV (o vía API). Guardar fuera de LS (carpeta local + backup). Repetir tras cada venta significativa; añadir a la rutina mensual.
+- [ ] **C1-c · Vigilar chargebacks** — el detonante típico de un review no es el tipo de producto sino descargas rotas → refunds/chargebacks. El health-check v2 + v1.2.0 son la mitigación real; revisar el dashboard de LS semanalmente tras el relanzamiento.
+- [ ] **C1-d · Cache local de activación en la app** — (código, va con Track A/v1.2.x) la app no debe "des-activar" a un usuario Pro si la API de licencias de LS no responde; validación offline con gracia larga.
+
 ## ✅ v1.1.0 SHIPPED — 2026-05-06 (Session 161)
 
 GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.1.0
