@@ -4,6 +4,24 @@
 
 ---
 
+## ⏸️ RESUME POINT — sesión 2026-07-16 pausada aquí (retomar primero)
+
+Estado al pausar: **Tracks B+A ejecutados y pusheados** (landing legal LIVE en Vercel · health protocol v2 activo y CERTIFIED · código v1.2.0 completo, `npm run check` verde). **v1.2.0 construida y firmada en `dist/`** (provenance gate ✅, `latest.json` ✅). NO publicada — el founder eligió smoke test primero.
+
+**Paso 1 — Smoke test v1.2.0 (2 min, founder):** instalar `dist/Super-Downloads_aarch64.dmg` (si macOS bloquea: clic derecho → Abrir, o `xattr -dr com.apple.quarantine`):
+- [ ] Onboarding muestra la línea de Terms/Privacy bajo "Get Started"
+- [ ] Descarga de un vídeo de YouTube OK
+- [ ] Settings → Downloader engine muestra `2026.07.04 · bundled` + botón "Update engine" (pulsarlo prueba el camino de red del self-update — único punto sin E2E runtime)
+- [ ] Opcional: Facebook debería funcionar ya; Instagram puede fallar (roto upstream) pero con el mensaje honesto nuevo
+
+**Paso 2 — Publicar:** `source ~/.secrets && ./scripts/make-release.sh --no-build --publish` (sube release v1.2.0 a GitHub + auto-update a usuarios v1.1.1). Si se rehace el build antes de publicar, recordar el gate: commit → build → publish.
+
+**Paso 3 — Track C1:** enviar el email de compliance a LemonSqueezy (borrador abajo) + pasar una URL de post de LinkedIn con vídeo para el monitor (placeholder muerto en PROBES).
+
+**Pendientes v1.2.x (no bloquean publish):** cache local de activación de licencia (C1-d) · E2E LemonSqueezy (Track C2, paso 4 abajo) · format-fallback/concurrencia/timeouts (spec Track A2, excluidos de v1.2.0 a propósito).
+
+---
+
 ## 🟠 Track C1 — Acciones founder (payments resilience, añadido 2026-07-16)
 
 - [ ] **C1-a · Email a soporte de LemonSqueezy** — pedir OK por escrito sobre el producto (tu mejor seguro ante una suspensión discrecional). Enviar desde el dashboard de LS o a su email de soporte. Borrador listo:
