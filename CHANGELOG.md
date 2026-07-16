@@ -4,19 +4,38 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [Unreleased]
+## [1.2.0] — 2026-07-16 (artifacts built; publish pending founder go)
+
+Relaunch hardening release — download reliability (Track A of
+`docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`).
 
 ### Added
-- **Runtime yt-dlp self-update** — the app now keeps a managed copy of `yt-dlp`
-  in `~/Library/Application Support/com.supermac.super-downloads/bin/` and prefers
-  it over the bundled binary (`find_ytdlp()` resolution order). A weekly,
-  non-blocking background check downloads the latest standalone `yt-dlp_macos`
-  from GitHub Releases (atomic: download → chmod → verify `--version` → rename);
-  any failure leaves the bundled binary as fallback. Also exposed as a manual
-  `update_ytdlp` Tauri command. Decouples extractor freshness from the app
-  release cycle — the structural fix for the recurring 360p/extractor-breakage class.
-  _Compiles clean (`cargo fmt`/`clippy -D warnings`/`test`); runtime network path
-  not yet E2E-verified (project parked)._
+- **Runtime yt-dlp self-update** (implemented 2026-06-16, first shipped here) —
+  managed copy in `~/Library/Application Support/com.supermac.super-downloads/bin/`,
+  preferred over the bundled binary; weekly non-blocking background refresh
+  (atomic: download → chmod → verify `--version` → rename), manual `update_ytdlp`
+  command. Decouples extractor freshness from the app release cycle.
+- **Version guard** — a stale managed copy is pruned at startup when the bundled
+  binary is fresher (post-app-update safety).
+- **Browser impersonation** — `--impersonate chrome` (curl_cffi) on Facebook
+  metadata/download/retry, plus a generic retry for fingerprint-blocked
+  extraction ("Cannot parse data", "Unable to extract", 403). Fixes Facebook
+  (verified live 2026-07-16: PASS 720p vs FAIL without).
+- **Wider auth retry** — bot-check walls ("confirm you're not a bot"),
+  429/rate-limits and Instagram's "empty media response" now trigger the
+  cookie retry; Instagram, TikTok and X/Twitter added to the retry platforms.
+- **Default-browser cookies** — `--cookies-from-browser` now targets the user's
+  default browser (LaunchServices detection: chrome/safari/firefox/brave/edge/
+  vivaldi/chromium; falls back to chrome).
+- **Settings → Downloader engine** — shows the active engine version + source
+  (bundled/self-updated) with an "Update engine" button.
+- **Onboarding terms acceptance** — ToS/Privacy links + acceptance recorded
+  (`termsAcceptedAt`).
+
+### Changed
+- Bundled yt-dlp refreshed `2026.03.17` → `2026.07.04` (universal, curl_cffi).
+- End-user error messages: removed `brew`/`pip` advice (inapplicable in a
+  bundled app); honest Instagram best-effort message; browser-agnostic wording.
 
 ---
 
