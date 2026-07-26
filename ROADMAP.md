@@ -6,7 +6,7 @@ prefix: SD
 lifecycle: pre-launch
 current_phase: Relaunch hardening (reliability + legal + payments) — reopened 2026-07-16 on founder recommit
 next_milestone: v1.2.0 reliability release + legal repositioning live
-updated: 2026-07-16
+updated: 2026-07-21
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -15,7 +15,9 @@ updated: 2026-07-16
 
 ## Roadmap
 
-- **R-SD-001** · P1 · active · Submit Super Downloads to LemonSqueezy for approval
+- **R-SD-001** · P1 · dropped · Submit Super Downloads to LemonSqueezy for approval
+  - dropped: 2026-07-21
+  - dropped_reason: merged into R-SD-004 — the six LemonSqueezy gates are Track C2 of R-SD-004, which is the single live launch track. Kept for audit trail; do not reopen.
   - reprioritized: 2026-07-16 (P0 → P1) — subsumed into R-SD-004 Track C2 (LemonSqueezy E2E verification), which per HEALTH.md runs after Track B (legal, shipped) and Track A (v1.2.0 reliability, code complete); R-SD-004 is the current top-priority item, not this one.
   - reopened: 2026-07-16 (founder recommit — relaunch hardening, see docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md)
   - paused: 2026-06-15 (founder direction, Weekly Loop) — blocked ~7 weeks with no external pull; formally parked. Reopen only on real signal (user pull / press / explicit founder recommit). Resolves the active↔paused header conflict flagged in the 2026-05-31 audit.
@@ -25,11 +27,13 @@ updated: 2026-07-16
   - source: docs/LAUNCH.md, docs/NEXT-SESSION.md, docs/OPS.md
   - moved: 2026-05-06
 - **R-SD-002** · P1 · next · Publish launch announcement (Reddit r/macapps + HN Show HN)
-  - next: draft copy once R-SD-001 clears + LemonSqueezy checkout URL is live
-  - depends_on: R-SD-001
+  - next: draft copy once R-SD-004 Track C2 clears + LemonSqueezy checkout URL is live
+  - depends_on: R-SD-004
   - source: docs/MARKETING.md
   - moved: 2026-04-23
 - **R-SD-004** · P0 · active · Relaunch hardening — v1.2.0 reliability release + legal repositioning
+  - gate: Big Sur (Santalucía / Oriol Villar) client delivery — founder decision 2026-07-27, Weekly Loop. Reopen the moment Big Sur ships. This item is NOT blocked: nothing external stops Track C2, the founder's attention is committed elsewhere and saying so out loud beats carrying an unworked P0. Two consecutive Weekly Loops (2026-07-19, 2026-07-27) named C2 as the next move and neither week moved it — the gate records why instead of letting the board keep asserting a priority that execution contradicts.
+  - merged_from: R-SD-001 (LemonSqueezy submission + the six E2E gates now live here as Track C2)
   - retitled: 2026-07-16 (was "Relaunch hardening — download reliability (v1.2.0), legal repositioning, payments resilience") — aligned to HEALTH.md next_milestone wording; payments resilience remains in scope, see scope/progress below.
   - added: 2026-07-16 (founder recommit)
   - scope: execution order B → A → C — Track B legal urgent items (GDPR/PostHog cookieless, copy sanitation, legal surfaces, sales reframing) → Track A v1.2.0 reliability release + robustness + health protocol v2 → Track C LemonSqueezy mitigations + E2E verification (C2 = the six gates in docs/NEXT-SESSION.md step 4)
@@ -60,7 +64,7 @@ updated: 2026-07-16
 - **Founder comp license via LemonSqueezy** — issue real comp license through Lemon dashboard (Product → Licenses → Issue License Key, comp/free) for `supermariomonteiro@gmail.com`, replace local `FOUNDER-MARIO-001` stop-gap (Session 201 inject, see `docs/SECURITY-NOTES.md`). Validates the full activation flow end-to-end with a real Lemon-tracked record. Depends on: Lemon product live (linked to R-SD-001 Phase 4 LS-verify).
 - **License hardening / anti-crack security review** — current freemium gate is bypassable in 60s via raw SQLite localStorage inject (`proLicenseKey` set → `isProUser()` returns true forever, no re-validation). Documented attack vector in `docs/SECURITY-NOTES.md`. Scope: pick + implement a hardening level appropriate for €29 one-time consumer app (recommended: periodic Lemon revalidation + signed cache, NOT full DRM). Pre-launch hardening item, not launch-blocker.
 - **Runtime yt-dlp self-update** — ✅ shipping in **v1.2.0** (2026-07-16, R-SD-004 Track A). Pendings closed: (1) in the v1.2.0 build ✅; (3) Settings "Update engine" button wired to `update_ytdlp` + `get_ytdlp_version` ✅; (4) version-comparison guard implemented (`prune_stale_managed_ytdlp`) ✅. Still open: (2) runtime E2E verify of the self-update network path on a real app run — do at v1.2.0 smoke test.
-- **Cockpit state wiring** — after the 2026-06-16 frontmatter reconciliation (ROADMAP + HEALTH → parked), regenerate + publish `state.super-downloads.json` via the LifeOS engine (`/lifeos-publish`) so the cockpit stops rendering SD as an active Phase-4 project. The doc edits are the inputs; the shard regen is the engine-facing surface. (cross-department: 00_System/LIFEOS-COCKPIT + Vercel)
+- ~~**Cockpit state wiring** — after the 2026-06-16 frontmatter reconciliation (ROADMAP + HEALTH → parked), regenerate + publish `state.super-downloads.json` via the LifeOS engine (`/lifeos-publish`) so the cockpit stops rendering SD as an active Phase-4 project. The doc edits are the inputs; the shard regen is the engine-facing surface. (cross-department: 00_System/LIFEOS-COCKPIT + Vercel)~~ [killed: premise reversed on 2026-07-21 — SD was reopened 2026-07-16 and should render as active; the shard regenerates unattended (state.super-downloads.json refreshed daily by reconstruction-engine) so there is no wiring left to do]
 - **Reconcile stale product audits** — `docs/APP-AUDIT.md` (14 items) + `docs/DIAGNOSTIC.md` are frozen at 2026-03-24/v1.1.0; many flagged items shipped across Phases 0–3 + v1.1.1. Add a "Reconciled" banner, strike shipped items, and lift the still-open debt into this backlog: history-persistence README contradiction, hardcoded version (P8), stray `console.log`s (T3), landing CSP `img-src`.
 - **Release-ops hardening (dept)** — (a) backfill local annotated git tags for v1.1.0/v1.1.1 (none exist; `git show <tag>` history hints don't resolve) and add a tag-push step to `scripts/make-release.sh`; (b) lift the release pipeline (`make-release.sh`, required `latest.json` asset, `check-release-artifacts.sh` provenance gate, Ed25519 key rotation) from MEMORY.md into `docs/OPS.md` (the authoritative ops doc per Doc Ownership).
 
