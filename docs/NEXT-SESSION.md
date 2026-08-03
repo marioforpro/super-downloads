@@ -140,7 +140,7 @@ Mario
 ```
 
 - [ ] Send reply
-- [ ] Mark R-SD-001 as unblocked in `ROADMAP.md` once LS confirms approval
+- [ ] Mark R-SD-001 as unblocked in `ROADMAP.md` once LS confirms approval *(historical box — R-SD-001 was dropped 2026-07-21 and merged into R-SD-004 Track C2; track any LS-approval follow-up there. Noted 2026-08-03, SD-F-004.)*
 
 ### Launch-order reminder
 

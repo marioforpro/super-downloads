@@ -6,7 +6,7 @@ prefix: SD
 lifecycle: pre-launch
 current_phase: Relaunch hardening (reliability + legal + payments) — reopened 2026-07-16 on founder recommit
 next_milestone: v1.2.0 reliability release + legal repositioning live
-updated: 2026-07-21
+updated: 2026-08-03
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -33,6 +33,8 @@ updated: 2026-07-21
   - moved: 2026-04-23
 - **R-SD-004** · P0 · active · Relaunch hardening — v1.2.0 reliability release + legal repositioning
   - gate: Big Sur (Santalucía / Oriol Villar) client delivery — founder decision 2026-07-27, Weekly Loop. Reopen the moment Big Sur ships. This item is NOT blocked: nothing external stops Track C2, the founder's attention is committed elsewhere and saying so out loud beats carrying an unworked P0. Two consecutive Weekly Loops (2026-07-19, 2026-07-27) named C2 as the next move and neither week moved it — the gate records why instead of letting the board keep asserting a priority that execution contradicts.
+  - gate-resolved: 2026-08-03 — founder decision SD-F-002 «Aceptar (a) — ships» (ledger: `00_System/AUDITS/2026-08-03-audit-program-final-consolidation/FOUNDER-DECISIONS-RESPONSES-2026-08-03.md` §1.1). The client-facing Big Sur v1 delivery on 2026-07-30 satisfies the gate ("Big Sur" = the STUDIO client job, not macOS 11). **Track C2 (six Lemon Squeezy E2E gates, `docs/NEXT-SESSION.md` step 4) is the live next move.** The four remaining STUDIO client loose ends stay in STUDIO as quality/licensing residue and do NOT re-block this item. Unblocks R-SD-002 and R-GROW-003.
+  - status 2026-08-03: trigger satisfied · **the six LS E2E gates remain UNEXECUTED** (product work, founder-in-the-loop) · v1.2.0 publicly distributed (release URLs verified 200 on 2026-08-03) but commercially unverified · signing/notarization decision (SD-F-009) still open — no build/release/signing until the founder answers it.
   - merged_from: R-SD-001 (LemonSqueezy submission + the six E2E gates now live here as Track C2)
   - note: 2026-07-27 · repo-intel found the Instagram engine is FAILING right now — `docs/PLATFORM-HEALTH.md` Tier 2 = FAIL (HTTP 400, yt-dlp #13626/#16311), i.e. Track A's reliability claim is currently false for that platform. Named remedy: the endpoint-fallback technique in `instaloader/instaloader` (Vault note `instaloader-instaloader.md`, verdict EXTRACT). This does NOT lift the `gate:` above — it is context for when Big Sur ships, or the reason to lift it early if Instagram matters to the relaunch.
   - retitled: 2026-07-16 (was "Relaunch hardening — download reliability (v1.2.0), legal repositioning, payments resilience") — aligned to HEALTH.md next_milestone wording; payments resilience remains in scope, see scope/progress below.

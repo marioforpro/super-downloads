@@ -10,7 +10,7 @@ blocker_reason: null
 resolution_factor: 1.0
 validity_factor: 1.0
 next_milestone: Relaunch hardening — v1.2.0 reliability release + legal repositioning live (reopened 2026-07-16)
-last_updated: 2026-07-21
+last_updated: 2026-08-03
 stack: Tauri v2, Rust, vanilla JS, Astro
 repo: marioforpro/super-downloads
 ---
@@ -20,9 +20,9 @@ repo: marioforpro/super-downloads
 ## Status
 - **State**: REOPENED 2026-07-16 (founder recommit) — relaunch hardening active: download reliability (v1.2.0) + legal repositioning + payments resilience. Plan: `docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`. Was PARKED 2026-06-15 (product shipped, commercially un-launched).
 - **Version**: v1.2.0 (published 2026-07-16 — relaunch hardening Track A: download reliability, wider auth retry, engine UI, bundled yt-dlp 2026.07.04). Previous: v1.1.1 (2026-05-31 — yt-dlp 360p fix + one-click in-app auto-update)
-- **Phase**: Relaunch hardening (R-SD-004, order B → A → C). LemonSqueezy E2E verification = Track C2 (closes R-SD-001)
+- **Phase**: Relaunch hardening (R-SD-004, order B → A → C). LemonSqueezy E2E verification = Track C2, the live next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03; gates NOT yet executed). Historical: Track C2 absorbed R-SD-001, dropped 2026-07-21 — do not cite that ID as live.
 - **Build**: macOS DMGs (Apple Silicon + Intel)
-- **Monitoring**: daily platform health-check via launchd (shipped 2026-05-31)
+- **Monitoring**: daily platform health-check via launchd (shipped 2026-05-31). Lifecycle truth: the agent was dead 2026-07-02 → 2026-08-03 (plist sat renamed `.plist.disabled`; zero automated runs; one manual run 2026-07-16). Reloaded 2026-08-03 (audit Wave D, no kickstart) — first scheduled run expected 2026-08-04 10:00; registered in `00_System/AUTOMATIONS.md`.
 
 ## What It Does
 macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS frontend. Astro-based landing page.
@@ -31,8 +31,9 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 - Freemium: 5 downloads/day free; Pro is €29 one-time lifetime with up to 3 devices
 
 ## Key Decisions Pending
-- LemonSqueezy E2E verification — six gates per `docs/NEXT-SESSION.md` step 4 (closes R-SD-001)
+- LemonSqueezy E2E verification — six gates per `docs/NEXT-SESSION.md` step 4 (R-SD-004 Track C2; historical: absorbed dropped R-SD-001)
 - Re-baseline launch target at LS-verify session start
+- Signing/notarization for a €29 commercial launch (SD-F-009) — founder decision open; no build/release/signing until answered
 
 ## LifeOS Integration
 - **Domain**: 01_Projects (Product)
