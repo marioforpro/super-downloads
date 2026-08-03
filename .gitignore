@@ -33,6 +33,14 @@ src-tauri/binaries.nosync
 # Tauri updater signing key (private — NEVER commit)
 src-tauri/.tauri-update-key
 
+# Env files (bare .env was uncovered — MA-SD-19, closed 2026-08-03)
+.env
+.env.*
+!.env.example
+
+# Relocated iCloud duplicate artifacts (never-delete: archived, not destroyed)
+_archive/
+
 # Astro build output
 web/dist/
 web/.astro/

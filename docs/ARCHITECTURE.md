@@ -11,7 +11,7 @@ macOS desktop app for downloading videos from multiple platforms. Built with Tau
 
 ## Directory Structure
 ```
-SUPER-DOWNLOADS-v1.0/
+SUPER-DOWNLOADS/
 ├── src/                        # Frontend
 │   ├── main.js                 # App logic, state, events, UI
 │   ├── index.html              # HTML structure

@@ -100,6 +100,15 @@ weekly yt-dlp self-update, shipped in v1.2.0).
 
 A `launchd` agent runs the check **daily at 10:00**:
 
+> **Lifecycle note (2026-08-03):** the agent was dead 2026-07-02 → 2026-08-03 —
+> the installed plist sat renamed `.plist.disabled`, so `launchctl` had no
+> service and zero automated runs happened in that window (one manual run
+> 2026-07-16). Reloaded 2026-08-03 (audit Wave D: plist renamed back +
+> bootstrapped `gui/501`, no kickstart). First scheduled run expected
+> **2026-08-04 10:00**. The job is now registered in `00_System/AUTOMATIONS.md`
+> (LifeOS control plane), so a future silent death shows up as a stale-log 🔴
+> instead of a blind spot.
+
 - Agent: `scripts/platform-health-notify.sh` (wrapper) via
   `scripts/com.superdownloads.health-check.plist` → installed at
   `~/Library/LaunchAgents/com.superdownloads.health-check.plist`.

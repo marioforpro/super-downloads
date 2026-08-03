@@ -8,5 +8,9 @@ A competing yt-dlp-wrapper download app — useful as a teardown of how a minima
 - **in-memory job table + poll** — a uuid-keyed dict + worker thread + status-poll endpoint = the minimal legible form of background-job delegation. Reference for any SD background-download/queue surface that doesn't need a full job queue.
 - **competing-product teardown** — reclip's feature set is a checklist to position SD against (what a bare wrapper does vs SD's value-add).
 
+## instaloader/instaloader — EXTRACT (Instagram endpoint-fallback remedy)
+Named remedy for the live Instagram extractor failure (Tier 2 FAIL, HTTP 400 — yt-dlp #13626/#16311; recorded on `ROADMAP.md` R-SD-004 note 2026-07-27). instaloader's endpoint-fallback technique (try multiple metadata endpoints before failing) is the pattern to steal when SD picks up the Instagram fix. Canonical: `~/Vault/13_Sources/Repos/instaloader-instaloader.md` (verdict EXTRACT). Not a dependency, not installed.
+
 ## History
 - 2026-06-11 — created via `/repo-intel-resolve` (EXTRACT). runtime-ytdlp-resolution + in-memory job-table patterns captured as a competing-product teardown reference. Not a dependency, not installed.
+- 2026-08-03 — instaloader row backfilled (SD-F-014: `ROADMAP.md` relied on this deposit but the row was missing since the 2026-07-27 repo-intel run).

@@ -35,6 +35,8 @@
 - Platform limit (e.g., YouTube-only free / all platforms pro)
 - Feature limit (e.g., no MP3 mode, no auto-add in free)
 
+**RESOLVED (annotated 2026-08-03, MA-SD-8):** tiers were defined and shipped long ago — **5 downloads/day free · Pro unlimited, €29 one-time lifetime, up to 3 devices** (live in the app's freemium gate since Phase 2; see `HEALTH.md` Revenue Model). This PENDING block is kept as the historical option list.
+
 ---
 
 ## 2026-03-24 — Brand independence from Super Prompts

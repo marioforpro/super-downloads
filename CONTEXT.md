@@ -40,7 +40,7 @@ macOS desktop app for media downloads. REOPENED 2026-07-16 (founder recommit) â€
 
 ## Known risks / staleness
 - Bundled binaries (`src-tauri/binaries/`) are large; never commit
-- Multiple `node_modules` folders in tree (`node_modules`, `node_modules 2`, `node_modules.nosync`) â€” iCloud sync artefact
+- iCloud sync produces duplicate artefacts (`node_modules 2`, `web/dist/* 2.*`, `.nosync` variants). 2026-08-03: the empty `node_modules 2` dir and four `web/dist/* 2.*` files were relocated to `_archive/icloud-duplicates-2026-08-03/` (never-delete: archived, not destroyed; `_archive/` is gitignored). `node_modules.nosync` remains in place.
 
 ## Pointers (do NOT auto-load)
 - Launch plan / checklist (in-project): `docs/LAUNCH-PLAN.md`, `docs/LAUNCH.md`

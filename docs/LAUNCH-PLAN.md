@@ -59,7 +59,7 @@
 
 ## Post-Launch Actions
 
-- [ ] Monitor Signals.md daily (week 1)
+- [ ] Monitor Signals.md daily (week 1) *(2026-08-03: `08_Growth/Signals.md` no longer exists — capture feedback via `08_Growth/CONTEXT.md` surfaces)*
 - [ ] Respond to all feedback within 24h
 - [ ] Identify top bug / feature request
 - [ ] Revenue update → `02_Finance/Income-Analysis.md`
@@ -71,5 +71,5 @@
 
 - `01_Projects/SUPER-DOWNLOADS/HEALTH.md` — Project health
 - `08_Growth/Channels.md` — Distribution channels
-- `08_Growth/Signals.md` — Feedback capture
+- ~~`08_Growth/Signals.md` — Feedback capture~~ *(dead link, noted 2026-08-03 — file no longer exists; MA-SD-12)*
 - `02_Finance/Income-Analysis.md` — Revenue tracking
