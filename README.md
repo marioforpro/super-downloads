@@ -34,6 +34,10 @@ npm run tauri build -- --target x86_64-apple-darwin --bundles app
 ./create-dmg.sh
 ```
 
+## Third-party components
+
+Super Downloads bundles three third-party tools: **yt-dlp** (The Unlicense), **ffmpeg**, and **ffprobe** (GPL-family — the vendored builds differ in license mode by CPU architecture; see notices for the verified breakdown). See [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) for verified build/license details, upstream pointers, and known gaps.
+
 ## Documentation
 
 - [Architecture](docs/ARCHITECTURE.md) - Project structure, tech stack, design decisions
