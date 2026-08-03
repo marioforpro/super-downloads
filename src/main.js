@@ -1255,9 +1255,11 @@ async function saveDownloads() {
     if (!window.__TAURI__?.core?.invoke) return;
     const serializable = downloads.filter(d => isTerminalStatus(d.status));
     await window.__TAURI__.core.invoke("save_download_history", {
-      data: JSON.stringify(serializable)
+      downloadsJson: JSON.stringify(serializable)
     });
-  } catch {}
+  } catch (err) {
+    console.error("Failed to save download history:", err);
+  }
 }
 
 function scheduleWindowResize() {

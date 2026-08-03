@@ -7,7 +7,8 @@
     "tauri": "tauri",
     "check:frontend": "node --check src/main.js",
     "check:rust": "cd src-tauri && cargo fmt --all -- --check && cargo clippy --all-targets -- -D warnings && cargo test",
-    "check": "npm run check:frontend && npm run check:rust"
+    "check": "npm run check:frontend && npm run check:bindings && npm run check:rust",
+    "check:bindings": "node scripts/check-invoke-bindings.mjs"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2"
