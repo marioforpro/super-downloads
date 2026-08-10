@@ -31,7 +31,7 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 - Freemium: 5 downloads/day free; Pro is €29 one-time lifetime with up to 3 devices
 
 ## Key Decisions Pending
-- LemonSqueezy E2E verification — six gates per `docs/NEXT-SESSION.md` step 4 (R-SD-004 Track C2; historical: absorbed dropped R-SD-001)
+- LemonSqueezy E2E verification — six gates per `NEXT.md` step 4 (R-SD-004 Track C2; historical: absorbed dropped R-SD-001)
 - Re-baseline launch target at LS-verify session start
 - Signing/notarization for a €29 commercial launch (SD-F-009) — founder decision open; no build/release/signing until answered
 
@@ -48,4 +48,4 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 ## Notes
 - Bundles yt-dlp/ffmpeg binaries — large files, must stay gitignored
 - Landing page deploys on Vercel; native app release ships through DMG/GitHub Release
-- Resumed 2026-05-06; v1.1.1 + auto-updater + daily launchd health monitor shipped 2026-05-31. `docs/NEXT-SESSION.md` step 4 is the live checklist (LemonSqueezy E2E).
+- Resumed 2026-05-06; v1.1.1 + auto-updater + daily launchd health monitor shipped 2026-05-31. `NEXT.md` step 4 is the live checklist (LemonSqueezy E2E).

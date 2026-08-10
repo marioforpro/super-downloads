@@ -108,7 +108,7 @@ The Premiere Pro angle IS the legal positioning. Tiered platform honesty per Dec
 
 - C1: the 4 LS mitigations (Decision 3). License export: documented manual procedure + script if
   LS API allows. Local activation cache: app code (Track A block).
-- C2: run the LS E2E verification (6 gates in NEXT-SESSION.md step 4) — founder-in-the-loop.
+- C2: run the LS E2E verification (6 gates in NEXT.md step 4) — founder-in-the-loop.
 - C3 (deferred until sales signal): Stripe-direct vs FastSpring decision; Setapp submission.
 
 ## Non-goals

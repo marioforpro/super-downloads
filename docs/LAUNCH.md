@@ -4,7 +4,7 @@
 > **This is the single source of truth for launch gates.** `LAUNCH-PLAN.md` is launch-day execution only (channels, copy, metrics).
 
 > **Status (updated 2026-07-16):** REOPENED 2026-07-16 (founder recommit — relaunch hardening, see `superpowers/specs/2026-07-16-relaunch-hardening-design.md`). Was PARKED 2026-06-15; product shipped (v1.1.0 + v1.1.1), commercially un-launched.
-> Gates 1–4 infra is largely DONE (shipped via v1.1.0/v1.1.1). The **one remaining launch blocker is the LemonSqueezy E2E verification** (Gate 4, marked ← OPEN GATE below; 6 checks in `NEXT-SESSION.md` step 4 — now Track C2 of the relaunch hardening plan).
+> Gates 1–4 infra is largely DONE (shipped via v1.1.0/v1.1.1). The **one remaining launch blocker is the LemonSqueezy E2E verification** (Gate 4, marked ← OPEN GATE below; 6 checks in `NEXT.md` step 4 — now Track C2 of the relaunch hardening plan).
 
 ---
 

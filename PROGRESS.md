@@ -89,18 +89,18 @@ f2a8c14 feat: Phase 1 must-haves — toast system, empty state, open file, histo
 
 **Temas documentados para próxima sesión:**
 
-1. **Dominio Hostinger** — superdownloads.app muestra "pending verified". Necesita verificación antes de configurar DNS. Añadido a NEXT-SESSION.md.
+1. **Dominio Hostinger** — superdownloads.app muestra "pending verified". Necesita verificación antes de configurar DNS. Añadido a NEXT.md.
 
-2. **Platform Reliability System** — Diseñar sistema de monitoreo para detectar cuando YouTube/TikTok/Instagram cambian protecciones y rompen yt-dlp. Incluye: health checks automáticos, alertas, dashboard de estado, protocolo de respuesta, auto-update de yt-dlp independiente, comunicación clara al usuario. Sección completa en NEXT-SESSION.md.
+2. **Platform Reliability System** — Diseñar sistema de monitoreo para detectar cuando YouTube/TikTok/Instagram cambian protecciones y rompen yt-dlp. Incluye: health checks automáticos, alertas, dashboard de estado, protocolo de respuesta, auto-update de yt-dlp independiente, comunicación clara al usuario. Sección completa en NEXT.md.
 
-3. **UI Polish — Inspiración Transmission** — Dos mejoras clave: (a) auto-resize de ventana según número de descargas (crece/encoge dinámicamente), (b) diseño más clean y compacto de la lista de descargas. Documentado en NEXT-SESSION.md.
+3. **UI Polish — Inspiración Transmission** — Dos mejoras clave: (a) auto-resize de ventana según número de descargas (crece/encoge dinámicamente), (b) diseño más clean y compacto de la lista de descargas. Documentado en NEXT.md.
 
 4. **Browser Extension** — Nueva Phase 8 añadida al roadmap. Extensión que permite descargar directo desde el navegador sin copiar/pegar URLs. Comunicación via deep link / URL scheme.
 
 ### Documentation health check
 - 11 archivos de documentación verificados, todos presentes y consistentes
 - ROADMAP.md actualizado con Phase 8
-- NEXT-SESSION.md ampliado con 3 temas estratégicos nuevos
+- NEXT.md ampliado con 3 temas estratégicos nuevos
 - Memory del proyecto creada para platform reliability
 
 ---

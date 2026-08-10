@@ -4,7 +4,7 @@
 
 ## First Action
 
-Read `docs/NEXT-SESSION.md` for founder action items, then `ROADMAP.md` for project state.
+Read `NEXT.md` for founder action items, then `ROADMAP.md` for project state.
 
 ## Project
 
@@ -19,13 +19,13 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 - **Active plan:** Relaunch hardening (R-SD-004) — download reliability (v1.2.0) + legal repositioning + payments resilience, execution order B → A → C. Spec: `docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`.
 - **Releases shipped:** v1.1.0 (2026-05-06) + v1.1.1 (2026-05-31) + v1.2.0 (2026-07-16, relaunch hardening). v1.1.1 = 360p fix (refreshed bundled yt-dlp) + one-click in-app auto-update + daily launchd platform-health monitor.
 - **Phase 0-3:** COMPLETE (foundation, app polish, freemium + onboarding + auto-updater, www + bare domain via Vercel)
-- **Phase 4 (Billing):** resumed 2026-05-06, re-parked 2026-06-15, reopened 2026-07-16. Open gate → LemonSqueezy E2E verification (never run; 6 checks in `docs/NEXT-SESSION.md` step 4 — now Track C2 of the relaunch hardening plan).
+- **Phase 4 (Billing):** resumed 2026-05-06, re-parked 2026-06-15, reopened 2026-07-16. Open gate → LemonSqueezy E2E verification (never run; 6 checks in `NEXT.md` step 4 — now Track C2 of the relaunch hardening plan).
 - **GitHub:** `marioforpro/super-downloads` (public — Releases reachable anonymously)
 - **Vercel:** `superdownloads.vercel.app` (live, auto-deploy on push)
 - **Domain:** `superdownloads.app` + `www.superdownloads.app` working
 - **Analytics:** PostHog integrated in landing
 - **Billing:** LemonSqueezy checkout wired to real product UUID (`src/main.js:99`); E2E verification not yet run
-- **Founder actions pending:** Execute the relaunch hardening tracks (B → A → C); LemonSqueezy E2E verification remains founder-in-the-loop (Track C2). See `docs/NEXT-SESSION.md`
+- **Founder actions pending:** Execute the relaunch hardening tracks (B → A → C); LemonSqueezy E2E verification remains founder-in-the-loop (Track C2). See `NEXT.md`
 
 ## Critical Context
 
@@ -45,7 +45,7 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 
 | What | File |
 |------|------|
-| Next actions for founder | `docs/NEXT-SESSION.md` |
+| Next actions for founder | `NEXT.md` |
 | Roadmap & phases | `ROADMAP.md` |
 | Progress log | `PROGRESS.md` |
 | Decisions | `docs/DECISIONS.md` |
