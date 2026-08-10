@@ -11,6 +11,7 @@ resolution_factor: 1.0
 validity_factor: 1.0
 next_milestone: Relaunch hardening — v1.2.0 reliability release + legal repositioning live (reopened 2026-07-16)
 last_updated: 2026-08-03
+validated_end_to_end: null  # field added 2026-08-10 (TASKS.md "cuatro proyectos") — never measured; the pending validator IS Track C2 (R-SD-004): LemonSqueezy E2E verification, six gates. Contract only requires this field at live-post-launch; null here documents non-verifiability instead of hiding it.
 stack: Tauri v2, Rust, vanilla JS, Astro
 repo: marioforpro/super-downloads
 ---

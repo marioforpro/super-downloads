@@ -89,6 +89,16 @@ weekly yt-dlp self-update, shipped in v1.2.0).
    the platform is hard-broken (e.g. Instagram HTTP 400, issues #13626/#16311),
    verify the landing copy still frames it honestly (best-effort tier) and note
    it in the FAQ if needed. No release urgency — Tier 2 does not gate.
+   Named remedy for the current Instagram FAIL (founder-approved reference,
+   2026-08-10): the endpoint-format-fallback technique from
+   `instaloader/instaloader` — iPhone-header endpoints + endpoint-format
+   fallback (`instaloadercontext.py` `get_json()` / `default_iphone_headers()`,
+   PR #2706), plus randomized backoff-before-request and a typed retry-exception
+   hierarchy. Analysis: Vault `13_Sources/Repos/instaloader-instaloader.md`
+   (2026-07-27, verdict EXTRACT — technique transfers; vendoring does not).
+   Port target: the Rust engine. Context on why savefrom-class sites keep
+   working: server-side extraction (see Vault `imputnet-cobalt.md`,
+   zero-cache-streaming-proxy) — an architecture, not a portable technique.
 4. **PIPELINE FAIL** → metadata extraction works but real downloads break
    (format selection, merge, ffmpeg). Reproduce in the app immediately; this is
    a release blocker.

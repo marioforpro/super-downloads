@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-08-10 — Launch goes FREE until further notice (email activation)
+**Context:** Founder capture session 2026-08-10. The six LemonSqueezy C2 gates llevan semanas sin ejecutarse y el tema licencias/legal estaba frenando el lanzamiento a cero movimiento. Founder: «ponerlo Free For Limited Time, así me olvido del tema de las licencias por ahora y todo el mundo puede tener la app funcionando, y no tendremos problemas legales… incluso usarlo como marketing».
+**Decisions (4, founder-approved):**
+1. **App entera GRATIS hasta nuevo aviso** — sin fecha de fin comprometida públicamente ("Free for a limited time" como framing de marketing, sin relojes por usuario).
+2. **Activación por email** — descarga libre, activación captura el email. La lista de usuarios ES el activo: el día que se active el cobro hay audiencia a la que hablarle.
+3. **Objetivo de esta fase: tráfico web, descargas y usuarios** — no revenue.
+4. **Track C (LemonSqueezy/pagos) SE DIFIERE** — las seis gates C2 dejan de bloquear el lanzamiento; se ejecutan cuando se active el cobro. Las 4 mitigaciones LS del 2026-07-16 siguen documentadas y vigentes para ese momento.
+**Consequence:** R-SD-002 (announcement) se re-ancla al free launch (ya no espera el checkout LS). El copy freemium actual (5/día + €29 Pro) se sustituye por copy de modo free. Implementación: `00_System/TASKS.md § SUPER-DOWNLOADS`.
+
 ## 2026-07-16 — Relaunch hardening decisions
 **Context:** Founder recommitted 2026-07-16 after the 2026-06-15 park. Live probe matrix + legal/payments audit (evidence in `docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`, the source of truth for this plan) surfaced: Instagram/Facebook broken, shipped builds running a stale bundled yt-dlp, legally toxic public copy, undisclosed PostHog analytics, and LemonSqueezy discretionary-suspension risk.
 **Decisions (4, founder-approved):**
