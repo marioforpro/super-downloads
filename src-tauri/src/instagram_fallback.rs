@@ -244,10 +244,7 @@ fn build_headers() -> reqwest::header::HeaderMap {
         reqwest::header::USER_AGENT,
         HeaderValue::from_static(IPHONE_USER_AGENT),
     );
-    headers.insert(
-        reqwest::header::ACCEPT,
-        HeaderValue::from_static("*/*"),
-    );
+    headers.insert(reqwest::header::ACCEPT, HeaderValue::from_static("*/*"));
     headers.insert(
         reqwest::header::ACCEPT_LANGUAGE,
         HeaderValue::from_static("en-US,en;q=0.9"),
@@ -342,9 +339,9 @@ fn fetch_json_from_endpoint(
     })?;
 
     let status = response.status();
-    let body = response
-        .text()
-        .map_err(|e| IgFallbackError::Transient(format!("{}: failed to read body ({})", endpoint.label, e)))?;
+    let body = response.text().map_err(|e| {
+        IgFallbackError::Transient(format!("{}: failed to read body ({})", endpoint.label, e))
+    })?;
 
     classify_response(status, &body, endpoint.label)
 }
@@ -547,7 +544,8 @@ mod tests {
 
     #[test]
     fn parses_reel_url_without_trailing_slash() {
-        let parsed = parse_instagram_shortcode("https://www.instagram.com/reel/AbC123_45-6").unwrap();
+        let parsed =
+            parse_instagram_shortcode("https://www.instagram.com/reel/AbC123_45-6").unwrap();
         assert_eq!(parsed.kind, "reel");
         assert_eq!(parsed.shortcode, "AbC123_45-6");
     }
@@ -555,11 +553,15 @@ mod tests {
     #[test]
     fn parses_reels_and_tv_kinds() {
         assert_eq!(
-            parse_instagram_shortcode("https://www.instagram.com/reels/XyZ9988/").unwrap().kind,
+            parse_instagram_shortcode("https://www.instagram.com/reels/XyZ9988/")
+                .unwrap()
+                .kind,
             "reels"
         );
         assert_eq!(
-            parse_instagram_shortcode("https://www.instagram.com/tv/QwErTy1/").unwrap().kind,
+            parse_instagram_shortcode("https://www.instagram.com/tv/QwErTy1/")
+                .unwrap()
+                .kind,
             "tv"
         );
     }
@@ -600,7 +602,9 @@ mod tests {
 
     #[test]
     fn rejects_story_urls() {
-        assert!(parse_instagram_shortcode("https://www.instagram.com/stories/nasa/12345/").is_none());
+        assert!(
+            parse_instagram_shortcode("https://www.instagram.com/stories/nasa/12345/").is_none()
+        );
     }
 
     // ---- shortcode -> media id ----------------------------------------------
@@ -610,7 +614,10 @@ mod tests {
         // Verified against instaloader's Post.shortcode_to_mediaid algorithm
         // (pad to 12 chars with leading 'A', base64url-decode, big-endian
         // int) run independently in Python for this exact shortcode.
-        assert_eq!(shortcode_to_media_id("CqzZ0HwI9bA"), Some(3_076_916_503_323_596_480));
+        assert_eq!(
+            shortcode_to_media_id("CqzZ0HwI9bA"),
+            Some(3_076_916_503_323_596_480)
+        );
     }
 
     #[test]

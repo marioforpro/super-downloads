@@ -92,7 +92,7 @@ fn vimeo_embed_url(url: &str) -> Option<String> {
         return None;
     }
     let path = url
-        .split(|c| c == '?' || c == '#')
+        .split(['?', '#'])
         .next()
         .unwrap_or(url)
         .trim_end_matches('/');
@@ -1698,14 +1698,15 @@ fn download_video(
                                 fallback_cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 
                                 let fb_current_path = std::env::var("PATH").unwrap_or_default();
-                                let fb_enhanced_path = if !fb_current_path.contains("/opt/homebrew/bin") {
-                                    format!(
-                                        "{}:/opt/homebrew/bin:/usr/local/bin:/usr/bin",
+                                let fb_enhanced_path =
+                                    if !fb_current_path.contains("/opt/homebrew/bin") {
+                                        format!(
+                                            "{}:/opt/homebrew/bin:/usr/local/bin:/usr/bin",
+                                            fb_current_path
+                                        )
+                                    } else {
                                         fb_current_path
-                                    )
-                                } else {
-                                    fb_current_path
-                                };
+                                    };
                                 fallback_cmd.env("PATH", &fb_enhanced_path);
 
                                 match fallback_cmd.output() {
@@ -1989,8 +1990,12 @@ mod tests {
     fn vimeo_oauth_401_signature_is_recognised() {
         let err = "ERROR: [vimeo] 76979871: Unable to download macos API JSON: HTTP Error 401: Unauthorized";
         assert!(super::is_vimeo_oauth_401_error(err));
-        assert!(!super::is_vimeo_oauth_401_error("ERROR: [vimeo] 1: This video is private"));
-        assert!(!super::is_vimeo_oauth_401_error("ERROR: [youtube] x: HTTP Error 401"));
+        assert!(!super::is_vimeo_oauth_401_error(
+            "ERROR: [vimeo] 1: This video is private"
+        ));
+        assert!(!super::is_vimeo_oauth_401_error(
+            "ERROR: [youtube] x: HTTP Error 401"
+        ));
     }
 
     #[test]
@@ -2000,7 +2005,8 @@ mod tests {
             Some("https://player.vimeo.com/video/76979871")
         );
         assert_eq!(
-            super::vimeo_embed_url("https://vimeo.com/channels/staffpicks/76979871?share=copy").as_deref(),
+            super::vimeo_embed_url("https://vimeo.com/channels/staffpicks/76979871?share=copy")
+                .as_deref(),
             Some("https://player.vimeo.com/video/76979871")
         );
         assert_eq!(
