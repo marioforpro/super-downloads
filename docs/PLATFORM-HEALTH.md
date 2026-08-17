@@ -177,3 +177,83 @@ Verdict at baseline: **CERTIFIED OPERATIONAL** (Tier 2 degraded: instagram).
   YouTube restored to 4K. Lesson institutionalized as the staleness gate.
 - **2026-07-16 — v2:** bundle refreshed to `2026.07.04`; tiers + certification +
   cookie runs + download probe + Facebook impersonation probing introduced.
+- **2026-08-17 — Vimeo T1 FAIL diagnosed as upstream extractor breakage, fix
+  exists but is not yet in a stable release; a zero-code, verified-live
+  workaround found for the current bundled engine.**
+  - **Reproduced** with the bundled binary (`yt-dlp-aarch64-apple-darwin`
+    `2026.07.04`) against 3 public Vimeo URLs, including the probe URL:
+    `./src-tauri/binaries/yt-dlp-aarch64-apple-darwin --no-warnings -j
+    https://vimeo.com/76979871` (also `/22439234`, `/1084537`) — all three fail
+    identically: `ERROR: [vimeo] <id>: Unable to download macos API JSON: HTTP
+    Error 401: Unauthorized`. Same error on all 3 unrelated videos → **not
+    probe-URL rot, the extractor is broken** (the videos are alive and
+    playable — confirmed below via a different URL shape).
+  - **Root cause, found on GitHub (not guessed):** yt-dlp issue
+    [#17271](https://github.com/yt-dlp/yt-dlp/issues/17271) ("[vimeo] Failed
+    to fetch macos OAuth token: HTTP Error 401: Unauthorized — no anonymous
+    client works", opened 2026-07-20, reproduced against the *same* probe
+    video id `76979871`): Vimeo revoked the OAuth token endpoint the `macos`
+    client used to bootstrap anonymous extraction. The `android`/`ios`
+    clients are cache-only (can't mint a fresh token either) and `web`
+    requires login — so there is currently no anonymous path through the
+    `macos`/`android`/`ios`/`web` clients at all. Confirmed live:
+    `--extractor-args "vimeo:client=android"` against the bundled binary →
+    `ERROR: [vimeo] 76979871: The android client is unable to fetch new OAuth
+    tokens and is only intended for use with previously cached tokens`.
+  - **Fixed upstream:** PR
+    [#17272](https://github.com/yt-dlp/yt-dlp/pull/17272) ("[ie/vimeo] Client
+    maintenance") merged to `master` 2026-07-20T23:41:13Z. **Not in a stable
+    release**: `https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest`
+    still returns `2026.07.04` (checked 2026-08-17) — the fix postdates the
+    latest stable tag, so the bundled/managed-self-update engine (which only
+    ever tracks *stable* releases) cannot pick it up until the next stable
+    cut.
+  - **Nightly build tested, verdict inconclusive (sandbox network artifact,
+    not a fix problem):** downloaded
+    `yt-dlp/yt-dlp-nightly-builds` release `2026.08.17.073947`
+    (`yt-dlp_macos`, 37,119,664 bytes) into
+    `/private/tmp/claude-501/sd-nightly/` (outside the repo), `chmod +x`.
+    `--version` correctly reports `2026.08.17.073947`. Every probe against it
+    — Vimeo, YouTube, TikTok, Facebook — failed with a DNS-resolution timeout
+    (`curl: (28) Resolving timed out`/`Failed to resolve … nodename nor
+    servname provided`) across *both* the `urllib` and `curl_cffi` request
+    handlers, including `-4` (force IPv4) and after an ad-hoc `codesign -s -`.
+    In the *same* shell, at the *same* time, the pre-existing bundled binary
+    resolved the identical hostnames (YouTube, Facebook) without issue. This
+    points to the execution sandbox restricting outbound DNS to
+    already-known binaries/paths rather than a defect in the nightly build or
+    the fix itself — **could not obtain a live PASS/FAIL for the nightly
+    build from this environment**; do not read the DNS failure as evidence
+    against the fix.
+  - **Verified-live, zero-code workaround for the *current* bundled engine
+    (no code change made — documenting only):** the `player.vimeo.com/video/<id>`
+    embed-player URL sidesteps the broken `macos`/OAuth client entirely (it's
+    a different extractor code path that doesn't need an anonymous OAuth
+    token) and extracts cleanly on the bundled `2026.07.04` binary today:
+    `./src-tauri/binaries/yt-dlp-aarch64-apple-darwin --no-warnings -j
+    https://player.vimeo.com/video/76979871` → full JSON with `formats`
+    (verified 2026-08-17; no error, no cookies, no impersonation flags
+    needed).
+  - **Runbook addition (T1 escalation, step 2):** when Vimeo `macos` OAuth
+    401s persist on the bundled engine, try the video via its
+    `https://player.vimeo.com/video/<id>` embed URL first — it is a verified
+    live workaround (2026-08-17) that needs no engine bump; PR #17272
+    ("[ie/vimeo] Client maintenance", merged 2026-07-20) fixes the root cause
+    upstream but is nightly-only as of 2026-08-17 — bump the bundled binary
+    to the next stable release once it ships (watch
+    `github.com/yt-dlp/yt-dlp/releases/latest` for a tag newer than
+    `2026.07.04`).
+  - **Proposal (not implemented — founder decision):** the app currently only
+    accepts whatever URL shape the user pastes (`vimeo.com/<id>`), so the
+    embed-URL workaround above helps the health check but not real users
+    unless the engine itself is fixed or the app rewrites `vimeo.com/<id>` →
+    `player.vimeo.com/video/<id>` before calling yt-dlp when the `macos`-OAuth
+    401 signature is seen (same shape as the existing
+    `is_impersonation_fixable_error` retry pattern in `lib.rs`, just a URL
+    rewrite instead of an extra flag). Separately, since the managed
+    self-update only ever tracks *stable* yt-dlp releases, users are stuck on
+    the broken extractor until the next stable cut regardless of the app
+    version — worth a founder call on whether the self-update should ever be
+    allowed to track `yt-dlp-nightly-builds` for exactly this kind of
+    upstream-fixed-but-not-yet-released gap (tradeoff: nightlies are less
+    vetted than stable tags).
