@@ -228,6 +228,24 @@ for entry in "${PROBES[@]}"; do
 
   # Classify the failure.
   lc="$(printf '%s' "$err" | tr '[:upper:]' '[:lower:]')"
+
+  # Vimeo: the anonymous OAuth bootstrap of yt-dlp's `macos` client is broken
+  # upstream (yt-dlp #17271; fixed on master by #17272, not in a stable release
+  # as of 2026-08-17). The app retries such failures once through the embed
+  # player URL (`lib.rs` vimeo_embed_url) — probe the same way, so the check
+  # measures what users actually get.
+  if [[ "$platform" == "vimeo" ]] && echo "$lc" | grep -q "401" && echo "$lc" | grep -qE "macos api json|oauth token"; then
+    vid="$(printf '%s' "$url" | grep -oE '/[0-9]{6,}' | head -1 | tr -d '/')"
+    if [[ -n "$vid" ]]; then
+      embed_json="$("$YTDLP" -J --simulate --no-warnings --socket-timeout 30 --user-agent "$UA"                      "https://player.vimeo.com/video/$vid" 2>/dev/null)"
+      if [[ $? -eq 0 && -n "$embed_json" ]]; then
+        h="$(printf '%s' "$embed_json" | max_height)"
+        echo "PASS  (best ${h:-?}p via player.vimeo.com embed rewrite — anonymous macos-OAuth 401 upstream, yt-dlp #17271; app retries the same way)"
+        continue
+      fi
+    fi
+  fi
+
   if echo "$lc" | grep -qE "private|removed|unavailable|not found|404|deleted|no longer|no video could be found|no video formats|no media found"; then
     echo "WARN  (test URL has no downloadable video — swap it in PROBES)"
     WARNS=$((WARNS+1))

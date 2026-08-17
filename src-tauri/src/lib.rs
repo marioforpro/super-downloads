@@ -71,6 +71,45 @@ fn is_impersonation_fixable_error(error_text: &str) -> bool {
         || (lower.contains("http error 403") && !lower.contains("fragment"))
 }
 
+// Vimeo revoked the anonymous OAuth bootstrap used by yt-dlp's `macos` client
+// (yt-dlp #17271, 2026-07-20). The fix (#17272) lives on master only — no stable
+// release carries it as of 2026-08-17, so the bundled/self-updated engine cannot
+// pick it up. The embed-player URL is a different extractor path that still
+// works anonymously (verified live 2026-08-17), so on this exact signature we
+// rewrite `vimeo.com/<id>` → `player.vimeo.com/video/<id>` and retry once.
+fn is_vimeo_oauth_401_error(error_text: &str) -> bool {
+    let lower = error_text.to_lowercase();
+    lower.contains("vimeo")
+        && lower.contains("401")
+        && (lower.contains("macos api json") || lower.contains("oauth token"))
+}
+
+// `https://vimeo.com/76979871` → `https://player.vimeo.com/video/76979871`
+// (`vimeo.com/<id>/<hash>` unlisted links keep their hash as `?h=<hash>`).
+// Returns None when the URL is already an embed URL or carries no numeric id.
+fn vimeo_embed_url(url: &str) -> Option<String> {
+    if url.contains("player.vimeo.com") {
+        return None;
+    }
+    let path = url
+        .split(|c| c == '?' || c == '#')
+        .next()
+        .unwrap_or(url)
+        .trim_end_matches('/');
+    let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
+    let idx = segments
+        .iter()
+        .position(|seg| seg.len() >= 6 && seg.chars().all(|c| c.is_ascii_digit()))?;
+    let id = segments[idx];
+    let hash = segments
+        .get(idx + 1)
+        .filter(|h| h.len() >= 8 && h.chars().all(|c| c.is_ascii_alphanumeric()));
+    Some(match hash {
+        Some(h) => format!("https://player.vimeo.com/video/{}?h={}", id, h),
+        None => format!("https://player.vimeo.com/video/{}", id),
+    })
+}
+
 // Whether the resolved yt-dlp supports --impersonate (standalone yt-dlp_macos
 // builds bundle curl_cffi; Homebrew/pip builds usually don't). Cached once.
 static IMPERSONATION_SUPPORTED: OnceLock<bool> = OnceLock::new();
@@ -1419,6 +1458,28 @@ fn download_video(
                 // Check if this is an auth-required error that can be retried with cookies
                 let combined_error_text =
                     format!("{} {} {}", error_messages.join(" "), all_stderr, all_stdout);
+
+                // Vimeo: upstream anonymous-OAuth breakage (yt-dlp #17271) — one retry
+                // through the embed player URL, which uses a different extractor path.
+                if is_vimeo && is_vimeo_oauth_401_error(&combined_error_text) {
+                    if let Some(embed_url) = vimeo_embed_url(&url) {
+                        eprintln!(
+                            "Vimeo anonymous OAuth path is broken upstream (HTTP 401); \
+                             retrying once via the embed player URL {}",
+                            embed_url
+                        );
+                        download_video(
+                            window.clone(),
+                            embed_url,
+                            download_id.clone(),
+                            download_location.clone(),
+                            quality.clone(),
+                            format.clone(),
+                        );
+                        return;
+                    }
+                }
+
                 let cookie_retry_platform = is_youtube
                     || is_vimeo
                     || is_instagram
@@ -1924,6 +1985,32 @@ fn parse_progress(line: &str) -> Option<(u8, String)> {
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn vimeo_oauth_401_signature_is_recognised() {
+        let err = "ERROR: [vimeo] 76979871: Unable to download macos API JSON: HTTP Error 401: Unauthorized";
+        assert!(super::is_vimeo_oauth_401_error(err));
+        assert!(!super::is_vimeo_oauth_401_error("ERROR: [vimeo] 1: This video is private"));
+        assert!(!super::is_vimeo_oauth_401_error("ERROR: [youtube] x: HTTP Error 401"));
+    }
+
+    #[test]
+    fn vimeo_embed_url_rewrites_public_and_unlisted_links() {
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/76979871").as_deref(),
+            Some("https://player.vimeo.com/video/76979871")
+        );
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/channels/staffpicks/76979871?share=copy").as_deref(),
+            Some("https://player.vimeo.com/video/76979871")
+        );
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/76979871/a1b2c3d4e5").as_deref(),
+            Some("https://player.vimeo.com/video/76979871?h=a1b2c3d4e5")
+        );
+        assert!(super::vimeo_embed_url("https://player.vimeo.com/video/76979871").is_none());
+        assert!(super::vimeo_embed_url("https://vimeo.com/user12/videos").is_none());
+    }
+
     use super::{extract_file_path, format_duration, parse_progress};
 
     #[test]

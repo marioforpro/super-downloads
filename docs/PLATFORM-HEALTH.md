@@ -258,6 +258,24 @@ Verdict at baseline: **CERTIFIED OPERATIONAL** (Tier 2 degraded: instagram).
     upstream-fixed-but-not-yet-released gap (tradeoff: nightlies are less
     vetted than stable tags).
 
+- **2026-08-17 (boss integration, same day) — Vimeo embed rewrite IMPLEMENTED in the
+  app; nightly re-tested from a second sandbox — same network artifact.**
+  - `lib.rs`: `is_vimeo_oauth_401_error()` + `vimeo_embed_url()` (unlisted `?h=` hashes
+    preserved) and a one-shot retry in `download_video()` on that exact signature —
+    same shape as the impersonation retry, no cookies, no keychain. 2 unit tests
+    (29 total green). `platform-health-check.sh` probes the same way, so the T1 row
+    now reads `PASS (… via player.vimeo.com embed rewrite …)` — the check measures
+    what users get. Verdict today: 5 PASS · 0 FAIL, **DEGRADED (stale engine)** —
+    honest but incomplete: `2026.07.04` is 44 d old **and it is the latest stable
+    release that exists**, so «Refresh + re-release» is not actionable until yt-dlp
+    cuts a new tag; the 28-day rule does not know that. Founder decision remaining:
+    ship this in the next (unsigned, free-mode) build.
+  - Nightly `2026.08.17.073947` re-probed from a second sandbox: `Failed to connect to
+    vimeo.com:443` / `Failed to resolve www.youtube.com` while the bundled binary
+    resolved and answered in the same shell — a freshly-downloaded binary is
+    network-blocked in these sandboxes; still inconclusive, still not evidence
+    against #17272.
+
 - **2026-08-17 — Instagram endpoint-format fallback: built and wired, live
   verdict honestly inconclusive (Tier 2, does not gate certification).**
   - **What was built:** `src-tauri/src/instagram_fallback.rs` — parses a
