@@ -12,6 +12,8 @@ use std::{
 use tauri::{AppHandle, Emitter, LogicalSize, Manager, Size, Window};
 use tauri_plugin_updater::UpdaterExt;
 
+mod instagram_fallback;
+
 const WINDOW_LOGICAL_WIDTH: f64 = 480.0;
 const DEFAULT_USER_AGENT: &str = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
@@ -1579,6 +1581,148 @@ fn download_video(
                         Err(e) => {
                             eprintln!("Cookie retry process error: {}", e);
                             // Fall through to emit original error
+                        }
+                    }
+                }
+
+                // Instagram-specific fallback: yt-dlp's extractor is broken
+                // for Instagram (HTTP 400 signature — yt-dlp #13626/#16311,
+                // see docs/PLATFORM-HEALTH.md runbook step 3). Try the
+                // native, login-free endpoint-format fallback
+                // (`instagram_fallback`) for single public posts/reels
+                // before giving up. This is the wiring: without this call
+                // site the fallback module is built but never runs.
+                if is_instagram {
+                    let combined_error_text_for_ig =
+                        format!("{} {} {}", error_messages.join(" "), all_stderr, all_stdout);
+                    if instagram_fallback::should_attempt_fallback(&combined_error_text_for_ig) {
+                        eprintln!(
+                            "Instagram extractor failed with the known HTTP-400 signature, \
+                             trying the native endpoint-format fallback..."
+                        );
+                        match instagram_fallback::fetch_instagram_direct_video_url(&url) {
+                            Ok(direct_video_url) => {
+                                eprintln!(
+                                    "Instagram fallback resolved a direct video URL; downloading \
+                                     it through the normal yt-dlp pipeline (filenames/progress/ffmpeg unchanged)."
+                                );
+
+                                let mut fallback_cmd = Command::new(&ytdlp_path);
+                                fallback_cmd
+                                    .arg("--no-warnings")
+                                    .arg("--newline")
+                                    .arg("--socket-timeout")
+                                    .arg("30")
+                                    .arg("-o")
+                                    .arg(&planned_output_path);
+
+                                if is_audio_only {
+                                    fallback_cmd
+                                        .arg("-x")
+                                        .arg("--audio-format")
+                                        .arg("mp3")
+                                        .arg("--audio-quality")
+                                        .arg("0");
+                                } else {
+                                    fallback_cmd.arg("--merge-output-format").arg(output_format);
+                                }
+
+                                if needs_conversion {
+                                    fallback_cmd.arg("--postprocessor-args")
+                                        .arg("ffmpeg:-threads 0 -c:v h264_videotoolbox -realtime true -prio_speed true -q:v 70 -profile:v high -pix_fmt yuv420p -c:a aac -b:a 320k -movflags +faststart");
+                                }
+
+                                fallback_cmd.arg("--ffmpeg-location").arg(&ffmpeg_dir);
+                                fallback_cmd.arg(&direct_video_url);
+                                fallback_cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+
+                                let fb_current_path = std::env::var("PATH").unwrap_or_default();
+                                let fb_enhanced_path = if !fb_current_path.contains("/opt/homebrew/bin") {
+                                    format!(
+                                        "{}:/opt/homebrew/bin:/usr/local/bin:/usr/bin",
+                                        fb_current_path
+                                    )
+                                } else {
+                                    fb_current_path
+                                };
+                                fallback_cmd.env("PATH", &fb_enhanced_path);
+
+                                match fallback_cmd.output() {
+                                    Ok(fb_output) if fb_output.status.success() => {
+                                        eprintln!(
+                                            "Instagram fallback download succeeded for {}",
+                                            download_id
+                                        );
+                                        let mut fb_file_path = planned_output_path.clone();
+                                        let fb_stdout = String::from_utf8_lossy(&fb_output.stdout);
+                                        for line in fb_stdout.lines() {
+                                            if let Some(path) = extract_file_path(line) {
+                                                if Path::new(&path).exists() {
+                                                    fb_file_path = path;
+                                                }
+                                            }
+                                        }
+                                        let canonical = fs::canonicalize(&fb_file_path)
+                                            .map(|p| p.to_string_lossy().to_string())
+                                            .unwrap_or(fb_file_path);
+
+                                        let duration_str = metadata_duration
+                                            .map(format_duration)
+                                            .unwrap_or_default();
+                                        let file_size_str = if Path::new(&canonical).exists() {
+                                            fs::metadata(&canonical)
+                                                .map(|m| format_file_size(m.len()))
+                                                .unwrap_or_default()
+                                        } else {
+                                            metadata_size.clone()
+                                        };
+                                        let fps_str = metadata_fps
+                                            .map(|f| format!("{}fps", f.round() as u64))
+                                            .unwrap_or_default();
+                                        let fb_format = if is_audio_only {
+                                            "MP3".to_string()
+                                        } else {
+                                            final_format_ext.clone()
+                                        };
+
+                                        let _ = window.emit(
+                                            "download-finished",
+                                            (
+                                                download_id.clone(),
+                                                video_title.clone(),
+                                                canonical,
+                                                duration_str,
+                                                file_size_str,
+                                                fb_format,
+                                                current_resolution.clone(),
+                                                fps_str,
+                                                metadata_thumbnail.clone(),
+                                            ),
+                                        );
+                                        return;
+                                    }
+                                    Ok(fb_output) => {
+                                        eprintln!(
+                                            "Instagram fallback download failed: {}",
+                                            String::from_utf8_lossy(&fb_output.stderr)
+                                        );
+                                        // Fall through to emit the original yt-dlp error below.
+                                    }
+                                    Err(e) => {
+                                        eprintln!("Instagram fallback process error: {}", e);
+                                        // Fall through to emit the original yt-dlp error below.
+                                    }
+                                }
+                            }
+                            Err(instagram_fallback::IgFallbackError::Fatal(msg)) => {
+                                eprintln!("Instagram fallback: fatal — {}", msg);
+                                let _ = window.emit("download-error", (download_id.clone(), msg));
+                                return;
+                            }
+                            Err(instagram_fallback::IgFallbackError::Transient(msg)) => {
+                                eprintln!("Instagram fallback: exhausted all endpoints — {}", msg);
+                                // Fall through to emit the original yt-dlp error below.
+                            }
                         }
                     }
                 }

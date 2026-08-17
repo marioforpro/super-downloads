@@ -27,6 +27,10 @@
 #   scripts/platform-health-check.sh --system          # system yt-dlp (Homebrew/pip)
 #   scripts/platform-health-check.sh --cookies         # use Chrome cookies (auth platforms)
 #   scripts/platform-health-check.sh --download-probe  # also do a real download probe
+#   scripts/platform-health-check.sh --ig-fallback      # also run the native
+#                                                        # Instagram endpoint-format
+#                                                        # fallback live test (network,
+#                                                        # honest pass/fail printed)
 #
 # NOTE: Homebrew/pip builds of yt-dlp usually lack curl_cffi (no impersonation
 # support) and will fail on Facebook where the bundled standalone binary works.
@@ -79,11 +83,13 @@ MAX_ENGINE_AGE_DAYS=28
 USE_SYSTEM=0
 USE_COOKIES=0
 DOWNLOAD_PROBE=0
+IG_FALLBACK=0
 for arg in "$@"; do
   case "$arg" in
     --system)         USE_SYSTEM=1 ;;
     --cookies)        USE_COOKIES=1 ;;
     --download-probe) DOWNLOAD_PROBE=1 ;;
+    --ig-fallback)    IG_FALLBACK=1 ;;
     *) echo "Unknown flag: $arg" >&2; exit 2 ;;
   esac
 done
@@ -258,6 +264,28 @@ if [[ "$DOWNLOAD_PROBE" == "1" ]]; then
     PIPELINE_FAIL=1
   fi
   rm -rf "$tmpdir" /tmp/sd_dp_err
+fi
+
+# ---- Optional Instagram endpoint-format fallback (native, login-free) -------
+# Tier 2, informational only — never gates certification. Runs the #[ignore]
+# live test in src-tauri/src/instagram_fallback.rs against the probe post and
+# a public reel; reports honestly whether Instagram let it through today.
+# See docs/PLATFORM-HEALTH.md runbook step 3 + the 2026-08-17 History entry.
+if [[ "$IG_FALLBACK" == "1" ]]; then
+  printf " %-10s %-3s" "ig-fallback" "T2"
+  ig_out="$(cd "$(dirname "$0")/../src-tauri" && cargo test --quiet \
+      instagram_fallback::tests::live_fallback_against_real_instagram_posts \
+      -- --ignored --nocapture 2>&1)"
+  ig_rc=$?
+  if [[ $ig_rc -eq 0 ]] && echo "$ig_out" | grep -q "^LIVE PASS"; then
+    echo "PASS  ($(echo "$ig_out" | grep -c "^LIVE PASS") endpoint(s) resolved a video URL)"
+  elif [[ $ig_rc -eq 0 ]]; then
+    echo "WARN  (fallback ran but resolved no video today — see cargo test output above for the honest reason)"
+    echo "$ig_out" | grep "^LIVE RESULT"
+  else
+    echo "FAIL  (fallback test itself errored — see cargo test output)"
+    echo "$ig_out" | tail -5
+  fi
 fi
 
 # ---- Verdict -----------------------------------------------------------------

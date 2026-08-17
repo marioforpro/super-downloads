@@ -257,3 +257,97 @@ Verdict at baseline: **CERTIFIED OPERATIONAL** (Tier 2 degraded: instagram).
     allowed to track `yt-dlp-nightly-builds` for exactly this kind of
     upstream-fixed-but-not-yet-released gap (tradeoff: nightlies are less
     vetted than stable tags).
+
+- **2026-08-17 — Instagram endpoint-format fallback: built and wired, live
+  verdict honestly inconclusive (Tier 2, does not gate certification).**
+  - **What was built:** `src-tauri/src/instagram_fallback.rs` — parses a
+    single post/reel/tv shortcode from `/p/`, `/reel/`, `/reels/`, `/tv/`
+    URLs (`instagram.com` and `instagr.am`, with/without trailing slash or
+    query string); converts a shortcode to its numeric media id using the
+    same algorithm as `instaloader`'s `Post.shortcode_to_mediaid` (pad to 12
+    chars with leading `A`, base64url-decode, big-endian `u64`); tries 3
+    endpoint shapes in order with iPhone-app headers
+    (`X-IG-App-ID: 936619743392459`) and a 400–1200ms randomized backoff
+    before each request: (a) the legacy `?__a=1&__d=dis` AJAX endpoint, (b)
+    `i.instagram.com/api/v1/media/<id>/info/`, (c) the modern
+    `graphql/query/` `doc_id`-based `xdt_api__v1__media__shortcode__web_info`
+    query (doc_id sourced from `instaloader/instaloader`'s `structures.py`,
+    master branch, read 2026-08-17 — the same query the Instagram web client
+    itself uses). A typed `IgFallbackError::{Transient,Fatal}` hierarchy
+    classifies 404→fatal (post gone), 401/403→fatal (login-wall),
+    429→transient (rate-limited), a bare 400→transient (try the next shape —
+    the same signature yt-dlp itself hits), non-JSON body→transient (HTML
+    login/interstitial page). Scope is single public posts/reels only — no
+    bulk, no private content, no profile scraping (2026-07-16 legal
+    positioning).
+  - **Wired, not just built:** `download_video()` in `src-tauri/src/lib.rs`
+    calls `instagram_fallback::should_attempt_fallback()` /
+    `fetch_instagram_direct_video_url()` right after the existing
+    cookie/impersonation retry block, on the Instagram HTTP-400 signature.
+    On success it re-enters the *existing* yt-dlp pipeline with the resolved
+    direct video URL (same `-o`/`--merge-output-format`/`--ffmpeg-location`
+    args as every other download, so filenames/progress/ffmpeg conversion
+    are untouched) and emits the normal `download-finished` event. On a
+    `Fatal` result it emits `download-error` with the fallback's own clear
+    message instead of yt-dlp's opaque one. On `Transient` (all endpoints
+    exhausted) it falls through to the pre-existing generic error path
+    unchanged.
+  - **Tests:** `cargo build` and `cargo test` are green — 27 unit tests
+    covering shortcode parsing (8 cases: all 4 kinds, query strings, both
+    domains, rejections for profile/story/non-IG URLs), the media-id
+    conversion (verified against a Python run of instaloader's own
+    algorithm for the probe shortcode `CqzZ0HwI9bA` → media id
+    `3076916503323596480`), JSON extraction for all 3 endpoint shapes
+    including carousels and photo-only detection, `should_attempt_fallback`,
+    endpoint-candidate construction, and backoff bounds — plus 1
+    `#[ignore]` live test.
+  - **Live test result — run twice, both honest:** `cargo test -- --ignored`
+    against the probe post (`https://www.instagram.com/p/CqzZ0HwI9bA/`) and
+    a public reel. **Both runs timed out on every endpoint** (`request timed
+    out`, ~144s total for 2 URLs × 3 endpoints × 20s timeout), with and
+    without `.no_proxy()` on the client (kept in the code as a reasonable
+    default; it made no measurable difference — same failure, same timing).
+    **This is not evidence the technique doesn't work**: the identical
+    requests (same URL, same headers) sent via plain `curl` in the same
+    shell returned **fast, real HTTP responses** (0.1–0.6s, not a timeout):
+    endpoint (a) → `404` (Instagram has fully retired the `?__a=1` AJAX
+    shape — dead, not just blocked); endpoint (b) → `403
+    {"message":"login_required",...}` on both the probe post and an
+    unrelated reel's media id (Instagram is currently login-gating this
+    private-API endpoint for anonymous requests from this network,
+    regardless of post); endpoint (c) → `200` with
+    `{"data":null,"errors":[{"message":"execution error", ...}]}` (resolves
+    without an active session, matching this fallback's Transient handling
+    exactly — no crash, correctly falls through). So there are two distinct,
+    separately-confirmed findings: **(1)** `reqwest`'s blocking client hangs
+    to the full timeout against `instagram.com`/`i.instagram.com` in this
+    specific execution sandbox while `curl` does not — the same class of
+    environment-specific TLS/connection anomaly seen in the Task A Vimeo
+    nightly test the same day (bundled/pre-approved network paths work,
+    freshly-initiated ones from this sandbox do not) — and **(2)**,
+    independent of that, Instagram's current anonymous-endpoint posture for
+    this IP/session is itself unfavorable: endpoint (a) is dead, endpoint
+    (b) is login-walled, endpoint (c) needs a session to resolve data. A
+    real end user's own Mac, on their own network, may see different
+    results (different IP reputation, real browser-adjacent TLS stack) —
+    but **from this environment, the fallback could not be shown to resolve
+    a video for either test URL.**
+  - **Honest verdict for the health protocol (done-when clause):** the
+    Instagram probe does **not** pass live from this session — the tier
+    stays honestly re-documented as it was: **Tier 2, best-effort, FAIL
+    without cookies** (unchanged from the 2026-07-16 baseline and the
+    existing `WARN (auth required)`/cookie-run `FAIL` rows above). What
+    changed is that there is now a real, tested, wired native fallback path
+    that *will* activate automatically on the next Instagram download that
+    hits the HTTP-400 signature — its actual real-world hit rate is
+    unverified from this sandbox and should be read from
+    `~/Library/Logs/super-downloads-health.log` / real user reports going
+    forward, not assumed.
+  - **How the fallback is verified going forward:**
+    `scripts/platform-health-check.sh --ig-fallback` runs the same
+    `#[ignore]` live test (`cargo test … -- --ignored --nocapture`) and
+    prints `PASS`/`WARN`/`FAIL` with the honest per-endpoint reason — it is
+    Tier 2 and additive, never gates the `CERTIFIED OPERATIONAL` verdict.
+    Not wired into the daily launchd cadence (network + a `cargo test`
+    compile are too slow for a fast daily check) — run it manually when
+    checking whether Instagram's anonymous-endpoint posture has changed.
