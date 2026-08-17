@@ -203,3 +203,11 @@
 **Files created:** CLAUDE.md, ROADMAP.md, BRAND.md, DECISIONS.md, DIAGNOSTIC.md, LAUNCH.md, MARKETING.md, PROGRESS.md
 
 ---
+
+---
+
+## 2026-08-16 — Code signing: deferral re-affirmed for the FREE launch (SD-F-009)
+**Context:** Launch pivoted to FREE until further notice (§2026-08-10). Founder decision SD-F-009 asked whether Developer ID + notarization ($99/year) becomes a prerequisite of the free build. Evidence at decision time: 45 DMG downloads total across v1.1.0→v1.2.0 (revisit threshold from §2026-03-24 was >100); macOS 15 no longer offers right-click → Open for un-notarized apps (System Settings → Privacy & Security → "Open Anyway"; fully unsigned bundles show "damaged" and need `xattr -dr com.apple.quarantine`).
+**Decision:** (a) keep the deferral. The FREE build ships unsigned; landing + FAQ carry explicit install instructions for both paths.
+**Consequence:** the "no build/release/signing until SD-F-009" hold (CONTEXT/HEALTH/ROADMAP) is released; install instructions are part of the free-mode task (`00_System/TASKS.md`).
+**Revisit:** unchanged — >100 downloads or install-friction complaints. Decided OOO 2026-08-16 (`10_Decisions/PENDING.md`).

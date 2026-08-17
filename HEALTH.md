@@ -34,7 +34,7 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 ## Key Decisions Pending
 - LemonSqueezy E2E verification — six gates per `NEXT.md` step 4 (R-SD-004 Track C2; historical: absorbed dropped R-SD-001)
 - Re-baseline launch target at LS-verify session start
-- Signing/notarization for a €29 commercial launch (SD-F-009) — founder decision open; no build/release/signing until answered
+- Signing/notarization (SD-F-009) — RESOLVED 2026-08-16 (a) deferral kept for the FREE launch: ship unsigned + xattr/«Open Anyway» instructions; revisit at >100 downloads or install complaints. Build hold released.
 
 ## LifeOS Integration
 - **Domain**: 01_Projects (Product)

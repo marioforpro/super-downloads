@@ -36,7 +36,7 @@ macOS desktop app for media downloads. REOPENED 2026-07-16 (founder recommit) �
 
 ## Common workflows
 - Work proceeds under R-SD-004 (reopened 2026-07-16; the old "resume only on explicit founder request" rule ended with the founder recommit)
-- Build: `./create-dmg.sh` from project root — **hold:** no build/release/signing until SD-F-009 (signing/notarization) is answered by the founder
+- Build: `./create-dmg.sh` from project root — hold released 2026-08-16: SD-F-009 resolved (a) deferral — the FREE build ships unsigned (xattr / «Open Anyway» instructions on landing+FAQ); revisit signing at >100 downloads or install complaints
 
 ## Known risks / staleness
 - Bundled binaries (`src-tauri/binaries/`) are large; never commit
