@@ -16,18 +16,21 @@
   - What: Paste multiple URLs at once and download as a managed queue.
   - Why: Single-URL flow is the #1 friction reported by power users.
   - Where: SUPER-DOWNLOADS / app UX
-- 2026-04-23 | Browser extension companion — detect videos on page → push to Super Downloads desktop [size: M] [confidence: 3] [id: 0019] [presence: high]
+- 2026-04-23 | Browser extension companion — detect videos on page → push to Super Downloads desktop [size: M] [confidence: 3] [id: 0019] [presence: high] [parked]
   - What: Browser extension detects videos on-page and pushes them to the desktop app.
   - Why: Closes the gap between discovery (browser) and download (app).
   - Where: SUPER-DOWNLOADS / extension
-- 2026-04-23 | Super Downloads Windows / Linux port [size: M] [confidence: 3] [id: 0023] [presence: high]
+  - OOO-auto 2026-08-17: parked — trigger: tracción del free launch (EXP-001, >100 descargas) o petición explícita de usuarios. Una extensión (MV3 + review de Chrome Web Store) es superficie nueva antes de validar la app; R-SD-004 (P0) y el modo FREE van primero.
+- 2026-04-23 | Super Downloads Windows / Linux port [size: M] [confidence: 3] [id: 0023] [presence: high] [parked]
   - What: Port the Tauri app to Windows and Linux from the macOS-only base.
   - Why: Mac-only caps TAM; Tauri makes the port cheap if scoped right.
   - Where: SUPER-DOWNLOADS / platform expansion
+  - OOO-auto 2026-08-17: parked — trigger: tracción del free launch (>100 descargas) + demanda explícita Win/Linux (emails de activación). El port exige firma Windows (coste), CI cross-platform y matriz de QA yt-dlp/ffmpeg ×3 — antes de validar el producto en Mac es TAM sobre humo.
 - 2026-04-23 | Super Downloads analytics telemetry opt-in pipeline [size: M] [confidence: 3] [id: 0027] [presence: high]
   - What: Opt-in telemetry to learn which platforms / formats / failures matter.
   - Why: Without telemetry, roadmap priorities are guesses.
   - Where: SUPER-DOWNLOADS / analytics
+  - OOO-auto 2026-08-17: estado parcial — la landing ya mide (PostHog cookieless, Track B 2026-07-16) y el modo FREE captura emails de activación (la lista consultable ES la telemetría de usuarios de esta fase). La telemetría in-app opt-in (plataforma/formato/fallo) sigue sin hacer; el `platform-health-check.sh` diario (idea 0028) cubre «qué falla» del lado del extractor. Reabrir cuando la lista de emails no baste para priorizar.
 - 2026-05-31 | Platform-health monitor — daily automated check that all 7 platforms still extract, alert on failure [size: M] [confidence: 4] [presence: high] [shipped→launchd 2026-05-31] [id: 0028]
   - What: Scheduled (launchd) daily run of `scripts/platform-health-check.sh`; macOS notification only on FAIL (silent on all-pass). Detects extractor breakage AND silent quality degradation (the 360p fallback) before users hit it.
   - Why: yt-dlp breaks per-platform constantly; today we only learn when a user complains. A daily green/red signal turns reactive firefighting into proactive patch releases.
@@ -44,7 +47,7 @@
   - What: Feature catalog from YTSage (PySide6 yt-dlp GUI, feature-dense peer) for SD parity checks: SponsorBlock integration; subtitle selection + merging; EBU R128 audio normalization; Deno-runtime detection for JS-challenge extraction (`ytsage/core/ytsage_deno.py`); custom yt-dlp command override; version-channel selector + built-in updater tab; playlist export; chapter integration. Source paths: `ytsage/core/{ytsage_deno,ytsage_ffmpeg,ytsage_yt_dlp}.py`, `ytsage/utils/{ytsage_config_manager,ytsage_history_manager,ytsage_localization}.py`.
   - Why: Named-feature competitor reference (not vague praise) — each item maps to a concrete source path for when SD picks it up. Cluster: composes with the existing [[nexmoe-VidBee]] competitor note — YTSage = feature-catalog peer · VidBee = architecture/desktop→API peer — they compose, not compete.
   - Where: SUPER-DOWNLOADS / competitor reference (repo: oop7/YTSage · source: repo-intel · 2026-07-17)
-- 2026-08-10 | Instagram engine fix — portar la técnica endpoint-format-fallback de instaloader al motor Rust [reliability] [id: 0032]
+- 2026-08-10 | Instagram engine fix — portar la técnica endpoint-format-fallback de instaloader al motor Rust [reliability] [id: 0032] [promoted→task 00_System/TASKS.md § SUPER-DOWNLOADS «Motor Instagram» · OOO-auto 2026-08-17]
   - What: El motor IG (yt-dlp bundled, Tier 2) está en FAIL (HTTP 400, yt-dlp #13626/#16311). instaloader lo resuelve hoy con una técnica transferible: endpoints con headers de iPhone + fallback de formato de endpoint (`instaloadercontext.py` `get_json()`/`default_iphone_headers()`, PR #2706) + backoff aleatorizado pre-request + jerarquía tipada de excepciones de retry. EXTRACT, no vendoring (app Rust/Tauri, sin runtime Python; y el perfil bulk-scrape de instaloader choca con el reposicionamiento legal 2026-07-16).
   - Why: Es la respuesta a «¿por qué savefrom/savethevideo sí pueden con IG?» — esos son extracción server-side (cobalt, [[imputnet-cobalt]], zero-cache-streaming-proxy: arquitectura, no técnica portable); lo que sí viaja a la app de escritorio es la técnica de endpoints de instaloader.
   - Where: SUPER-DOWNLOADS / engine (repo: instaloader/instaloader · source: repo-intel 2026-07-27 · referencias aprobadas por founder 2026-08-10 → PLATFORM-HEALTH.md §3 + esta entrada)
