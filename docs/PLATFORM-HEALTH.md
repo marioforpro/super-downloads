@@ -369,3 +369,21 @@ Verdict at baseline: **CERTIFIED OPERATIONAL** (Tier 2 degraded: instagram).
     Not wired into the daily launchd cadence (network + a `cargo test`
     compile are too slow for a fast daily check) — run it manually when
     checking whether Instagram's anonymous-endpoint posture has changed.
+
+- **2026-09-03 — yt-dlp `2026.08.19` changed the Vimeo anonymous-401 error
+  text; embed-retry match updated (both places), T1 back to PASS.** Bundled
+  engine went `2026.07.04` → `2026.08.19` (2026-08-19, gitignored
+  `src-tauri/binaries/`). Same underlying failure (Vimeo still revokes the
+  `macos` client's anonymous OAuth bootstrap), but the error string is now
+  `The web client only works when logged-in. Use --cookies, ...` — no
+  `401`, no `macos API JSON`/`oauth token` substrings — so the
+  `is_vimeo_oauth_401_error()`/health-check regex match from 2026-08-17
+  silently stopped firing and `--cookies` T1 read `FAIL (auth/rate-limit)`.
+  Fixed by matching the new text (`only works when logged.?in`,
+  case-insensitive) in addition to the old patterns, in both
+  `scripts/platform-health-check.sh` and `lib.rs`'s
+  `is_vimeo_oauth_401_error()` — old engines in the field still emit the old
+  text, so both patterns stay live. 1 new unit test added
+  (`vimeo_login_wall_2026_08_19_signature_is_recognised`; `cargo test --lib`
+  green — 30 passed, 1 pre-existing `#[ignore]` live test). Re-run confirmed
+  `vimeo T1 PASS (best 720p via player.vimeo.com embed rewrite …)`.

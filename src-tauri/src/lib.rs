@@ -77,11 +77,23 @@ fn is_impersonation_fixable_error(error_text: &str) -> bool {
 // pick it up. The embed-player URL is a different extractor path that still
 // works anonymously (verified live 2026-08-17), so on this exact signature we
 // rewrite `vimeo.com/<id>` → `player.vimeo.com/video/<id>` and retry once.
+//
+// 2026-08-19 engine (2026.08.19): yt-dlp changed the anonymous-401 error text
+// to "The web client only works when logged-in." — no "401" and no
+// "macos api json"/"oauth token" substrings survive, so the old check stopped
+// matching and the retry silently stopped firing. Match both the old and new
+// text, case-insensitively, on stable fragments; keep the old patterns since
+// older bundled/system engines in the field still emit them.
 fn is_vimeo_oauth_401_error(error_text: &str) -> bool {
     let lower = error_text.to_lowercase();
-    lower.contains("vimeo")
-        && lower.contains("401")
-        && (lower.contains("macos api json") || lower.contains("oauth token"))
+    if !lower.contains("vimeo") {
+        return false;
+    }
+    let old_signature =
+        lower.contains("401") && (lower.contains("macos api json") || lower.contains("oauth token"));
+    let new_signature = lower.contains("only works when logged-in")
+        || lower.contains("only works when logged in");
+    old_signature || new_signature
 }
 
 // `https://vimeo.com/76979871` → `https://player.vimeo.com/video/76979871`
@@ -1995,6 +2007,27 @@ mod tests {
         ));
         assert!(!super::is_vimeo_oauth_401_error(
             "ERROR: [youtube] x: HTTP Error 401"
+        ));
+    }
+
+    #[test]
+    fn vimeo_login_wall_2026_08_19_signature_is_recognised() {
+        // yt-dlp 2026.08.19+ text — no "401", no "macos api json"/"oauth token".
+        let err = "ERROR: [vimeo] 76979871: The web client only works when logged-in. \
+                    Use --cookies, --cookies-from-browser, --username and --password, \
+                    --netrc-cmd, or --netrc (vimeo) to provide account credentials.";
+        assert!(super::is_vimeo_oauth_401_error(err));
+        // Case-insensitive match.
+        assert!(super::is_vimeo_oauth_401_error(
+            "ERROR: [Vimeo] 1: THE WEB CLIENT ONLY WORKS WHEN LOGGED-IN."
+        ));
+        // Space variant (no hyphen), just in case the wording drifts again.
+        assert!(super::is_vimeo_oauth_401_error(
+            "ERROR: [vimeo] 1: The web client only works when logged in."
+        ));
+        // Still must not match an unrelated Vimeo error.
+        assert!(!super::is_vimeo_oauth_401_error(
+            "ERROR: [vimeo] 1: This video is private"
         ));
     }
 

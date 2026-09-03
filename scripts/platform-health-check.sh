@@ -234,7 +234,12 @@ for entry in "${PROBES[@]}"; do
   # as of 2026-08-17). The app retries such failures once through the embed
   # player URL (`lib.rs` vimeo_embed_url) — probe the same way, so the check
   # measures what users actually get.
-  if [[ "$platform" == "vimeo" ]] && echo "$lc" | grep -q "401" && echo "$lc" | grep -qE "macos api json|oauth token"; then
+  # 2026-08-19 engine (2026.08.19): yt-dlp changed the anonymous-401 error
+  # text to "The web client only works when logged-in." (no "401", no
+  # "macos api json"/"oauth token" substrings). Match both the old and new
+  # text, case-insensitively, on stable fragments — keep the old patterns
+  # since older bundled/system engines still emit them.
+  if [[ "$platform" == "vimeo" ]] && { { echo "$lc" | grep -q "401" && echo "$lc" | grep -qE "macos api json|oauth token"; } || echo "$lc" | grep -qE "only works when logged.?in"; }; then
     vid="$(printf '%s' "$url" | grep -oE '/[0-9]{6,}' | head -1 | tr -d '/')"
     if [[ -n "$vid" ]]; then
       embed_json="$("$YTDLP" -J --simulate --no-warnings --socket-timeout 30 --user-agent "$UA"                      "https://player.vimeo.com/video/$vid" 2>/dev/null)"
