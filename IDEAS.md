@@ -12,7 +12,7 @@
 >
 > Idea IDs in this file are emitted as `IDEA-SD-NNNN` by the reconstruction engine.
 
-- 2026-04-23 | Batch URL paste / queue for Super Downloads (multi-URL ingestion at once) [size: M] [confidence: 3] [id: 0015] [presence: high]
+- 2026-04-23 | Batch URL paste / queue for Super Downloads (multi-URL ingestion at once) [size: M] [confidence: 3] [id: 0015] [presence: high] [status: READY]
   - What: Paste multiple URLs at once and download as a managed queue.
   - Why: Single-URL flow is the #1 friction reported by power users.
   - Where: SUPER-DOWNLOADS / app UX
@@ -26,7 +26,7 @@
   - Why: Mac-only caps TAM; Tauri makes the port cheap if scoped right.
   - Where: SUPER-DOWNLOADS / platform expansion
   - OOO-auto 2026-08-17: parked — trigger: tracción del free launch (>100 descargas) + demanda explícita Win/Linux (emails de activación). El port exige firma Windows (coste), CI cross-platform y matriz de QA yt-dlp/ffmpeg ×3 — antes de validar el producto en Mac es TAM sobre humo.
-- 2026-04-23 | Super Downloads analytics telemetry opt-in pipeline [size: M] [confidence: 3] [id: 0027] [presence: high]
+- 2026-04-23 | ~~Super Downloads analytics telemetry opt-in pipeline [size: M] [confidence: 3] [id: 0027] [presence: high]~~ [killed: promovida de facto — figura en SUPER-DOWNLOADS/ROADMAP.md (Phase 2 deferred) on 2026-09-07]
   - What: Opt-in telemetry to learn which platforms / formats / failures matter.
   - Why: Without telemetry, roadmap priorities are guesses.
   - Where: SUPER-DOWNLOADS / analytics
@@ -43,7 +43,7 @@
   - What: On launch / weekly, download the latest yt-dlp into a writable app-support dir (signed .app bundle is read-only, so can't self-update in place) and prefer that over the bundled binary when newer. Optionally surface "extractor updated" silently. ffmpeg/ffprobe change rarely and don't break per-platform — keep those release-bundled only.
   - Why: yt-dlp breaks per-platform on a days-to-weeks cadence; the app-release cycle is too slow to keep up (this is the 360p bug's structural cause). Decouples extractor freshness from app version so YouTube breakage is fixed in hours, not a release cycle. This is the "automatic, no conflicts for the user" mechanism the founder asked about (2026-05-31) — note `find_ytdlp()` already prefers external yt-dlp, so a managed app-support copy fits the existing resolution order.
   - Where: SUPER-DOWNLOADS / Rust backend (binary resolution + updater). Marker history: implemented 2026-06-16 as Unreleased; shipped in v1.2.0 (2026-07-16, R-SD-004 Track A — ROADMAP Backlog entry). Restated 2026-08-03 from ad-hoc `[implemented→Unreleased 2026-06-16]` to engine vocabulary (SD-F-006).
-- 2026-07-17 | Competitor feature reference — oop7/YTSage [competitor-reference] [id: 0031]
+- 2026-07-17 | Competitor feature reference — oop7/YTSage [competitor-reference] [id: 0031] [parked] [trigger: cuando SD planifique la siguiente release de features; leer el catálogo como checklist de paridad]
   - What: Feature catalog from YTSage (PySide6 yt-dlp GUI, feature-dense peer) for SD parity checks: SponsorBlock integration; subtitle selection + merging; EBU R128 audio normalization; Deno-runtime detection for JS-challenge extraction (`ytsage/core/ytsage_deno.py`); custom yt-dlp command override; version-channel selector + built-in updater tab; playlist export; chapter integration. Source paths: `ytsage/core/{ytsage_deno,ytsage_ffmpeg,ytsage_yt_dlp}.py`, `ytsage/utils/{ytsage_config_manager,ytsage_history_manager,ytsage_localization}.py`.
   - Why: Named-feature competitor reference (not vague praise) — each item maps to a concrete source path for when SD picks it up. Cluster: composes with the existing [[nexmoe-VidBee]] competitor note — YTSage = feature-catalog peer · VidBee = architecture/desktop→API peer — they compose, not compete.
   - Where: SUPER-DOWNLOADS / competitor reference (repo: oop7/YTSage · source: repo-intel · 2026-07-17)
