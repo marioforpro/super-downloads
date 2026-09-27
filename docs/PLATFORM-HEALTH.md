@@ -28,8 +28,11 @@ payment-processor review (see `docs/superpowers/specs/2026-07-16-relaunch-harden
 | **Tier 1** | YouTube · TikTok · Vimeo | Works out of the box | **Yes** |
 | **Tier 2** | Instagram · Facebook · X/Twitter · LinkedIn | Best-effort, may need the user's browser login | No (reported + notified only) |
 
-The landing page and app copy mirror these tiers. LinkedIn is **auth-only**
-(no stable public probe URL exists) — it is only probed on `--cookies` runs.
+The landing page and app copy mirror these tiers. LinkedIn public posts extract
+**logged-out** (verified 2026-09-27): the app tries without cookies first and uses
+the browser session only as a retry, and the probe mirrors that on every run.
+(Until 2026-09-27 LinkedIn was treated as auth-only and the app forced cookies —
+which is the path that broke on yt-dlp 2026.08.19.)
 
 ## Certification
 
@@ -71,8 +74,8 @@ weekly yt-dlp self-update, shipped in v1.2.0).
 | `FAIL (PIPELINE…)` | Metadata OK but real download broke | worst signal — test the app's download path end-to-end |
 | `WARN (test URL rotted)` | Probe video removed/private | swap the URL in `PROBES` (top of script) |
 | `WARN (auth required)` | Auth platform, no cookies | expected on cookie-less runs |
-| `SKIP (auth-only)` | No public probe URL exists (LinkedIn) | probed on `--cookies` runs only |
-| `STALE ENGINE` (header) | Engine > 28 days old | refresh bundle + ship patch release |
+| `SKIP (auth-only)` | Platform listed in `AUTH_ONLY` (empty since 2026-09-27) | probed on `--cookies` runs only |
+| `STALE ENGINE` (header) | Engine > 28 days old **and** upstream has a newer stable release (checked via GitHub; age alone if offline) | refresh bundle + ship patch release |
 
 ## Runbook (escalation by symptom)
 
@@ -86,7 +89,10 @@ weekly yt-dlp self-update, shipped in v1.2.0).
    subscribe, and re-test daily. If it lasts > a few days, consider a landing
    status note.
 3. **Tier-2 FAIL persistent > 2 weeks** → check the upstream yt-dlp issue; if
-   the platform is hard-broken (e.g. Instagram HTTP 400, issues #13626/#16311),
+   the platform is hard-broken, verify it is not the probe first: the Instagram
+   "HTTP 400, broken upstream" FAIL (07-16 → 09-27) was a **deleted probe post** —
+   yt-dlp's own test reels passed with and without cookies on 2026-09-27. If still
+   hard-broken after swapping the URL (issues #13626/#16311 are the old references),
    verify the landing copy still frames it honestly (best-effort tier) and note
    it in the FAQ if needed. No release urgency — Tier 2 does not gate.
    Named remedy for the current Instagram FAIL (founder-approved reference,
@@ -149,9 +155,17 @@ public, durable video. Prefer official/institutional accounts. For HD platforms
 keep a video known to offer ≥1080p so the DEGRADED assertion stays meaningful.
 Review all URLs quarterly even without WARNs.
 
-**Open item:** LinkedIn needs a real probe URL (current one is a dead
-placeholder). Any public LinkedIn post with native video works; it will only be
-probed on `--cookies` runs.
+**Resolved 2026-09-27:** LinkedIn and Instagram probes now use yt-dlp's own
+extractor test URLs (a good default source when a probe rots — they are what
+upstream CI exercises).
+
+## Baseline — 2026-09-27 (probe repair + LinkedIn cookie fix)
+
+Engine: bundled yt-dlp `2026.08.19` (39d old, **= upstream latest stable**). Result
+7/7 PASS, CERTIFIED OPERATIONAL, both cookie-less and `--cookies` runs. Instagram
+PASS 1280p (reel `Chunk8-jurw`). LinkedIn PASS logged-out; logged-in path fails
+("Unable to extract video") — hence the cookie-less-first fix in `lib.rs`
+(`99768b6`), which reaches users only with the next release.
 
 ## Baseline — 2026-07-16 (v2 rollout)
 
