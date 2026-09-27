@@ -51,8 +51,8 @@ PROBES=(
   "vimeo|https://vimeo.com/76979871"                       # Vimeo staff pick (stable)
   "twitter|https://x.com/SpaceX/status/1732824684683784516" # SpaceX Starship IFT-2 (1080p, no auth; verified 2026-07-16)
   "tiktok|https://www.tiktok.com/@tiktok/video/7106594312292453675"
-  "linkedin|https://www.linkedin.com/posts/linkedin_activity-7000000000000000000"
-  "instagram|https://www.instagram.com/p/CqzZ0HwI9bA/"
+  "linkedin|https://www.linkedin.com/posts/the-mathworks_2_what-is-mathworks-cloud-center-activity-7151241570371948544-4Gu7" # yt-dlp's own test URL; public, extracts logged-out (verified 2026-09-27)
+  "instagram|https://www.instagram.com/reel/Chunk8-jurw/"   # yt-dlp's own test reel (verified 2026-09-27; the previous post was deleted, failing since 2026-07-16)
   "facebook|https://www.facebook.com/watch/?v=10153231379946729"
 )
 
@@ -66,8 +66,10 @@ TIER2="instagram facebook twitter linkedin"
 # on these is expected, not an outage.
 AUTH_PLATFORMS="linkedin instagram facebook"
 
-# Platforms with NO stable public probe URL (everything requires login). These
-# are only probed on a --cookies run; otherwise reported as SKIP.
+# Probed only on a --cookies run (otherwise SKIP), because the app ALWAYS sends
+# browser cookies for LinkedIn (src-tauri/src/lib.rs) — the probe mirrors what
+# users get. Note 2026-09-27: public posts extract fine logged-out; it is the
+# logged-in path that fails on yt-dlp 2026.08.19.
 AUTH_ONLY="linkedin"
 
 # Platforms whose probe URL is known HD/4K. If best available height drops below
