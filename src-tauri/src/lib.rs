@@ -576,9 +576,6 @@ fn download_video(
         let is_vimeo = url.contains("vimeo.com");
         let is_instagram = url.contains("instagram.com") || url.contains("instagr.am");
 
-        // Use --dump-json to get full metadata (including thumbnails for Vimeo)
-        let mut metadata_cmd = Command::new(&ytdlp_path);
-
         // Ensure PATH includes common locations in build mode
         let current_path = std::env::var("PATH").unwrap_or_default();
         let enhanced_path = if !current_path.contains("/opt/homebrew/bin") {
@@ -586,30 +583,45 @@ fn download_video(
         } else {
             current_path
         };
-        metadata_cmd.env("PATH", &enhanced_path);
 
-        metadata_cmd.arg("--dump-json").arg("--skip-download");
+        // Use --dump-json to get full metadata (including thumbnails for Vimeo)
+        let build_metadata_cmd = |with_cookies: bool| {
+            let mut metadata_cmd = Command::new(&ytdlp_path);
+            metadata_cmd.env("PATH", &enhanced_path);
+            metadata_cmd.arg("--dump-json").arg("--skip-download");
 
-        // Add user-agent for all platforms to help with access
-        metadata_cmd.arg("--user-agent").arg(DEFAULT_USER_AGENT);
+            // Add user-agent for all platforms to help with access
+            metadata_cmd.arg("--user-agent").arg(DEFAULT_USER_AGENT);
 
-        // LinkedIn always requires authentication cookies for metadata
-        if url.contains("linkedin.com") || url.contains("lnkd.in") {
+            if with_cookies {
+                metadata_cmd
+                    .arg("--cookies-from-browser")
+                    .arg(default_cookie_browser());
+            }
+
+            // Facebook metadata needs browser impersonation too (TLS fingerprinting)
+            if (url.contains("facebook.com") || url.contains("fb.watch") || url.contains("fb.com"))
+                && ytdlp_supports_impersonation(&ytdlp_path)
+            {
+                metadata_cmd.arg("--impersonate").arg("chrome");
+            }
+
+            metadata_cmd.arg(&url);
             metadata_cmd
-                .arg("--cookies-from-browser")
-                .arg(default_cookie_browser());
-        }
+        };
 
-        // Facebook metadata needs browser impersonation too (TLS fingerprinting)
-        if (url.contains("facebook.com") || url.contains("fb.watch") || url.contains("fb.com"))
-            && ytdlp_supports_impersonation(&ytdlp_path)
-        {
-            metadata_cmd.arg("--impersonate").arg("chrome");
-        }
+        // LinkedIn: try logged-out first (public posts work, the logged-in path
+        // fails on yt-dlp 2026.08.19); fall back to browser cookies only if that fails.
+        let is_linkedin_metadata = url.contains("linkedin.com") || url.contains("lnkd.in");
+        let metadata_result = match build_metadata_cmd(false).output() {
+            Ok(output) if !output.status.success() && is_linkedin_metadata => {
+                eprintln!("LinkedIn metadata failed logged-out, retrying with browser cookies");
+                build_metadata_cmd(true).output().or(Ok(output))
+            }
+            other => other,
+        };
 
-        metadata_cmd.arg(&url);
-
-        match metadata_cmd.output() {
+        match metadata_result {
             Ok(output) => {
                 if output.status.success() {
                     let json_output = String::from_utf8_lossy(&output.stdout);
@@ -946,11 +958,10 @@ fn download_video(
             cmd.arg("--impersonate").arg("chrome");
         }
 
-        // LinkedIn always requires authentication cookies
-        if is_linkedin {
-            cmd.arg("--cookies-from-browser")
-                .arg(default_cookie_browser());
-        }
+        // LinkedIn: no cookies on the first attempt. Public posts extract fine
+        // logged-out, and on yt-dlp 2026.08.19 the logged-in path fails with
+        // "Unable to extract video" — forcing cookies broke every user signed in
+        // to LinkedIn. Login-only posts get cookies via the retry below.
 
         cmd.arg("-o")
             .arg(&planned_output_path)
@@ -1500,8 +1511,11 @@ fn download_video(
                     || url.contains("tiktok.com")
                     || url.contains("twitter.com")
                     || url.contains("x.com");
-                let should_retry_with_cookies =
-                    is_auth_required_error(&combined_error_text) && cookie_retry_platform;
+                // LinkedIn's login wall has no stable error text, so any failed
+                // cookie-less attempt earns one retry with the browser session.
+                let should_retry_with_cookies = (is_auth_required_error(&combined_error_text)
+                    && cookie_retry_platform)
+                    || is_linkedin;
                 // Fingerprint-blocked extraction (e.g. Facebook "Cannot parse
                 // data") is cleared by impersonation, not cookies.
                 let should_retry_with_impersonation = !should_retry_with_cookies

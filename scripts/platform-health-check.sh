@@ -66,11 +66,10 @@ TIER2="instagram facebook twitter linkedin"
 # on these is expected, not an outage.
 AUTH_PLATFORMS="linkedin instagram facebook"
 
-# Probed only on a --cookies run (otherwise SKIP), because the app ALWAYS sends
-# browser cookies for LinkedIn (src-tauri/src/lib.rs) — the probe mirrors what
-# users get. Note 2026-09-27: public posts extract fine logged-out; it is the
-# logged-in path that fails on yt-dlp 2026.08.19.
-AUTH_ONLY="linkedin"
+# Platforms with no public probe URL — only probed on a --cookies run, otherwise
+# SKIP. Empty since 2026-09-27: LinkedIn public posts extract logged-out, and the
+# app now tries them without cookies first (src-tauri/src/lib.rs).
+AUTH_ONLY=""
 
 # Platforms whose probe URL is known HD/4K. If best available height drops below
 # 720p here, extraction is DEGRADED (the classic "downloads at 360p" symptom of a
@@ -139,11 +138,24 @@ if [[ "$VERSION" =~ ^[0-9]{4}\.[0-9]{2}\.[0-9]{2} ]]; then
   fi
 fi
 
+# Age alone is not staleness: if upstream has published nothing newer, the
+# engine IS the latest stable and there is nothing to refresh (2026-09-27: the
+# gate called 2026.08.19 "stale" at 39d while it was upstream's latest). The
+# age rule stays as the fallback when GitHub is unreachable.
+LATEST_UPSTREAM=""
+if (( STALE )); then
+  LATEST_UPSTREAM="$(curl -fsS --max-time 10 https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest 2>/dev/null \
+    | python3 -c 'import sys,json; print(json.load(sys.stdin).get("tag_name",""))' 2>/dev/null || true)"
+  if [[ -n "$LATEST_UPSTREAM" && "${VERSION:0:10}" == "${LATEST_UPSTREAM:0:10}" ]]; then
+    STALE=0
+  fi
+fi
+
 echo "============================================================"
 echo " Super Downloads — Platform Health Check (v2)"
 echo " yt-dlp : $YTDLP"
 echo " source : $SOURCE"
-echo " version: $VERSION${ENGINE_AGE_DAYS:+ (${ENGINE_AGE_DAYS}d old)}$( ((STALE)) && echo ' — STALE ENGINE')"
+echo " version: $VERSION${ENGINE_AGE_DAYS:+ (${ENGINE_AGE_DAYS}d old)}$( ((STALE)) && echo ' — STALE ENGINE')${LATEST_UPSTREAM:+ · upstream latest $LATEST_UPSTREAM}"
 [[ -n "$MANAGED_VERSION" ]] && echo " managed: $MANAGED_VERSION (self-update copy — what users run)"
 echo " cookies: $([[ "$USE_COOKIES" == "1" ]] && echo 'chrome' || echo 'none')"
 echo "============================================================"
@@ -209,10 +221,21 @@ for entry in "${PROBES[@]}"; do
   EXTRA_ARGS=()
   [[ "$platform" == "facebook" && ${#IMPERSONATE_ARGS[@]} -gt 0 ]] && EXTRA_ARGS=("${IMPERSONATE_ARGS[@]}")
 
+  # LinkedIn mirrors the app (2026-09-27): first attempt logged-out, browser
+  # cookies only as the retry. A cookie-only probe would test a path users
+  # no longer hit first.
+  PROBE_COOKIES=(${COOKIE_ARGS[@]+"${COOKIE_ARGS[@]}"})
+  [[ "$platform" == "linkedin" ]] && PROBE_COOKIES=()
+
   json="$("$YTDLP" -J --simulate --no-warnings --socket-timeout 30 \
-           --user-agent "$UA" ${COOKIE_ARGS[@]+"${COOKIE_ARGS[@]}"} \
+           --user-agent "$UA" ${PROBE_COOKIES[@]+"${PROBE_COOKIES[@]}"} \
            ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"} "$url" 2>/tmp/sd_hc_err)"
   rc=$?
+  if [[ $rc -ne 0 && "$platform" == "linkedin" && ${#COOKIE_ARGS[@]} -gt 0 ]]; then
+    json="$("$YTDLP" -J --simulate --no-warnings --socket-timeout 30 \
+             --user-agent "$UA" "${COOKIE_ARGS[@]}" "$url" 2>/tmp/sd_hc_err)"
+    rc=$?
+  fi
   err="$(cat /tmp/sd_hc_err 2>/dev/null)"
 
   if [[ $rc -eq 0 && -n "$json" ]]; then
