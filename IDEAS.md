@@ -12,7 +12,7 @@
 >
 > Idea IDs in this file are emitted as `IDEA-SD-NNNN` by the reconstruction engine.
 
-- 2026-04-23 | Batch URL paste / queue for Super Downloads (multi-URL ingestion at once) [size: M] [confidence: 3] [id: 0015] [presence: high] [status: READY]
+- 2026-04-23 | Batch URL paste / queue for Super Downloads (multi-URL ingestion at once) [size: M] [confidence: 3] [id: 0015] [presence: high] [status: READY] (OOO-auto 2026-10-02: implemented on branch `feat/batch-url-paste` b0e1bb8 — paste 2+ URLs → all queued via the drop path; needs a 1-minute test in the running app before merge)
   - What: Paste multiple URLs at once and download as a managed queue.
   - Why: Single-URL flow is the #1 friction reported by power users.
   - Where: SUPER-DOWNLOADS / app UX
