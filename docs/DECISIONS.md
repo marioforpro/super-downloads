@@ -4,6 +4,11 @@
 
 ---
 
+## 2026-10-03 — "Best" always means the highest resolution available (4K included)
+**Context:** v1.4.0 QA measured YouTube 4K (VP9/AV1 only) → H.264 conversion at ~1x real time on an M4 Pro (VideoToolbox; hardware decode, HEVC and two parallel sessions don't help — 4K frame throughput is the limit; a 1080p downscale runs ~3.9x). Option offered: cap "Best" at 1080p and add an explicit "4K" choice.
+**Decision (founder):** «siempre best» — "Best" keeps delivering the highest resolution available, converted to H.264 when needed. 1080p/720p stay as the fast choices.
+**Consequence:** no quality-menu change. The long conversion is made honest instead: real ffmpeg progress + time remaining in the row ("Converting to H.264 for editing… 42% · ETA 5:10").
+
 ## 2026-10-03 — No payments provider: the app is free, Track C closed
 **Context:** Founder, 2026-10-03: «yo no tengo cuenta de LemonSqueezy y la app ahora es free». The docs still described a LemonSqueezy account, a wired €29 checkout and six E2E gates as the next move.
 **Decision:** There is no payments provider. Super Downloads is free with email activation. Track C (LemonSqueezy mitigations + C2 gates, R-SD-004) is **closed**, not deferred; the 2026-07-16 "stay on LemonSqueezy" and the 2026-05-13 license-hardening decisions are superseded. If monetization ever returns, the provider is chosen from scratch (Paddle stays ruled out for downloaders).

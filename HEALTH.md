@@ -32,7 +32,6 @@ macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS 
 - Free (no limit), email activation. No payments provider since 2026-10-03; monetization, if ever, starts from scratch.
 
 ## Key Decisions Pending
-- 4K conversion speed: YouTube 4K (VP9) → H.264 runs ~1x real time on an M4 Pro (measured 2026-10-03). Keep "Best" up to 4K, or cap "Best" at 1080p and add an explicit "4K" option.
 - Signing/notarization (SD-F-009) — RESOLVED 2026-08-16 (a) deferral kept for the FREE launch: ship unsigned + xattr/«Open Anyway» instructions; revisit at >100 downloads or install complaints. Build hold released.
 
 ## LifeOS Integration
