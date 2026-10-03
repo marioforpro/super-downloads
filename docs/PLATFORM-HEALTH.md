@@ -163,14 +163,16 @@ upstream CI exercises).
 
 - **Metadata PASS ≠ downloadable.** The live E2E (`cd src-tauri && cargo test
   e2e_downloads_live -- --ignored --nocapture`, real `download_video`, real
-  engine/ffmpeg) found Vimeo failing every download while this check said
-  `vimeo T1 PASS`: Vimeo now serves **only DRM-encrypted HLS** — via the embed
-  path, the direct path and logged in (Chrome cookies); same on yt-dlp stable
-  2026.08.19 and nightly 2026.09.27. ffmpeg "downloads" it into an undecodable
-  file (14k decode errors), so the hlsnative refusal is correct. The app never
-  circumvents DRM; it now says "This video is DRM-protected by the site".
-  Vimeo can't be certified as Tier 1 while this lasts — run the E2E before a
-  release, not just this metadata check.
+  engine/ffmpeg) showed the old Vimeo probe failing every download while this
+  check said `vimeo T1 PASS`: both probes (863362136, 76979871) belong to
+  Vimeo's own account, which has **Vimeo DRM** enabled (FairPlay `skd://` in
+  `hls`, Widevine/PlayReady in `hls_cenc` and `dash`). Vimeo DRM is **opt-in
+  per team/video**: third-party videos (1192731173, 278780898, 191827734)
+  download clean (0 decode errors) via the embed path. Owners who restrict
+  embedding (1399514 → HTTP 401) need the logged-in step. DRM is never
+  circumvented; the app says "This video is DRM-protected by the site".
+  Probe switched to 1192731173. Run the E2E before a release, not just this
+  metadata check.
 - Other 6 platforms: real downloads OK in 3–8 s each (onedir engine); TikTok
   1080p arrives HEVC and is converted to H.264 after download.
 

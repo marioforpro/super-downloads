@@ -48,7 +48,7 @@ cd "$(dirname "$0")/.." || exit 1
 # means the platform actually broke. See docs/PLATFORM-HEALTH.md.
 PROBES=(
   "youtube|https://www.youtube.com/watch?v=aqz-KE-bpKQ"   # Big Buck Bunny (Blender, has up to 4K)
-  "vimeo|https://vimeo.com/863362136"                      # Vimeo's own "Inside Vimeo Staff Picks", 4K source (the old probe 76979871 is 720p at source, so it could never show more)
+  "vimeo|https://vimeo.com/1192731173"                     # third-party showreel, no DRM (Vimeo's own videos — 863362136, 76979871 — have Vimeo DRM on; see PLATFORM-HEALTH 2026-10-03)
   "twitter|https://x.com/SpaceX/status/1732824684683784516" # SpaceX Starship IFT-2 (1080p, no auth; verified 2026-07-16)
   "tiktok|https://www.tiktok.com/@tiktok/video/7106594312292453675"
   "linkedin|https://www.linkedin.com/posts/the-mathworks_2_what-is-mathworks-cloud-center-activity-7151241570371948544-4Gu7" # yt-dlp's own test URL; public, extracts logged-out (verified 2026-09-27)

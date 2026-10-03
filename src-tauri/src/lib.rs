@@ -527,6 +527,17 @@ fn get_video_resolution_from_file(file_path: &str, ffmpeg_dir: &str) -> Option<S
     None
 }
 
+// Vimeo needs up to three attempts: the video page anonymously, then the embed
+// player anonymously (works for most public videos, no Keychain prompt), then
+// the video page with the browser session (owners who restrict embedding).
+// DRM-protected videos stop at the DRM error — never circumvented.
+#[derive(Clone)]
+enum VimeoStep {
+    Direct,
+    Embed { origin: String },
+    DirectWithCookies,
+}
+
 // Generic over the runtime so the live E2E test can drive it with tauri::test.
 #[tauri::command]
 fn download_video<R: Runtime>(
@@ -536,6 +547,26 @@ fn download_video<R: Runtime>(
     download_location: Option<String>,
     quality: Option<String>,
     format: Option<String>,
+) -> String {
+    start_download(
+        window,
+        url,
+        download_id,
+        download_location,
+        quality,
+        format,
+        VimeoStep::Direct,
+    )
+}
+
+fn start_download<R: Runtime>(
+    window: Window<R>,
+    url: String,
+    download_id: String,
+    download_location: Option<String>,
+    quality: Option<String>,
+    format: Option<String>,
+    vimeo_step: VimeoStep,
 ) -> String {
     let download_id_clone = download_id.clone();
     thread::spawn(move || {
@@ -655,7 +686,10 @@ fn download_video<R: Runtime>(
         // LinkedIn: try logged-out first (public posts work, the logged-in path
         // fails on yt-dlp 2026.08.19); fall back to browser cookies only if that fails.
         let is_linkedin_metadata = url.contains("linkedin.com") || url.contains("lnkd.in");
-        let metadata_result = match build_metadata_cmd(false).output() {
+        // Vimeo's session step already uses the browser session for the download;
+        // use it for metadata too so the file gets its real title.
+        let metadata_with_cookies = matches!(vimeo_step, VimeoStep::DirectWithCookies);
+        let metadata_result = match build_metadata_cmd(metadata_with_cookies).output() {
             Ok(output) if !output.status.success() && is_linkedin_metadata => {
                 eprintln!("LinkedIn metadata failed logged-out, retrying with browser cookies");
                 build_metadata_cmd(true).output().or(Ok(output))
@@ -957,6 +991,10 @@ fn download_video<R: Runtime>(
         // User agent for all platforms (no cookies by default - auto-retry handles auth)
         cmd.arg("--user-agent").arg(DEFAULT_USER_AGENT);
         cmd.arg("--no-warnings");
+        if matches!(vimeo_step, VimeoStep::DirectWithCookies) {
+            cmd.arg("--cookies-from-browser")
+                .arg(default_cookie_browser());
+        }
 
         // Facebook blocks non-browser TLS fingerprints ("Cannot parse data") —
         // impersonate a real browser when the engine supports it (curl_cffi).
@@ -1493,22 +1531,38 @@ fn download_video<R: Runtime>(
                 let combined_error_text =
                     format!("{} {} {}", error_messages.join(" "), all_stderr, all_stdout);
 
-                // Vimeo: upstream anonymous-OAuth breakage (yt-dlp #17271) — one retry
-                // through the embed player URL, which uses a different extractor path.
-                if is_vimeo && is_vimeo_oauth_401_error(&combined_error_text) {
-                    if let Some(embed_url) = vimeo_embed_url(&url) {
-                        eprintln!(
-                            "Vimeo anonymous OAuth path is broken upstream (HTTP 401); \
-                             retrying once via the embed player URL {}",
-                            embed_url
-                        );
-                        download_video(
+                // Vimeo: the anonymous page hits a login wall (yt-dlp #17271) →
+                // embed player; an embed blocked by its owner (HTTP 401) → the page
+                // again with the browser session. See VimeoStep.
+                if is_vimeo && !combined_error_text.contains("DRM protected") {
+                    let next = match &vimeo_step {
+                        VimeoStep::Direct if is_vimeo_oauth_401_error(&combined_error_text) => {
+                            vimeo_embed_url(&url).map(|embed| {
+                                (
+                                    embed,
+                                    VimeoStep::Embed {
+                                        origin: url.clone(),
+                                    },
+                                )
+                            })
+                        }
+                        VimeoStep::Embed { origin } => {
+                            Some((origin.clone(), VimeoStep::DirectWithCookies))
+                        }
+                        _ => None,
+                    };
+                    if let Some((next_url, next_step)) = next {
+                        eprintln!("Vimeo: retrying via {}", next_url);
+                        cleanup_partial_files(&planned_output_path);
+                        release_output_path(&planned_output_path);
+                        start_download(
                             window.clone(),
-                            embed_url,
+                            next_url,
                             download_id.clone(),
                             download_location.clone(),
                             quality.clone(),
                             format.clone(),
+                            next_step,
                         );
                         return;
                     }
@@ -2012,6 +2066,15 @@ fn build_unique_output_path(base_path: &str, title: &str, extension: &str) -> St
             }
         }
         copy_index += 1;
+    }
+}
+
+// A failed attempt that is retried under the same download frees its name.
+fn release_output_path(path: &str) {
+    if let Some(reserved) = RESERVED_OUTPUT_PATHS.get() {
+        if let Ok(mut set) = reserved.lock() {
+            set.remove(path);
+        }
     }
 }
 

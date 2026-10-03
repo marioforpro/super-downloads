@@ -23,7 +23,7 @@ Faster downloads — every yt-dlp call used to cost ~7s before any work started.
   - No panics on error text with accents/emoji (char-safe truncation); output reads survive non-UTF-8; file names capped at 150 chars ("File name too long"); two downloads of the same title get distinct paths.
   - Engine update: one at a time, with network timeouts.
   - UI: plain-language errors (offline, sign-in, private, rate-limited, disk full, DRM), clamped to 3 lines; Enter no longer starts a download from a focused button; double-click and duplicate URL guarded; retry keeps MP3 as MP3; Open File opens the file; fade-ins actually animate; menus near the bottom open upwards; "Reduce motion" respected.
-  - Vimeo: now serves only DRM-encrypted streams (verified with stable 2026.08.19 and nightly 2026.09.27, logged in or not). Never circumvented — the app says so plainly.
+  - Vimeo: three-step flow — video page anonymously → embed player anonymously → video page with the browser session (owners who restrict embedding, which used to fail with HTTP 401). Videos whose owner enabled Vimeo DRM (opt-in per team/video — e.g. Vimeo's own account) are never circumvented; the app says "This video is DRM-protected by the site".
 - Health check: probes the onedir engine; the YouTube download probe now merges video+audio like the app (YouTube no longer serves single-file formats, which made the old probe report a false pipeline FAIL).
 
 ---
