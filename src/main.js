@@ -88,7 +88,6 @@ const MIN_VISIBLE_DOWNLOADS = 6;
 const FALLBACK_DOWNLOAD_ROW_HEIGHT = 68;
 const MAX_TERMINAL_HISTORY = 100;
 const CONVERSION_PROGRESS_CAP = 93;
-const SETTINGS_OVERLAY_BREAKPOINT = 620;
 const CLIPBOARD_WATCH_INTERVAL_MS = 1200;
 // Free until further notice: flip to false to restore the freemium limit + license UI.
 const FREE_MODE = true;
@@ -484,7 +483,7 @@ function setupEngineSection() {
       showToast("Engine update failed — check your connection");
     } finally {
       await refreshEngineVersion();
-      btn.textContent = "Update engine";
+      btn.textContent = "Update";
       btn.disabled = false;
     }
   });
@@ -492,6 +491,19 @@ function setupEngineSection() {
 }
 
 // Initialize
+const syncQualitySegmented = enhanceSegmented(videoQuality);
+const syncThemeSegmented = themeSelect ? enhanceSegmented(themeSelect) : () => {};
+const formatSegmented = document.querySelector("#format-segmented");
+const qualityRow = document.querySelector("#quality-row");
+
+// Format (Video MP4 | Audio MP3) drives the existing #audio-only-enabled checkbox.
+formatSegmented?.querySelectorAll("input").forEach((radio) => {
+  radio.addEventListener("change", () => {
+    audioOnlyEnabled.checked = radio.value === "audio";
+    audioOnlyEnabled.dispatchEvent(new Event("change"));
+  });
+});
+
 loadSettings();
 setupEngineSection();
 loadDownloads().then(() => {
@@ -1562,6 +1574,58 @@ function loadSettings() {
   }
   // Keep user preferences but force safety defaults OFF on each launch.
   saveSettings();
+  syncSettingsControls();
+}
+
+// Segmented control that mirrors a hidden <select>; the select stays the
+// source of truth, so existing "change" listeners keep working.
+function enhanceSegmented(select) {
+  const group = document.createElement("div");
+  group.className = "segmented";
+  group.setAttribute("role", "radiogroup");
+  group.setAttribute("aria-labelledby", select.getAttribute("aria-labelledby"));
+  for (const opt of select.options) {
+    const label = document.createElement("label");
+    const radio = Object.assign(document.createElement("input"), {
+      type: "radio",
+      name: `${select.id}-seg`,
+      value: opt.value
+    });
+    const span = document.createElement("span");
+    span.textContent = opt.textContent;
+    radio.addEventListener("change", () => {
+      select.value = radio.value;
+      select.dispatchEvent(new Event("change"));
+    });
+    label.append(radio, span);
+    group.append(label);
+  }
+  select.after(group);
+  return () => {
+    for (const r of group.querySelectorAll("input")) r.checked = r.value === select.value;
+  };
+}
+
+function syncSettingsControls() {
+  syncQualitySegmented();
+  syncThemeSegmented();
+  const audio = audioOnlyEnabled?.checked === true;
+  formatSegmented?.querySelectorAll("input").forEach((r) => {
+    r.checked = r.value === (audio ? "audio" : "video");
+  });
+  qualityRow?.classList.toggle("is-disabled", audio); // quality is irrelevant for MP3
+  renderDownloadLocation();
+}
+
+// Folder chip: "~/Movies/Super D…/Clients" — the head ellipsizes in CSS, the
+// last folder always stays visible.
+function renderDownloadLocation() {
+  const display = (downloadLocation.value || getDefaultDownloadPath()).replace(/^\/Users\/[^/]+/, "~");
+  const trimmed = display.replace(/\/+$/, "");
+  const cut = trimmed.lastIndexOf("/");
+  browseBtn.querySelector(".path-head").textContent = cut > 0 ? trimmed.slice(0, cut + 1) : "";
+  browseBtn.querySelector(".path-tail").textContent = cut > 0 ? trimmed.slice(cut + 1) : trimmed;
+  browseBtn.title = downloadLocation.value;
 }
 
 // Save Settings (auto-save on change)
@@ -1608,11 +1672,12 @@ async function browseForLocation() {
     if (selected) {
       downloadLocation.value = selected;
       saveSettings();
-
+      renderDownloadLocation();
     }
   } catch (err) {
     console.error("Folder picker failed:", err);
     showToast("Could not open folder picker — type the path manually");
+    downloadLocation.hidden = false;
     downloadLocation.focus();
     downloadLocation.select();
   }
@@ -1739,11 +1804,6 @@ async function tryAutofillFromClipboard() {
   }
 }
 
-function syncSettingsLayoutMode() {
-  if (!appRoot) return;
-  appRoot.classList.add("settings-overlay");
-}
-
 function startClipboardWatcher() {
   if (clipboardWatchTimer) {
     clearInterval(clipboardWatchTimer);
@@ -1813,6 +1873,7 @@ function setSettingsOpen(isOpen) {
   if (settingsBtn) {
     settingsBtn.classList.toggle("open", isOpen);
     settingsBtn.setAttribute("aria-pressed", isOpen ? "true" : "false");
+    settingsBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
   }
 }
 
@@ -1878,8 +1939,18 @@ document.addEventListener("keydown", async (e) => {
     return;
   }
 
+  if (shortcutKey && e.key === ",") {
+    e.preventDefault();
+    toggleSettings();
+    return;
+  }
+
   if (e.key === "Escape") {
     closeAllContextMenus();
+    if (settingsGuideModal?.classList.contains("open")) {
+      setSettingsGuideOpen(false);
+      return;
+    }
     closeSettings();
     return;
   }
@@ -1941,10 +2012,6 @@ window.addEventListener("focus", () => {
   tryAutofillFromClipboard();
 });
 
-window.addEventListener("resize", () => {
-  syncSettingsLayoutMode();
-});
-
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
     tryAutofillFromClipboard();
@@ -1954,7 +2021,6 @@ document.addEventListener("visibilitychange", () => {
 setTimeout(() => {
   tryAutofillFromClipboard();
 }, 250);
-syncSettingsLayoutMode();
 startClipboardWatcher();
 syncAutoAddUiState();
 setSettingsOpen(false);
@@ -2085,10 +2151,17 @@ if (versionLabel) {
 
 // Auto-save settings on change
 downloadLocation.addEventListener("change", saveSettings);
-downloadLocation.addEventListener("blur", saveSettings);
+downloadLocation.addEventListener("blur", () => {
+  saveSettings();
+  renderDownloadLocation();
+  downloadLocation.hidden = true;
+});
 videoQuality.addEventListener("change", saveSettings);
 if (audioOnlyEnabled) {
-  audioOnlyEnabled.addEventListener("change", saveSettings);
+  audioOnlyEnabled.addEventListener("change", () => {
+    saveSettings();
+    syncSettingsControls();
+  });
 }
 if (autoStartClipboardEnabled) {
   autoStartClipboardEnabled.addEventListener("change", () => {

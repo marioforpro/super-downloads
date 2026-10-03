@@ -346,14 +346,6 @@ body.theme-light .app.auto-add-active::after {
   transition: margin-right 0.3s ease;
 }
 
-.app.settings-open .download-list {
-  margin-right: 0;
-}
-
-.app.settings-overlay .download-list {
-  margin-right: 0;
-}
-
 .empty-state {
   padding: 32px 20px;
   text-align: center;
@@ -615,18 +607,6 @@ body.theme-light .app.auto-add-active::after {
 
 .onboarding-terms a:hover {
   color: var(--accent-blue);
-}
-
-/* Downloader engine section (Settings) */
-.engine-row {
-  align-items: center;
-}
-
-.engine-version {
-  flex: 1;
-  font-size: 11px;
-  color: var(--text-secondary);
-  font-variant-numeric: tabular-nums;
 }
 
 /* About card */
@@ -1047,123 +1027,338 @@ body.theme-light .download-item {
   background: var(--bg-primary);
 }
 
-/* Settings Panel */
+/* Settings: full-window view over the list. Grouped rows, label left /
+   control right (macOS System Settings), so everything fits a 480×400 window. */
 .settings-panel {
   position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  width: 286px;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--bg-secondary) 86%, #1f2531), var(--bg-secondary));
-  border-left: 1px solid var(--border-color);
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
+  inset: 0;
+  background: var(--bg-primary);
   display: flex;
   flex-direction: column;
   z-index: 50;
-}
-
-.app.settings-overlay .settings-panel {
-  width: min(272px, calc(100% - 12px));
-  box-shadow: -6px 0 18px rgba(0, 0, 0, 0.32);
+  opacity: 0;
+  visibility: hidden; /* keeps the closed panel out of the tab order */
+  translate: 0 6px;
+  transition: opacity 0.16s ease, translate 0.16s ease, visibility 0s linear 0.16s;
 }
 
 .settings-panel.open {
-  transform: translateX(0);
+  opacity: 1;
+  visibility: visible;
+  translate: 0 0;
+  transition-delay: 0s;
 }
 
 .settings-panel-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 12px;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px 0 14px;
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
 }
 
 .settings-panel-header h2 {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.settings-panel-header .version-label {
+  font-size: 10px;
+  color: var(--text-secondary);
+  opacity: 0.8;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+}
+
+.icon-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-secondary);
   font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--text-primary);
-}
-
-.settings-panel-close {
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  font-size: 24px;
-  line-height: 1;
   cursor: pointer;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  transition: all 0.2s ease;
 }
 
-.settings-panel-close:hover {
-  background: var(--bg-tertiary);
+.icon-btn:hover {
   color: var(--text-primary);
+  background: var(--bg-tertiary);
+}
+
+.done-btn {
+  height: 22px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 0;
+  background: var(--accent-blue);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.done-btn:hover {
+  background: #3a7fff;
 }
 
 .settings-panel-content {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 12px;
+  padding: 8px 12px 10px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
 }
 
-.setting-item {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
-  border: 1px solid var(--border-color);
-  border-radius: 9px;
-  padding: 10px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
-}
-
-.settings-info-item {
-  padding: 8px;
-}
-
-.settings-info-btn {
-  width: 100%;
-  border: 1px solid rgba(76, 141, 255, 0.35);
-  background: rgba(76, 141, 255, 0.08);
-  color: #a9c7ff;
-  border-radius: 6px;
-  height: 30px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  font-size: 10px;
+.settings-group-title {
+  font-size: 10.5px;
   font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  color: var(--text-secondary);
+  padding: 0 4px 4px;
 }
 
-.settings-info-btn:hover {
-  background: rgba(76, 141, 255, 0.14);
-  border-color: rgba(76, 141, 255, 0.5);
+.settings-group {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.settings-info-btn .info-dot {
+.setting-row {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  min-height: 30px;
+  padding: 3px 10px 3px 12px;
+}
+
+.setting-row + .setting-row {
+  border-top: 1px solid var(--border-color);
+}
+
+.setting-row.hidden {
+  display: none;
+}
+
+.row-label {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.row-control {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.row-value {
+  font-size: 11px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.setting-row.is-disabled .row-control {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+/* Toggle rows: the whole row is the label */
+.setting-row.toggle-row {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.setting-row.toggle-row .checkbox-label span {
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.setting-row .checkbox-label input[type="checkbox"] {
+  width: 30px;
+  height: 18px;
+}
+
+.setting-row .checkbox-label input[type="checkbox"]::after {
   width: 14px;
   height: 14px;
-  border-radius: 50%;
-  border: 1px solid rgba(169, 199, 255, 0.65);
+}
+
+.setting-row .checkbox-label input[type="checkbox"]:checked::after {
+  transform: translateX(12px);
+}
+
+.btn-secondary {
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 5px;
+  flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
+  border: 1px solid var(--border-color);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-secondary:hover {
+  border-color: color-mix(in srgb, var(--accent-blue) 50%, transparent);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Folder chip: middle-truncated path (head ellipsizes, tail stays visible) */
+.path-chip {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px 0 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 11px;
+  text-align: left;
+}
+
+.path-chip:hover {
+  border-color: color-mix(in srgb, var(--accent-blue) 50%, transparent);
+}
+
+.path-chip svg {
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+
+.path-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  white-space: nowrap;
+}
+
+.path-head {
+  flex: 0 1 auto;
+  min-width: 1.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-secondary);
+}
+
+.path-tail {
+  flex: 0 0 auto;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.path-action {
+  flex-shrink: 0;
   font-size: 10px;
-  font-weight: 700;
-  line-height: 1;
+  color: var(--accent-blue);
+  padding: 1px 6px;
+}
+
+/* Segmented control (radios mirroring a hidden <select> or checkbox) */
+.segmented {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+
+.segmented label {
+  position: relative;
+}
+
+.segmented input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  display: block;
+  padding: 3px 9px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.segmented input:checked + span {
+  background: #5a5a5e;
+  color: #fff;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+}
+
+.segmented input:focus-visible + span {
+  box-shadow: 0 0 0 2px rgba(76, 141, 255, 0.45);
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.engine-version {
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+body.theme-light .segmented input:checked + span {
+  background: #fff;
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px rgba(15, 37, 66, 0.18);
+}
+
+body.theme-light .settings-group {
+  background: #fff;
+}
+
+/* Off-state switch was white-on-white in the light theme */
+body.theme-light .checkbox-label input[type="checkbox"]:not(:checked) {
+  background: rgba(24, 41, 66, 0.14);
+  border-color: rgba(24, 41, 66, 0.22);
 }
 
 .settings-guide-modal {
@@ -1225,129 +1420,55 @@ body.theme-light .download-item {
 }
 
 /* License section */
-.license-section .setting-label {
-  margin-bottom: 6px;
-}
-
 .license-status {
-  margin-bottom: 8px;
+  display: inline-flex;
 }
 
 .license-badge {
-  display: inline-block;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   padding: 2px 8px;
-  border-radius: 4px;
-  letter-spacing: 0.03em;
+  border-radius: 999px;
 }
 
 .license-badge.free {
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-tertiary);
   color: var(--text-secondary);
 }
 
 .license-badge.pro {
-  background: rgba(48, 167, 255, 0.15);
-  color: #30a7ff;
+  background: color-mix(in srgb, var(--accent-blue) 22%, transparent);
+  color: var(--accent-blue);
 }
 
-.license-input-row {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.license-input-row input {
-  flex: 1;
-  font-size: 11px;
-  padding: 5px 8px;
-  border-radius: 6px;
-  border: 1px solid var(--border-color);
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: monospace;
-}
-
-.license-active-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.license-key-display {
-  flex: 1;
-  font-size: 10px;
-  font-family: monospace;
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.license-deactivate-btn {
-  font-size: 10px !important;
-  padding: 3px 8px !important;
-  color: #e55 !important;
-  border-color: rgba(238, 85, 85, 0.3) !important;
-}
-
-.license-deactivate-btn:hover {
-  background: rgba(238, 85, 85, 0.1) !important;
-}
-
-.upgrade-pro-link {
-  display: block;
-  text-align: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: #30a7ff;
-  padding: 6px;
-  border-radius: 6px;
-  background: rgba(48, 167, 255, 0.08);
-  text-decoration: none;
-  transition: background 0.15s;
-}
-
-.upgrade-pro-link:hover {
-  background: rgba(48, 167, 255, 0.15);
-  text-decoration: none;
-}
-
+.license-section.hidden,
 .upgrade-pro-link.hidden {
   display: none;
 }
 
-.version-info {
-  background: none;
-  border: none;
-  box-shadow: none;
-  padding: 4px 10px;
-  text-align: center;
+.license-input-row,
+.license-active-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  justify-content: flex-end;
 }
 
-.version-label {
+.license-input-row input {
+  flex: 1;
+  min-width: 0;
+  height: 24px;
+  padding: 0 8px;
+  font-size: 11px;
+  border-radius: 5px;
+}
+
+.license-key-display {
+  font-size: 11px;
   color: var(--text-secondary);
-  font-size: 10px;
-  opacity: 0.6;
-}
-
-.setting-label {
-  display: block;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: #c9d0dd;
-  margin-bottom: 4px;
-}
-
-.setting-help {
-  font-size: 9px;
-  color: var(--text-secondary);
-  margin: 0 0 7px;
-  line-height: 1.35;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .checkbox-label {
@@ -1407,41 +1528,6 @@ body.theme-light .download-item {
   order: 1;
 }
 
-.setting-control {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.setting-control input[type="text"] {
-  flex: 1;
-  font-size: 11px;
-  height: 30px;
-  padding: 0 10px;
-}
-
-.browse-btn {
-  background: var(--accent-blue);
-  border: none;
-  border-radius: 6px;
-  height: 30px;
-  padding: 0 12px;
-  font-size: 11px;
-  font-weight: 500;
-  color: white;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.browse-btn:hover {
-  background: #3a7fff;
-}
-
-.browse-btn:active {
-  transform: translateY(1px);
-}
-
 select {
   width: 100%;
   background-color: var(--bg-tertiary);
@@ -1452,35 +1538,6 @@ select {
   color: var(--text-primary);
   font-size: 11px;
   cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.setting-toggle {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-}
-
-.setting-toggle .checkbox-label {
-  width: 100%;
-}
-
-.setting-toggle .checkbox-label span {
-  font-weight: 600;
-  letter-spacing: 0.01em;
-}
-
-body.theme-light .settings-panel {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--bg-secondary) 92%, #e8eef8), var(--bg-secondary));
-}
-
-body.theme-light .setting-item {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 249, 255, 0.92));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.92), 0 1px 0 rgba(15, 37, 66, 0.04);
-}
-
-body.theme-light .setting-label {
-  color: #51617d;
 }
 
 select:focus {

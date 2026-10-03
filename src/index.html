@@ -52,95 +52,124 @@
           <!-- Download items will be inserted here -->
         </div>
 
-        <!-- Integrated Settings Panel -->
-        <div class="settings-panel" id="settings-panel">
+        <!-- Settings: full-window view over the list (the list keeps its layout
+             underneath so the window-height fitting is unaffected) -->
+        <section class="settings-panel" id="settings-panel" role="region" aria-labelledby="settings-title">
+          <header class="settings-panel-header">
+            <h2 id="settings-title">Settings</h2>
+            <span class="version-label" id="version-label" title="About Super Downloads"></span>
+            <button class="icon-btn" id="settings-info-btn" type="button" aria-label="How these settings work" title="How these settings work">?</button>
+            <button class="done-btn" id="settings-panel-close" type="button">Done</button>
+          </header>
           <div class="settings-panel-content">
-            <div class="setting-item settings-info-item">
-              <button class="settings-info-btn" id="settings-info-btn" type="button" aria-label="Open settings guide">
-                <span class="info-dot" aria-hidden="true">i</span>
-                <span>How these settings work</span>
-              </button>
-            </div>
-            <div class="setting-item">
-              <label class="setting-label" for="download-location">Download Location</label>
-              <p class="setting-help">Where completed files are saved.</p>
-              <div class="setting-control">
-                <input type="text" id="download-location" placeholder="~/Downloads" />
-                <button class="browse-btn" id="browse-btn">Browse</button>
+            <div>
+              <div class="settings-group-title">Downloads</div>
+              <div class="settings-group">
+                <div class="setting-row">
+                  <span class="row-label">Save to</span>
+                  <div class="row-control">
+                    <input type="text" id="download-location" spellcheck="false" aria-label="Download folder" hidden />
+                    <button class="path-chip" id="browse-btn" type="button">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                      <span class="path-text"><span class="path-head"></span><span class="path-tail"></span></span>
+                      <span class="path-action" aria-hidden="true">Change</span>
+                    </button>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <span class="row-label" id="format-label">Format</span>
+                  <div class="row-control">
+                    <input type="checkbox" id="audio-only-enabled" class="visually-hidden" tabindex="-1" aria-hidden="true" />
+                    <div class="segmented" id="format-segmented" role="radiogroup" aria-labelledby="format-label">
+                      <label><input type="radio" name="format-seg" value="video" /><span>Video MP4</span></label>
+                      <label><input type="radio" name="format-seg" value="audio" /><span>Audio MP3</span></label>
+                    </div>
+                  </div>
+                </div>
+                <div class="setting-row" id="quality-row">
+                  <span class="row-label" id="quality-label">Quality</span>
+                  <div class="row-control">
+                    <select id="video-quality" class="visually-hidden" aria-labelledby="quality-label" tabindex="-1">
+                      <option value="best">Best</option>
+                      <option value="1080p">1080p</option>
+                      <option value="720p">720p</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="setting-row toggle-row">
+                  <label class="checkbox-label" for="auto-start-clipboard-enabled">
+                    <span>Auto add from clipboard</span>
+                    <input type="checkbox" id="auto-start-clipboard-enabled" />
+                  </label>
+                </div>
               </div>
             </div>
-            <div class="setting-item">
-              <label class="setting-label" for="video-quality">Video Quality</label>
-              <p class="setting-help">Choose target quality for video downloads.</p>
-              <select id="video-quality">
-                <option value="best">Best Available</option>
-                <option value="1080p">1080p</option>
-                <option value="720p">720p</option>
-              </select>
-            </div>
-            <div class="setting-item setting-toggle">
-              <label class="checkbox-label" for="audio-only-enabled">
-                <input type="checkbox" id="audio-only-enabled" />
-                <span>MP3 only mode</span>
-              </label>
-            </div>
-            <div class="setting-item setting-toggle">
-              <label class="checkbox-label" for="auto-start-clipboard-enabled">
-                <input type="checkbox" id="auto-start-clipboard-enabled" />
-                <span>Auto add</span>
-              </label>
-            </div>
-            <div class="setting-item">
-              <label class="setting-label" for="theme-select">Theme</label>
-              <select id="theme-select">
-                <option value="dark">Dark</option>
-                <option value="light">Light</option>
-                <option value="system">System</option>
-              </select>
-            </div>
-            <div class="setting-item setting-toggle">
-              <label class="checkbox-label" for="keep-history-enabled">
-                <input type="checkbox" id="keep-history-enabled" />
-                <span>Keep download history</span>
-              </label>
-            </div>
-            <div class="setting-item license-section" id="license-section">
-              <label class="setting-label">License</label>
-              <div id="license-status" class="license-status">
-                <span class="license-badge free">Free</span>
-              </div>
-              <div id="license-input-row" class="license-input-row">
-                <input type="text" id="license-key-input" placeholder="Paste license key" spellcheck="false" autocomplete="off" />
-                <button class="browse-btn" id="activate-license-btn">Activate</button>
-              </div>
-              <div id="license-active-row" class="license-active-row" style="display:none;">
-                <span class="license-key-display" id="license-key-display"></span>
-                <button class="browse-btn license-deactivate-btn" id="deactivate-license-btn">Deactivate</button>
-              </div>
-              <a href="#" id="upgrade-pro-link" class="upgrade-pro-link">Get Pro — €29</a>
-            </div>
-            <div class="setting-item hidden" id="activation-row">
-              <label class="setting-label">Activated as <span id="activation-email-display"></span></label>
-            </div>
-            <div class="setting-item engine-section" id="engine-section">
-              <label class="setting-label">Downloader engine</label>
-              <div class="license-input-row engine-row">
-                <span class="engine-version" id="engine-version">checking…</span>
-                <button class="browse-btn" id="update-engine-btn">Update engine</button>
+            <div>
+              <div class="settings-group-title">App</div>
+              <div class="settings-group">
+                <div class="setting-row">
+                  <span class="row-label" id="theme-label">Theme</span>
+                  <div class="row-control">
+                    <select id="theme-select" class="visually-hidden" aria-labelledby="theme-label" tabindex="-1">
+                      <option value="dark">Dark</option>
+                      <option value="light">Light</option>
+                      <option value="system">System</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="setting-row toggle-row">
+                  <label class="checkbox-label" for="keep-history-enabled">
+                    <span>Keep download history</span>
+                    <input type="checkbox" id="keep-history-enabled" />
+                  </label>
+                </div>
+                <div class="setting-row hidden" id="activation-row">
+                  <span class="row-label">Account</span>
+                  <div class="row-control"><span class="row-value" id="activation-email-display"></span></div>
+                </div>
+                <div class="setting-row" id="engine-section">
+                  <span class="row-label">Engine</span>
+                  <div class="row-control">
+                    <span class="engine-version" id="engine-version">checking…</span>
+                    <button class="btn-secondary" id="update-engine-btn" type="button">Update</button>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="setting-item version-info">
-              <span class="version-label" id="version-label">v1.3.0</span>
+            <div class="license-section" id="license-section">
+              <div class="settings-group-title">License</div>
+              <div class="settings-group">
+                <div class="setting-row">
+                  <span class="row-label">Plan</span>
+                  <div class="row-control">
+                    <span id="license-status" class="license-status"><span class="license-badge free">Free</span></span>
+                    <a href="#" id="upgrade-pro-link" class="btn-secondary upgrade-pro-link">Get Pro — €29</a>
+                  </div>
+                </div>
+                <div class="setting-row">
+                  <span class="row-label">License key</span>
+                  <div class="row-control">
+                    <div id="license-input-row" class="license-input-row">
+                      <input type="text" id="license-key-input" placeholder="Paste license key" spellcheck="false" autocomplete="off" />
+                      <button class="btn-secondary" id="activate-license-btn" type="button">Activate</button>
+                    </div>
+                    <div id="license-active-row" class="license-active-row" style="display:none;">
+                      <span class="license-key-display" id="license-key-display"></span>
+                      <button class="btn-secondary license-deactivate-btn" id="deactivate-license-btn" type="button">Deactivate</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
       <div class="settings-guide-modal" id="settings-guide-modal" aria-hidden="true" role="dialog" aria-label="Settings guide">
         <div class="settings-guide-card">
           <div class="settings-guide-title">Quick Guide</div>
-          <p><strong>Video quality</strong>: picking <strong>1080p</strong> or <strong>720p</strong> is usually faster because the app often gets an H.264 stream directly. <strong>Best Available</strong> may pick higher formats that can take longer and may require conversion to H.264 for editing compatibility.</p>
-          <p><strong>MP3 only mode</strong>: outputs only an <strong>.mp3</strong> file (audio only). No video file is saved.</p>
-          <p><strong>Auto add</strong>: watches your clipboard for supported links and starts downloading automatically. This is off by default when the app opens.</p>
+          <p><strong>Quality</strong>: <strong>1080p</strong> and <strong>720p</strong> are usually fastest — the app takes an H.264 stream directly. <strong>Best</strong> goes up to 4K; when the source only offers 4K as VP9/AV1 (YouTube) it is converted to H.264 for editing, which takes longer.</p>
+          <p><strong>Format</strong>: <strong>Audio MP3</strong> saves only an .mp3 file — no video. It switches back to Video each time the app opens.</p>
+          <p><strong>Auto add from clipboard</strong>: copied video links start downloading automatically. Off each time the app opens.</p>
           <button class="settings-guide-close" id="settings-guide-close" type="button">Got it</button>
         </div>
       </div>
