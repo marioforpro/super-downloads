@@ -28,7 +28,7 @@
 
 > **Why:** Session 161 (2026-05-06) caught a false invariant before publish — `dist/` contained DMGs whose mtime was 7 weeks older than the LS-URL fix commit (`cba5d29`, 2026-04-27). The 2026-04-28 pre-flight had verified file presence, not freshness. "Artifact exists" ≠ "artifact valid"; provenance is what proves a release. Rule below codifies that lesson.
 
-Tauri compresses embedded JS assets (Brotli), so a built DMG cannot be `strings`-grepped for the LemonSqueezy URL. `scripts/check-release-artifacts.sh` proves provenance instead:
+Tauri compresses embedded JS assets (Brotli), so a built DMG cannot be `strings`-grepped for a source marker (the dormant checkout UUID is used as one). `scripts/check-release-artifacts.sh` proves provenance instead:
 
 1. **Source gate** — git tree clean for release-critical paths · `src/main.js` contains the LS product UUID · `cba5d29` (URL-fix commit) reachable from HEAD.
 2. **Artifact gate** — each DMG exists and its mtime is ≥ the latest commit touching release-critical paths.
@@ -43,7 +43,7 @@ Run before every `gh release create`. Failure means the artifact was built from 
 
 ## Key Integrations
 
-- **Billing**: LemonSqueezy — €29 one-time, 3 activations. Checkout URL wired in `main.js` + `index.astro`. No API key required.
+- **Billing**: none — the app is free (no payments provider since 2026-10-03). Dormant checkout/license code stays behind `FREE_MODE` (`main.js`) and `SHOW_PRO=false` (`index.astro`).
 - **Analytics**: PostHog (landing page only). No key required (client-side snippet).
 - **DNS**: Hostinger — superdownloads.app. A record → Vercel. No key required.
 

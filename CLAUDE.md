@@ -13,24 +13,24 @@ Stack: Tauri 2.x (Rust backend + Vanilla JS frontend). Bundled yt-dlp + ffmpeg +
 Landing: Astro v6 in `web/` subfolder. Deploy on Vercel.
 Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 
-## Current State (updated 2026-07-16)
+## Current State (updated 2026-10-03)
 
-- **State:** REOPENED 2026-07-16 (founder recommit) — was PARKED 2026-06-15. Product shipped, commercially un-launched.
-- **Active plan:** Relaunch hardening (R-SD-004) — download reliability (v1.2.0) + legal repositioning + payments resilience, execution order B → A → C. Spec: `docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`.
-- **Releases shipped:** v1.1.0 (2026-05-06) + v1.1.1 (2026-05-31) + v1.2.0 (2026-07-16, relaunch hardening). v1.1.1 = 360p fix (refreshed bundled yt-dlp) + one-click in-app auto-update + daily launchd platform-health monitor.
+- **State:** FREE app, live (v1.3.0 public). v1.4.0 committed and QA'd, not yet built/published.
+- **Active plan:** ship v1.4.0 (onedir engine, launch-freeze fix, redesigned Settings, QA pass), then the launch announcement (R-SD-002). Payments track closed 2026-10-03.
+- **Releases shipped:** v1.1.0 (2026-05-06) · v1.1.1 (2026-05-31) · v1.2.0 (2026-07-16) · v1.3.0 (2026-10-03, free mode + email activation). Pre-release E2E: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`.
 - **Phase 0-3:** COMPLETE (foundation, app polish, freemium + onboarding + auto-updater, www + bare domain via Vercel)
-- **Phase 4 (Billing):** resumed 2026-05-06, re-parked 2026-06-15, reopened 2026-07-16. Open gate → LemonSqueezy E2E verification (never run; 6 checks in `NEXT.md` step 4 — now Track C2 of the relaunch hardening plan).
+- **Phase 4 (Billing):** CLOSED 2026-10-03 — no payments provider (no LemonSqueezy account); the app is free with email activation. See `docs/DECISIONS.md` 2026-10-03.
 - **GitHub:** `marioforpro/super-downloads` (public — Releases reachable anonymously)
 - **Vercel:** `superdownloads.vercel.app` (live, auto-deploy on push)
 - **Domain:** `superdownloads.app` + `www.superdownloads.app` working
 - **Analytics:** PostHog integrated in landing
-- **Billing:** LemonSqueezy checkout wired to real product UUID (`src/main.js:99`); E2E verification not yet run
-- **Founder actions pending:** Execute the relaunch hardening tracks (B → A → C); LemonSqueezy E2E verification remains founder-in-the-loop (Track C2). See `NEXT.md`
+- **Billing:** none. License/checkout code is dormant behind `FREE_MODE` in `src/main.js`
+- **Founder actions pending:** ship v1.4.0 (`./scripts/make-release.sh`), then the launch announcement (R-SD-002). See `NEXT.md`
 
 ## Critical Context
 
 - **Brand is independent** — Super Downloads is NOT related to Super Prompts. Different product, different brand.
-- **Freemium model** — 5 downloads/day free, unlimited Pro. €29 one-time lifetime. LemonSqueezy.
+- **Free** — no download limit; email activation (→ Airtable `SD · Users`). No payments provider.
 - **Premiere Pro focused** — All downloads optimized for H.264/AAC/MP4 editing compatibility.
 - **Code signing deferred** — Tauri updater uses own Ed25519 signing (not Apple).
 - **Build check** — After code changes: `npm run check`

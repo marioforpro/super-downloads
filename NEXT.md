@@ -2,8 +2,10 @@
 
 > **NEXT breadcrumb** (rol declarado M4, 2026-08-10 · `docs/protocols/DOC-CONTRACT.md`): guía de reanudación humana. NO es un TASKS.md — SUPER-DOWNLOADS no tiene superficie de tasks local; ejecución trackeable vive en ROADMAP.md.
 
-> **REOPENED 2026-07-16** — recommit explícito del founder. Plan activo: relaunch hardening (reliability + legal + payments), spec en `superpowers/specs/2026-07-16-relaunch-hardening-design.md`, orden de ejecución B → A → C. Estuvo PARKED 2026-06-15 (producto enviado v1.1.1, sin lanzar comercialmente). La verificación E2E de LemonSqueezy (paso 4 abajo) sigue vigente como **Track C2** del plan.
+> **REOPENED 2026-07-16** — recommit explícito del founder. Plan activo: relaunch hardening (reliability + legal + payments), spec en `superpowers/specs/2026-07-16-relaunch-hardening-design.md`, orden de ejecución B → A → C. Estuvo PARKED 2026-06-15 (producto enviado v1.1.1, sin lanzar comercialmente). ~~La verificación E2E de LemonSqueezy sigue vigente como Track C2~~ — **anulado 2026-10-03: no hay cuenta de LemonSqueezy, la app es gratis; Track C cerrado** (`docs/DECISIONS.md`).
 
+
+> **NEXT (2026-10-03, noche) — v1.4.0 lista para construir:** commits `276bb4a`…`c9428af` en `main`, sin push. Incluye: fix del congelamiento al abrir (~7s), motor yt-dlp *onedir* (~7s → 0,2s por llamada), opt-in de emails marcado por defecto, Settings rediseñado, pasada QA completa (E2E real: 7 plataformas, cancelación, playlist, conversión H.264 con progreso real), Vimeo en 3 pasos (DRM de autor = mensaje claro, nunca se salta). **Pasos:** (1) decidir 4K: «Best» hasta 4K (conversión ~1x tiempo real) o «Best» 1080p + opción «4K»; (2) `! source ~/.secrets && ./scripts/make-release.sh` → verificar build (arranque, motor en `Contents/Resources/yt-dlp-engine`, Settings en WebKit real) → `./scripts/make-release.sh --no-build --publish` + `git push` (despliega Terms/Privacy actualizados). Luego el anuncio (R-SD-002).
 
 > **NEXT (2026-10-03):** **v1.3.0 FREE publicada** (release GitHub, updater 1.3.0, landing «Free for a limited time», activaciones → Airtable `SD · Users` verificadas). Siguiente: **publicar el anuncio** (R-SD-002, `docs/ANNOUNCEMENT-DRAFT.md`: r/macapps + Show HN) — lo postea Mario. Contraseña del updater: `load-secrets` (ver `docs/DEVELOPMENT.md`).
 
@@ -30,7 +32,7 @@ Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.2.0 — 
 
 ---
 
-## 🟠 Track C1 — Acciones founder (payments resilience, añadido 2026-07-16)
+## ~~🟠 Track C1 — Acciones founder (payments resilience, añadido 2026-07-16)~~ — ANULADO 2026-10-03 (sin proveedor de pagos; app gratis)
 
 - [ ] **C1-a · Email a soporte de LemonSqueezy** — pedir OK por escrito sobre el producto (tu mejor seguro ante una suspensión discrecional). Enviar desde el dashboard de LS o a su email de soporte. Borrador listo:
 

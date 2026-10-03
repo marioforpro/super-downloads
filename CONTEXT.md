@@ -1,7 +1,7 @@
 # SUPER-DOWNLOADS — Context
 
 ## Purpose
-macOS desktop app for media downloads. REOPENED 2026-07-16 (founder recommit) — relaunch hardening (R-SD-004) active; v1.2.0 published 2026-07-16. Commercially un-launched: Track C2 (six Lemon Squeezy E2E gates) is the next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03). *(Status line said "Paused pre-launch" until 2026-08-03 — stale through the 2026-06-15 park and the 2026-07-16 reopen; corrected per SD-F-003/PROJ-F-014.)*
+macOS desktop app for media downloads. REOPENED 2026-07-16 (founder recommit) — relaunch hardening (R-SD-004) active; v1.2.0 published 2026-07-16. FREE app since v1.3.0 (2026-10-03); no payments provider — Track C closed 2026-10-03 (`docs/DECISIONS.md`). [Superseded: Track C2 (six Lemon Squeezy E2E gates) was the next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03). *(Status line said "Paused pre-launch" until 2026-08-03 — stale through the 2026-06-15 park and the 2026-07-16 reopen; corrected per SD-F-003/PROJ-F-014.)*]
 
 ## Belongs here
 - Tauri app code (`src/` frontend, `src-tauri/` Rust backend)
@@ -11,7 +11,7 @@ macOS desktop app for media downloads. REOPENED 2026-07-16 (founder recommit) �
 
 ## Does NOT belong here
 - Cross-platform port ideas if scoped beyond macOS — start in `01_Projects/IDEAS.md`
-- Growth channel strategy surfaces (`08_Growth/`) — but note: the launch announcement + LemonSqueezy execution itself is **in-project** (R-SD-002 and R-SD-004 Track C2 live in this `ROADMAP.md`; ownership corrected 2026-08-03 per SD-F-003 — this file previously routed "distribution strategy" wholesale to `08_Growth/` against the ledger)
+- Growth channel strategy surfaces (`08_Growth/`) — but note: the launch announcement itself is **in-project** (payments track closed 2026-10-03) (R-SD-002 and R-SD-004 Track C2 live in this `ROADMAP.md`; ownership corrected 2026-08-03 per SD-F-003 — this file previously routed "distribution strategy" wholesale to `08_Growth/` against the ledger)
 
 ## Tech stack
 - Tauri v2 (Rust backend, vanilla JS frontend)

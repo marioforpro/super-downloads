@@ -4,6 +4,11 @@
 
 ---
 
+## 2026-10-03 — No payments provider: the app is free, Track C closed
+**Context:** Founder, 2026-10-03: «yo no tengo cuenta de LemonSqueezy y la app ahora es free». The docs still described a LemonSqueezy account, a wired €29 checkout and six E2E gates as the next move.
+**Decision:** There is no payments provider. Super Downloads is free with email activation. Track C (LemonSqueezy mitigations + C2 gates, R-SD-004) is **closed**, not deferred; the 2026-07-16 "stay on LemonSqueezy" and the 2026-05-13 license-hardening decisions are superseded. If monetization ever returns, the provider is chosen from scratch (Paddle stays ruled out for downloaders).
+**Consequence:** Terms (no 5/day tier, no Pro, no refund policy → "currently free") and Privacy (no purchase/LemonSqueezy section) updated for v1.4.0. The license/checkout code stays dormant behind `FREE_MODE` (not removed — no live cost); `scripts/check-release-artifacts.sh` still checks the checkout UUID as a provenance marker only. Legal positioning is unchanged and does not depend on a payments provider: no DRM circumvention (Terms §4, EU/ES law).
+
 ## 2026-08-10 — Launch goes FREE until further notice (email activation)
 **Context:** Founder capture session 2026-08-10. The six LemonSqueezy C2 gates llevan semanas sin ejecutarse y el tema licencias/legal estaba frenando el lanzamiento a cero movimiento. Founder: «ponerlo Free For Limited Time, así me olvido del tema de las licencias por ahora y todo el mundo puede tener la app funcionando, y no tendremos problemas legales… incluso usarlo como marketing».
 **Decisions (4, founder-approved):**
