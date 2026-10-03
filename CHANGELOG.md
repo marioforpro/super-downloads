@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [1.4.0] — 2026-10-03
+## [1.4.0] — 2026-10-03 (released)
+
+GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.4.0 — anonymous DMG URLs 200; updater `latest.json` serves 1.4.0 (aarch64 + x86_64). Supersedes the unpublished 1.3.1.
 
 Faster downloads — every yt-dlp call used to cost ~7s before any work started.
 

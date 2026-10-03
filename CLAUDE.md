@@ -15,9 +15,9 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 
 ## Current State (updated 2026-10-03)
 
-- **State:** FREE app, live (v1.3.0 public). v1.4.0 committed and QA'd, not yet built/published.
-- **Active plan:** ship v1.4.0 (onedir engine, launch-freeze fix, redesigned Settings, QA pass), then the launch announcement (R-SD-002). Payments track closed 2026-10-03.
-- **Releases shipped:** v1.1.0 (2026-05-06) · v1.1.1 (2026-05-31) · v1.2.0 (2026-07-16) · v1.3.0 (2026-10-03, free mode + email activation). Pre-release E2E: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`.
+- **State:** FREE app, live — **v1.4.0 published 2026-10-03** (GitHub Release + updater; DMGs 97/109 MB).
+- **Active plan:** the launch announcement (R-SD-002, `docs/ANNOUNCEMENT-DRAFT.md`). Payments track closed 2026-10-03.
+- **Releases shipped:** v1.1.0 (2026-05-06) · v1.1.1 (2026-05-31) · v1.2.0 (2026-07-16) · v1.3.0 (2026-10-03, free mode + email activation) · v1.4.0 (2026-10-03, onedir engine, launch-freeze fix, Settings redesign, QA pass, Vimeo 3-step). Pre-release E2E: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`.
 - **Phase 0-3:** COMPLETE (foundation, app polish, freemium + onboarding + auto-updater, www + bare domain via Vercel)
 - **Phase 4 (Billing):** CLOSED 2026-10-03 — no payments provider (no LemonSqueezy account); the app is free with email activation. See `docs/DECISIONS.md` 2026-10-03.
 - **GitHub:** `marioforpro/super-downloads` (public — Releases reachable anonymously)
@@ -25,7 +25,7 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 - **Domain:** `superdownloads.app` + `www.superdownloads.app` working
 - **Analytics:** PostHog integrated in landing
 - **Billing:** none. License/checkout code is dormant behind `FREE_MODE` in `src/main.js`
-- **Founder actions pending:** ship v1.4.0 (`./scripts/make-release.sh`), then the launch announcement (R-SD-002). See `NEXT.md`
+- **Founder actions pending:** post the launch announcement (R-SD-002). See `NEXT.md`
 
 ## Critical Context
 
