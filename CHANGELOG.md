@@ -14,6 +14,16 @@ Faster downloads — every yt-dlp call used to cost ~7s before any work started.
 - At launch, a background task cleans up the v1.2–1.3 single-file engine and interrupted downloads, and warms the active engine so its one-time macOS scan never lands on the user's first download.
 - **No needless re-encode at 4K.** "Best Available" re-encoded every 1440p+ video to H.264, even when the source already offered H.264 at that resolution (Vimeo 4K). Now it converts only when the top resolution exists solely as VP9/AV1 (YouTube 4K) — faster and lossless otherwise.
 - **Settings redesigned.** A full-window view replaces the 272px side drawer (which hid ~200px of settings below the fold): grouped rows in the macOS System Settings style, label left / control right, segmented controls for Format (Video MP4 | Audio MP3), Quality and Theme, a folder chip with middle-truncated path, Account and Engine in one compact group. Everything fits a 480×400 window without scrolling. Cmd+, toggles it; Esc closes the guide first, then Settings. The closed panel is no longer reachable with Tab. Light theme: the off-state switch is visible again (it was white on white).
+- **Pre-release QA pass (E2E on the real `download_video`, 7 platforms + cancel + 4K):**
+  - Format choice: highest resolution within the quality cap, H.264 preferred at equal resolution (`-S res,vcodec:h264,acodec:m4a`). After the download the file's real codec is checked (ffprobe) and only non-H.264 video is re-encoded (VideoToolbox) — with **real progress** from ffmpeg instead of a timer. Fixes TikTok 1080p arriving as HEVC while the UI said "converting", and H.264 sources being re-encoded for nothing.
+  - Progress never moves backwards: video/audio streams are mapped onto one bar (≈85/15) and jitter from concurrent fragments is clamped. "Finishing…" shows during the merge, the bar pulses where no % exists, speed/ETA always show.
+  - `--no-playlist` everywhere: a `watch?v=…&list=…` link downloaded the whole playlist (361 entries) into one file.
+  - Cancel: every process runs in its own process group and cancel kills the group (ffmpeg kept encoding after cancel); cancel before the download starts is honoured; a cancelled row never comes back; partial files are cleaned up.
+  - Retries (cookies/impersonation) and the Instagram fallback stream progress instead of a frozen bar until done.
+  - No panics on error text with accents/emoji (char-safe truncation); output reads survive non-UTF-8; file names capped at 150 chars ("File name too long"); two downloads of the same title get distinct paths.
+  - Engine update: one at a time, with network timeouts.
+  - UI: plain-language errors (offline, sign-in, private, rate-limited, disk full, DRM), clamped to 3 lines; Enter no longer starts a download from a focused button; double-click and duplicate URL guarded; retry keeps MP3 as MP3; Open File opens the file; fade-ins actually animate; menus near the bottom open upwards; "Reduce motion" respected.
+  - Vimeo: now serves only DRM-encrypted streams (verified with stable 2026.08.19 and nightly 2026.09.27, logged in or not). Never circumvented — the app says so plainly.
 - Health check: probes the onedir engine; the YouTube download probe now merges video+audio like the app (YouTube no longer serves single-file formats, which made the old probe report a false pipeline FAIL).
 
 ---

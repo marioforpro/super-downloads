@@ -9,7 +9,7 @@ use std::{
     thread,
 };
 
-use tauri::{AppHandle, Emitter, LogicalSize, Manager, Size, Window};
+use tauri::{AppHandle, Emitter, LogicalSize, Manager, Runtime, Size, Window};
 use tauri_plugin_updater::UpdaterExt;
 
 mod instagram_fallback;
@@ -527,9 +527,10 @@ fn get_video_resolution_from_file(file_path: &str, ffmpeg_dir: &str) -> Option<S
     None
 }
 
+// Generic over the runtime so the live E2E test can drive it with tauri::test.
 #[tauri::command]
-fn download_video(
-    window: Window,
+fn download_video<R: Runtime>(
+    window: Window<R>,
     url: String,
     download_id: String,
     download_location: Option<String>,
@@ -571,7 +572,6 @@ fn download_video(
         let mut has_4k_available = false;
 
         // Check if this is "Best Available" mode
-        let is_best_available = quality.as_deref() == Some("best") || quality.is_none();
 
         // Determine output format
         let output_format = format.as_deref().unwrap_or("mp4");
@@ -611,19 +611,6 @@ fn download_video(
         let mut metadata_extraction_failed = false;
         let mut title_error = String::new();
         let mut initial_resolution = String::new(); // Resolution from metadata
-        let requested_max_height: Option<u64> = match quality.as_deref() {
-            Some("1080p") => Some(1080),
-            Some("720p") => Some(720),
-            Some("480p") => Some(480),
-            Some("360p") => Some(360),
-            _ => None,
-        };
-        let mut has_h264_for_requested = false;
-        // Tallest stream overall vs tallest H.264 stream. When H.264 reaches the
-        // top resolution (e.g. Vimeo 4K), "Best Available" takes it directly
-        // instead of re-encoding (YouTube 4K is VP9/AV1 only, so it still converts).
-        let mut max_height: u64 = 0;
-        let mut max_h264_height: u64 = 0;
 
         // Try metadata extraction for all videos, including Vimeo
         // For Vimeo, try without cookies first (many videos are public)
@@ -641,6 +628,7 @@ fn download_video(
         // Use --dump-json to get full metadata (including thumbnails for Vimeo)
         let build_metadata_cmd = |with_cookies: bool| {
             let mut metadata_cmd = Command::new(&ytdlp_path);
+            metadata_cmd.arg("--no-playlist");
             metadata_cmd.env("PATH", &enhanced_path);
             metadata_cmd.arg("--dump-json").arg("--skip-download");
 
@@ -693,30 +681,12 @@ fn download_video(
                         if let Some(formats) = json["formats"].as_array() {
                             for fmt in formats {
                                 if let Some(height) = fmt["height"].as_u64() {
-                                    max_height = max_height.max(height);
                                     if height >= 1440 {
                                         has_4k_available = true;
                                         eprintln!(
                                             "Detected 4K+ format available (height: {})",
                                             height
                                         );
-                                    }
-
-                                    if let Some(vcodec) = fmt["vcodec"].as_str() {
-                                        let vcodec_lower = vcodec.to_lowercase();
-                                        let is_h264 = (vcodec_lower.contains("avc1")
-                                            || vcodec_lower.contains("h264"))
-                                            && vcodec_lower != "none";
-                                        if is_h264 {
-                                            max_h264_height = max_h264_height.max(height);
-                                            if let Some(max_height) = requested_max_height {
-                                                if height <= max_height {
-                                                    has_h264_for_requested = true;
-                                                }
-                                            } else {
-                                                has_h264_for_requested = true;
-                                            }
-                                        }
                                     }
                                 }
                             }
@@ -763,6 +733,7 @@ fn download_video(
                     } else {
                         // Fallback: try --get-title if JSON parsing fails
                         let mut title_cmd = Command::new(&ytdlp_path);
+                        title_cmd.arg("--no-playlist");
                         title_cmd.arg("--get-title").arg("--skip-download");
                         title_cmd.arg("--user-agent").arg(DEFAULT_USER_AGENT);
                         title_cmd.arg(&url);
@@ -919,35 +890,32 @@ fn download_video(
         let is_youtube = url.contains("youtube.com") || url.contains("youtu.be");
         let is_linkedin = url.contains("linkedin.com") || url.contains("lnkd.in");
 
-        // Determine format selector based on quality setting and available resolutions
-        // For "Best Available":
-        //   - If 4K+ is only available as VP9/AV1 (YouTube): get it and convert to H.264
-        //   - Otherwise (max ≤1080p, or H.264 reaches the top, e.g. Vimeo 4K):
-        //     prefer H.264 directly (fast, no conversion, no quality loss)
-        // For specific resolutions: prefer H.264 directly
-        let best_needs_conversion = has_4k_available && max_h264_height < max_height;
-        let format_selector = match quality.as_deref() {
-            _ if is_audio_only => "bestaudio/best",
-            Some("1080p") => "bestvideo[vcodec^=avc1][height<=1080]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1][height<=1080]+bestaudio/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best",
-            Some("720p") => "bestvideo[vcodec^=avc1][height<=720]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1][height<=720]+bestaudio/bestvideo[height<=720]+bestaudio/best[height<=720]/best",
-            _ => {
-                // "Best Available" - is the top resolution H.264 already?
-                if best_needs_conversion {
-                    // 4K+ only as VP9/AV1: get best quality (will convert to H.264)
-                    "bestvideo+bestaudio/best"
-                } else {
-                    // H.264 covers the top resolution: take it directly (no conversion needed)
-                    "bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1]+bestaudio/bestvideo+bestaudio/best"
-                }
-            }
+        // Highest resolution within the quality cap first; at equal resolution
+        // prefer H.264/AAC so most downloads need no conversion. Anything that
+        // still isn't H.264 is converted after the download (ensure_h264), so
+        // the user never gets a lower resolution just to avoid a conversion.
+        let format_selector = if is_audio_only {
+            "bestaudio/best"
+        } else {
+            "bv*+ba/b"
+        };
+        let format_sort = match quality.as_deref() {
+            Some("1080p") => "res:1080,vcodec:h264,acodec:m4a",
+            Some("720p") => "res:720,vcodec:h264,acodec:m4a",
+            _ => "res,vcodec:h264,acodec:m4a",
         };
 
         eprintln!(
-            "Quality setting: {:?}, has_4k: {}, Format selector: {}",
-            quality, has_4k_available, format_selector
+            "Quality setting: {:?}, has_4k: {}, Format: {} sorted by {}",
+            quality, has_4k_available, format_selector, format_sort
         );
 
         cmd.arg("-f").arg(format_selector);
+        if !is_audio_only {
+            cmd.arg("-S").arg(format_sort);
+        }
+        // A watch?v=…&list=… link must download the one video, not the playlist.
+        cmd.arg("--no-playlist");
 
         // Network resilience options for unstable connections
         cmd.arg("--continue")
@@ -979,24 +947,6 @@ fn download_video(
                 .arg("0");
         } else {
             cmd.arg("--merge-output-format").arg(output_format);
-        }
-
-        // Only convert when needed:
-        // - "Best Available" with 4K+ only as VP9/AV1: convert to H.264
-        // - No H.264 stream available for requested quality: convert for Premiere compatibility
-        let needs_conversion = !is_audio_only
-            && ((is_best_available && best_needs_conversion) || !has_h264_for_requested);
-
-        if needs_conversion {
-            // Re-encode video to H.264 using GPU (VideoToolbox) - optimized for Apple Silicon
-            // -threads 0: Use all CPU cores for decoding
-            // -c:v h264_videotoolbox: Apple's hardware H.264 encoder (uses Media Engine)
-            // -realtime true: Prioritize encoding speed
-            // -prio_speed true: Speed over power efficiency
-            // -q:v 70: High quality balance for editing pipeline
-            // -profile:v high: H.264 High profile for Premiere Pro compatibility
-            cmd.arg("--postprocessor-args")
-                .arg("ffmpeg:-threads 0 -c:v h264_videotoolbox -realtime true -prio_speed true -q:v 70 -profile:v high -pix_fmt yuv420p -c:a aac -b:a 320k -movflags +faststart");
         }
 
         eprintln!(
@@ -1042,7 +992,13 @@ fn download_video(
         eprintln!("Format selector: {}", format_selector);
         eprintln!("Output path: {}", planned_output_path);
 
-        let mut child = match cmd.stdout(Stdio::piped()).spawn() {
+        // Cancelled while the metadata pass was running: never start the download.
+        if take_cancelled(&download_id) {
+            eprintln!("Download {} cancelled before it started", download_id);
+            return;
+        }
+
+        let mut child = match own_process_group(cmd.stdout(Stdio::piped())).spawn() {
             Ok(child) => {
                 eprintln!("yt-dlp process started successfully");
                 child
@@ -1074,20 +1030,39 @@ fn download_video(
         let extract_metadata_from_output =
             is_vimeo && (video_title.is_empty() || video_title == url || thumbnail_url.is_empty());
 
-        // Track if we've sent the converting status
-        let mut conversion_status_sent = false;
+        let mut progress = ProgressTracker::default();
 
         // Read stdout for progress and errors
-        for line in stdout_reader.lines().map_while(Result::ok) {
+        for line in lossy_lines(stdout_reader) {
             all_stdout.push_str(&line);
             all_stdout.push('\n');
+            progress.observe_line(&line);
 
             if is_error_line(&line) {
                 stdout_errors.push(line.clone());
             }
 
-            // Detect merging status
+            // Detect merging status. The merge (and the H.264 re-encode, which
+            // runs inside it) prints no progress, so tell the UI the phase changed.
             if line.contains("[Merger]") || line.contains("Merging") {
+                if !is_merging {
+                    let resolution = if !current_resolution.is_empty() {
+                        current_resolution.clone()
+                    } else {
+                        selected_resolution.clone()
+                    };
+                    let status = "merging";
+                    let _ = window.emit(
+                        "download-progress",
+                        (
+                            download_id.clone(),
+                            100u8,
+                            resolution,
+                            String::new(),
+                            status,
+                        ),
+                    );
+                }
                 is_merging = true;
                 if let Some(path) = extract_file_path(&line) {
                     final_file_path = path;
@@ -1313,21 +1288,9 @@ fn download_video(
             }
 
             // Progress - emit resolution if we detected it
-            if let Some((pct, speed)) = parse_progress(&line) {
-                // Detect when download hits 100% - if we need conversion, show converting status
-                if pct >= 100 && needs_conversion && !conversion_status_sent {
-                    conversion_status_sent = true;
-                    eprintln!("Download complete at 100%, starting H.264 conversion...");
-                }
-
-                // Determine status
-                let status = if conversion_status_sent {
-                    "converting"
-                } else if is_merging {
-                    "merging"
-                } else {
-                    "downloading"
-                };
+            if let Some((raw_pct, speed)) = parse_progress(&line) {
+                let pct = progress.overall(raw_pct);
+                let status = if is_merging { "merging" } else { "downloading" };
 
                 // Priority: detected resolution from output > selected quality (what user chose) > metadata resolution
                 // For YouTube, skip metadata resolution during download - it's often wrong (shows 360p)
@@ -1348,31 +1311,6 @@ fn download_video(
                     (download_id.clone(), pct, resolution_to_send, speed, status),
                 );
             }
-        }
-
-        // If we're in best quality mode and download seems complete, emit converting status
-        // This handles the case where the last progress line was already 100%
-        if needs_conversion && !conversion_status_sent {
-            let resolution_to_send = if !current_resolution.is_empty() {
-                current_resolution.clone()
-            } else if !selected_resolution.is_empty() {
-                selected_resolution.clone()
-            } else {
-                initial_resolution.clone()
-            };
-            let _ = window.emit(
-                "download-progress",
-                (
-                    download_id.clone(),
-                    100,
-                    resolution_to_send,
-                    String::new(),
-                    "converting",
-                ),
-            );
-            eprintln!(
-                "Download phase complete, now converting to H.264 (this may take a while)..."
-            );
         }
 
         // Read stderr for errors - capture ALL stderr output
@@ -1463,6 +1401,20 @@ fn download_video(
                     final_file_path.clone()
                 };
 
+                // Cancelled right as yt-dlp finished: drop the result quietly.
+                if take_cancelled(&download_id) {
+                    return;
+                }
+                let Some(canonical_path) = ensure_h264(
+                    &window,
+                    &download_id,
+                    &canonical_path,
+                    &ffmpeg_dir,
+                    &current_resolution,
+                ) else {
+                    return; // cancelled during conversion
+                };
+
                 // Get file size (use canonical_path for consistency)
                 let file_size_str = if Path::new(&canonical_path).exists() {
                     if let Ok(metadata) = fs::metadata(&canonical_path) {
@@ -1533,6 +1485,7 @@ fn download_video(
             Ok(status) => {
                 if take_cancelled(&download_id) {
                     eprintln!("Download {} cancelled by user", download_id);
+                    cleanup_partial_files(&planned_output_path);
                     return;
                 }
 
@@ -1601,6 +1554,10 @@ fn download_video(
 
                     // Build retry command with cookies
                     let mut retry_cmd = Command::new(&ytdlp_path);
+                    retry_cmd.arg("--no-playlist");
+                    if !is_audio_only {
+                        retry_cmd.arg("-S").arg(format_sort);
+                    }
                     retry_cmd
                         .arg("-f")
                         .arg(format_selector)
@@ -1628,11 +1585,6 @@ fn download_video(
                         retry_cmd.arg("--merge-output-format").arg(output_format);
                     }
 
-                    if needs_conversion {
-                        retry_cmd.arg("--postprocessor-args")
-                            .arg("ffmpeg:-threads 0 -c:v h264_videotoolbox -realtime true -prio_speed true -q:v 70 -profile:v high -pix_fmt yuv420p -c:a aac -b:a 320k -movflags +faststart");
-                    }
-
                     retry_cmd.arg("--user-agent").arg(DEFAULT_USER_AGENT);
                     if should_retry_with_cookies {
                         retry_cmd
@@ -1647,9 +1599,7 @@ fn download_video(
                         .arg("--no-warnings")
                         .arg("-o")
                         .arg(&planned_output_path)
-                        .arg(&url)
-                        .stdout(Stdio::piped())
-                        .stderr(Stdio::piped());
+                        .arg(&url);
 
                     let current_path = std::env::var("PATH").unwrap_or_default();
                     let enhanced_path = if !current_path.contains("/opt/homebrew/bin") {
@@ -1659,12 +1609,16 @@ fn download_video(
                     };
                     retry_cmd.env("PATH", &enhanced_path);
 
-                    match retry_cmd.output() {
-                        Ok(retry_output) if retry_output.status.success() => {
+                    match run_streaming_attempt(
+                        &window,
+                        &download_id,
+                        &mut retry_cmd,
+                        &current_resolution,
+                    ) {
+                        Some((true, retry_stdout, _)) => {
                             eprintln!("Cookie retry succeeded for {}", download_id);
                             // Find the downloaded file
                             let mut retry_file_path = planned_output_path.clone();
-                            let retry_stdout = String::from_utf8_lossy(&retry_output.stdout);
                             for line in retry_stdout.lines() {
                                 if let Some(path) = extract_file_path(line) {
                                     if Path::new(&path).exists() {
@@ -1676,6 +1630,15 @@ fn download_video(
                             let canonical = fs::canonicalize(&retry_file_path)
                                 .map(|p| p.to_string_lossy().to_string())
                                 .unwrap_or(retry_file_path);
+                            let Some(canonical) = ensure_h264(
+                                &window,
+                                &download_id,
+                                &canonical,
+                                &ffmpeg_dir,
+                                &current_resolution,
+                            ) else {
+                                return; // cancelled during conversion
+                            };
 
                             let duration_str = duration_seconds
                                 .map(|d| {
@@ -1684,14 +1647,8 @@ fn download_video(
                                     format!("{:02}:{:02}", mins, secs)
                                 })
                                 .unwrap_or_default();
-                            let file_size_str = size_bytes
-                                .map(|b| {
-                                    if b >= 1_073_741_824 {
-                                        format!("{:.1} GB", b as f64 / 1_073_741_824.0)
-                                    } else {
-                                        format!("{:.1} MB", b as f64 / 1_048_576.0)
-                                    }
-                                })
+                            let file_size_str = fs::metadata(&canonical)
+                                .map(|m| format_file_size(m.len()))
                                 .unwrap_or_default();
                             let fps_str = fps
                                 .map(|f| format!("{}fps", f.round() as u64))
@@ -1718,15 +1675,17 @@ fn download_video(
                             );
                             return;
                         }
-                        Ok(retry_output) => {
-                            let retry_stderr = String::from_utf8_lossy(&retry_output.stderr);
+                        Some((false, _, retry_stderr)) => {
                             eprintln!("Cookie retry also failed: {}", retry_stderr);
                             // Fall through to emit original error
                         }
-                        Err(e) => {
-                            eprintln!("Cookie retry process error: {}", e);
-                            // Fall through to emit original error
+                        None => {
+                            eprintln!("Cookie retry process could not start");
                         }
+                    }
+                    if take_cancelled(&download_id) {
+                        cleanup_partial_files(&planned_output_path);
+                        return;
                     }
                 }
 
@@ -1753,6 +1712,7 @@ fn download_video(
                                 );
 
                                 let mut fallback_cmd = Command::new(&ytdlp_path);
+                                fallback_cmd.arg("--no-playlist");
                                 fallback_cmd
                                     .arg("--no-warnings")
                                     .arg("--newline")
@@ -1772,14 +1732,8 @@ fn download_video(
                                     fallback_cmd.arg("--merge-output-format").arg(output_format);
                                 }
 
-                                if needs_conversion {
-                                    fallback_cmd.arg("--postprocessor-args")
-                                        .arg("ffmpeg:-threads 0 -c:v h264_videotoolbox -realtime true -prio_speed true -q:v 70 -profile:v high -pix_fmt yuv420p -c:a aac -b:a 320k -movflags +faststart");
-                                }
-
                                 fallback_cmd.arg("--ffmpeg-location").arg(&ffmpeg_dir);
                                 fallback_cmd.arg(&direct_video_url);
-                                fallback_cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
 
                                 let fb_current_path = std::env::var("PATH").unwrap_or_default();
                                 let fb_enhanced_path =
@@ -1793,14 +1747,18 @@ fn download_video(
                                     };
                                 fallback_cmd.env("PATH", &fb_enhanced_path);
 
-                                match fallback_cmd.output() {
-                                    Ok(fb_output) if fb_output.status.success() => {
+                                match run_streaming_attempt(
+                                    &window,
+                                    &download_id,
+                                    &mut fallback_cmd,
+                                    &current_resolution,
+                                ) {
+                                    Some((true, fb_stdout, _)) => {
                                         eprintln!(
                                             "Instagram fallback download succeeded for {}",
                                             download_id
                                         );
                                         let mut fb_file_path = planned_output_path.clone();
-                                        let fb_stdout = String::from_utf8_lossy(&fb_output.stdout);
                                         for line in fb_stdout.lines() {
                                             if let Some(path) = extract_file_path(line) {
                                                 if Path::new(&path).exists() {
@@ -1811,6 +1769,15 @@ fn download_video(
                                         let canonical = fs::canonicalize(&fb_file_path)
                                             .map(|p| p.to_string_lossy().to_string())
                                             .unwrap_or(fb_file_path);
+                                        let Some(canonical) = ensure_h264(
+                                            &window,
+                                            &download_id,
+                                            &canonical,
+                                            &ffmpeg_dir,
+                                            &current_resolution,
+                                        ) else {
+                                            return; // cancelled during conversion
+                                        };
 
                                         let duration_str = metadata_duration
                                             .map(format_duration)
@@ -1847,17 +1814,21 @@ fn download_video(
                                         );
                                         return;
                                     }
-                                    Ok(fb_output) => {
+                                    Some((false, _, fb_stderr)) => {
                                         eprintln!(
                                             "Instagram fallback download failed: {}",
-                                            String::from_utf8_lossy(&fb_output.stderr)
+                                            fb_stderr
                                         );
                                         // Fall through to emit the original yt-dlp error below.
                                     }
-                                    Err(e) => {
-                                        eprintln!("Instagram fallback process error: {}", e);
+                                    None => {
+                                        eprintln!("Instagram fallback process could not start");
                                         // Fall through to emit the original yt-dlp error below.
                                     }
+                                }
+                                if take_cancelled(&download_id) {
+                                    cleanup_partial_files(&planned_output_path);
+                                    return;
                                 }
                             }
                             Err(instagram_fallback::IgFallbackError::Fatal(msg)) => {
@@ -1874,31 +1845,27 @@ fn download_video(
                 }
 
                 // Process exited with non-zero status - build error message
-                let error_msg = if !error_messages.is_empty() {
+                let drm_protected = error_messages.iter().any(|m| m.contains("DRM protected"))
+                    || all_stderr.contains("DRM protected");
+                let error_msg = if drm_protected {
+                    // Encrypted streams (Vimeo since 2026-10). Never circumvented.
+                    "This video is DRM-protected by the site, so it can't be downloaded."
+                        .to_string()
+                } else if !error_messages.is_empty() {
                     let msg = error_messages.join("; ");
                     if msg.contains("403") || msg.contains("Forbidden") || msg.contains("SABR") {
                         let mut final_msg = msg.clone();
                         if msg.contains("SABR") || msg.contains("youtube") {
                             final_msg = format!("{}\n\nYouTube download failed — usually a YouTube-side change. Click 'Update downloader engine' in Settings and try again.", msg);
                         }
-                        if final_msg.len() > 400 {
-                            format!("{}...", &final_msg[..400])
-                        } else {
-                            final_msg
-                        }
+                        truncate_chars(&final_msg, 400)
                     } else if msg.contains("impersonation")
                         || msg.contains("impersonate")
                         || msg.contains("Vimeo")
                     {
-                        if msg.len() > 500 {
-                            format!("{}...", &msg[..500])
-                        } else {
-                            msg
-                        }
-                    } else if msg.len() > 300 {
-                        format!("{}...", &msg[..300])
+                        truncate_chars(&msg, 500)
                     } else {
-                        msg
+                        truncate_chars(&msg, 300)
                     }
                 } else if !all_stderr.trim().is_empty() {
                     let stderr_trimmed = all_stderr.trim();
@@ -1910,11 +1877,7 @@ fn download_video(
                     } else {
                         stderr_trimmed.to_string()
                     };
-                    if msg.len() > 500 {
-                        format!("{}...", &msg[..500])
-                    } else {
-                        msg
-                    }
+                    truncate_chars(&msg, 500)
                 } else if !all_stdout.trim().is_empty() {
                     let stdout_lines: Vec<&str> = all_stdout.trim().lines().collect();
                     let msg = if stdout_lines.len() > 5 {
@@ -1924,13 +1887,9 @@ fn download_video(
                     } else {
                         all_stdout.trim().to_string()
                     };
-                    if msg.len() > 300 {
-                        format!("{}...", &msg[..300])
-                    } else {
-                        msg
-                    }
+                    truncate_chars(&msg, 300)
                 } else {
-                    format!("Download failed (exit code: {}). Please check if yt-dlp is working correctly.", status.code().unwrap_or(-1))
+                    format!("Download failed (exit code {}). Try again, or use Update in Settings → Engine.", status.code().unwrap_or(-1))
                 };
                 eprintln!("Download error: {}", error_msg);
                 let _ = window.emit("download-error", (download_id.clone(), error_msg.clone()));
@@ -1938,6 +1897,7 @@ fn download_video(
             Err(e) => {
                 if take_cancelled(&download_id) {
                     eprintln!("Download {} cancelled by user", download_id);
+                    cleanup_partial_files(&planned_output_path);
                     return;
                 }
                 let _ = window.emit(
@@ -2013,7 +1973,11 @@ fn sanitize_filename_for_fs(input: &str) -> String {
         }
     }
 
-    let trimmed = cleaned.trim().trim_matches('.');
+    // macOS caps a file name at 255 bytes; long titles failed with
+    // "[Errno 63] File name too long". 150 chars leaves room for the
+    // extension, a " (copy N)" suffix and yt-dlp's temp suffixes.
+    let capped: String = cleaned.trim().chars().take(150).collect();
+    let trimmed = capped.trim().trim_matches('.');
     if trimmed.is_empty() {
         "download".to_string()
     } else {
@@ -2021,9 +1985,14 @@ fn sanitize_filename_for_fs(input: &str) -> String {
     }
 }
 
+// Paths handed out in this session. Two downloads with the same title (or the
+// same URL twice) would otherwise share one path and its .part files.
+static RESERVED_OUTPUT_PATHS: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
+
 fn build_unique_output_path(base_path: &str, title: &str, extension: &str) -> String {
     let safe_title = sanitize_filename_for_fs(title);
     let mut copy_index = 0usize;
+    let reserved = RESERVED_OUTPUT_PATHS.get_or_init(|| Mutex::new(HashSet::new()));
 
     loop {
         let filename = if copy_index == 0 {
@@ -2032,15 +2001,329 @@ fn build_unique_output_path(base_path: &str, title: &str, extension: &str) -> St
             format!("{} (copy {}).{}", safe_title, copy_index, extension)
         };
         let candidate = Path::new(base_path).join(filename);
+        let candidate_str = candidate.to_string_lossy().to_string();
         if !candidate.exists() {
-            return candidate.to_string_lossy().to_string();
+            if let Ok(mut set) = reserved.lock() {
+                if set.insert(candidate_str.clone()) {
+                    return candidate_str;
+                }
+            } else {
+                return candidate_str;
+            }
         }
         copy_index += 1;
     }
 }
 
+// Error text is shown in the UI; cut by characters, never by bytes (a byte cut
+// inside an accented letter or emoji panics and leaves the row stuck).
+fn truncate_chars(text: &str, max: usize) -> String {
+    if text.chars().count() <= max {
+        text.to_string()
+    } else {
+        format!("{}...", text.chars().take(max).collect::<String>())
+    }
+}
+
+// Remove yt-dlp's partial/intermediate files for a planned output after an
+// error or cancel (.part, .ytdl, per-stream .fNNN files, .temp.mp4).
+fn cleanup_partial_files(planned_output_path: &str) {
+    let planned = Path::new(planned_output_path);
+    let (Some(dir), Some(stem)) = (
+        planned.parent(),
+        planned.file_stem().and_then(|s| s.to_str()),
+    ) else {
+        return;
+    };
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        let Some(rest) = name.strip_prefix(stem) else {
+            continue;
+        };
+        let is_partial = rest.ends_with(".part")
+            || rest.ends_with(".ytdl")
+            || rest.contains(".temp.")
+            || rest.contains(".part-Frag")
+            || (rest.starts_with(".f")
+                && rest[2..].chars().next().is_some_and(|c| c.is_ascii_digit()));
+        if is_partial {
+            let _ = fs::remove_file(entry.path());
+        }
+    }
+}
+
+// Run each external process in its own process group so cancel can stop the
+// whole tree: yt-dlp spawns ffmpeg, and killing only yt-dlp re-parents ffmpeg
+// to launchd, where it keeps encoding.
+fn own_process_group(cmd: &mut Command) -> &mut Command {
+    #[cfg(unix)]
+    {
+        use std::os::unix::process::CommandExt;
+        cmd.process_group(0);
+    }
+    cmd
+}
+
+fn probe_video_codec_and_duration(path: &str, ffmpeg_dir: &str) -> (Option<String>, Option<f64>) {
+    let ffprobe =
+        find_bundled_binary("ffprobe").unwrap_or_else(|| format!("{}/ffprobe", ffmpeg_dir));
+    let run = |args: &[&str]| -> Option<String> {
+        Command::new(&ffprobe)
+            .args(args)
+            .arg(path)
+            .output()
+            .ok()
+            .filter(|o| o.status.success())
+            .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+            .filter(|s| !s.is_empty())
+    };
+    let codec = run(&[
+        "-v",
+        "error",
+        "-select_streams",
+        "V:0",
+        "-show_entries",
+        "stream=codec_name",
+        "-of",
+        "csv=p=0",
+    ]);
+    let duration = run(&[
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "csv=p=0",
+    ])
+    .and_then(|d| d.parse::<f64>().ok());
+    (codec, duration)
+}
+
+// Premiere-ready guarantee: after the download, re-encode to H.264/AAC only when
+// the file's video isn't H.264 already (YouTube 4K VP9/AV1, TikTok HEVC…). The
+// codec is read from the actual file, so H.264 sources are never re-encoded,
+// and progress comes from ffmpeg itself instead of a timer.
+// Returns the final path, or None when the download was cancelled meanwhile.
+fn ensure_h264<R: Runtime>(
+    window: &Window<R>,
+    download_id: &str,
+    path: &str,
+    ffmpeg_dir: &str,
+    resolution: &str,
+) -> Option<String> {
+    let (codec, duration) = probe_video_codec_and_duration(path, ffmpeg_dir);
+    let Some(codec) = codec else {
+        return Some(path.to_string()); // no video stream (audio-only) or unreadable
+    };
+    if codec == "h264" {
+        return Some(path.to_string());
+    }
+    eprintln!("Converting {} ({}) to H.264 for editing", path, codec);
+    let emit = |pct: u8| {
+        let _ = window.emit(
+            "download-progress",
+            (
+                download_id.to_string(),
+                pct,
+                resolution.to_string(),
+                String::new(),
+                "converting",
+            ),
+        );
+    };
+    emit(0);
+
+    let source = Path::new(path);
+    let final_path = source.with_extension("mp4");
+    let tmp_path = source.with_extension("converting.mp4");
+    let ffmpeg = find_bundled_binary("ffmpeg").unwrap_or_else(|| format!("{}/ffmpeg", ffmpeg_dir));
+    let mut cmd = Command::new(ffmpeg);
+    cmd.args(["-y", "-v", "error", "-nostats", "-progress", "pipe:1", "-i"])
+        .arg(path)
+        .args([
+            "-map",
+            "0:V:0",
+            "-map",
+            "0:a?",
+            "-threads",
+            "0",
+            "-c:v",
+            "h264_videotoolbox",
+            "-q:v",
+            "70",
+            "-profile:v",
+            "high",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            "-b:a",
+            "320k",
+            "-movflags",
+            "+faststart",
+        ])
+        .arg(&tmp_path)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null());
+    let Ok(mut child) = own_process_group(&mut cmd).spawn() else {
+        eprintln!("Could not start ffmpeg for H.264 conversion; keeping the original file");
+        return Some(path.to_string());
+    };
+    if let Ok(mut map) = active_downloads().lock() {
+        map.insert(download_id.to_string(), child.id());
+    }
+    let mut last = 0u8;
+    if let (Some(stdout), Some(total)) = (child.stdout.take(), duration.filter(|d| *d > 0.0)) {
+        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
+            // out_time_us is in microseconds (out_time_ms is too, despite its name).
+            if let Some(us) = line
+                .strip_prefix("out_time_us=")
+                .and_then(|v| v.parse::<f64>().ok())
+            {
+                let pct = ((us / 1_000_000.0 / total) * 100.0).clamp(0.0, 99.0) as u8;
+                if pct > last {
+                    last = pct;
+                    emit(pct);
+                }
+            }
+        }
+    }
+    let ok = child.wait().map(|s| s.success()).unwrap_or(false);
+    if let Ok(mut map) = active_downloads().lock() {
+        map.remove(download_id);
+    }
+    if take_cancelled(download_id) {
+        // The user cancelled: leave nothing behind, not even the unconverted file.
+        let _ = fs::remove_file(&tmp_path);
+        let _ = fs::remove_file(source);
+        return None;
+    }
+    if !ok || fs::rename(&tmp_path, &final_path).is_err() {
+        let _ = fs::remove_file(&tmp_path);
+        eprintln!("H.264 conversion failed; keeping the original file");
+        return Some(path.to_string());
+    }
+    if source != final_path {
+        let _ = fs::remove_file(source);
+    }
+    Some(final_path.to_string_lossy().to_string())
+}
+
+// Run a retry/fallback yt-dlp attempt with live progress (same mapping as the
+// first attempt) and cancel support. The old `.output()` call showed a frozen
+// bar until the whole retry finished. Returns (success, stdout, stderr), or
+// None when the process could not start.
+fn run_streaming_attempt<R: Runtime>(
+    window: &Window<R>,
+    download_id: &str,
+    cmd: &mut Command,
+    resolution: &str,
+) -> Option<(bool, String, String)> {
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+    let mut child = own_process_group(cmd).spawn().ok()?;
+    if let Ok(mut map) = active_downloads().lock() {
+        map.insert(download_id.to_string(), child.id());
+    }
+    // Drain stderr on its own thread so a chatty stderr can never block stdout.
+    let stderr_handle = child.stderr.take().map(|err| {
+        thread::spawn(move || {
+            let mut text = String::new();
+            let _ = std::io::Read::read_to_string(&mut BufReader::new(err), &mut text);
+            text
+        })
+    });
+    let mut stdout_text = String::new();
+    let mut progress = ProgressTracker::default();
+    if let Some(out) = child.stdout.take() {
+        for line in lossy_lines(out) {
+            progress.observe_line(&line);
+            if let Some((raw, speed)) = parse_progress(&line) {
+                let pct = progress.overall(raw);
+                let _ = window.emit(
+                    "download-progress",
+                    (
+                        download_id.to_string(),
+                        pct,
+                        resolution.to_string(),
+                        speed,
+                        "downloading",
+                    ),
+                );
+            }
+            stdout_text.push_str(&line);
+            stdout_text.push('\n');
+        }
+    }
+    let ok = child.wait().map(|s| s.success()).unwrap_or(false);
+    if let Ok(mut map) = active_downloads().lock() {
+        map.remove(download_id);
+    }
+    let stderr_text = stderr_handle
+        .and_then(|h| h.join().ok())
+        .unwrap_or_default();
+    Some((ok, stdout_text, stderr_text))
+}
+
+// Line iterator that survives non-UTF-8 output (`lines()` stops at the first
+// invalid byte, leaving the pipe unread and the process blocked).
+fn lossy_lines<T: std::io::Read>(reader: T) -> impl Iterator<Item = String> {
+    BufReader::new(reader)
+        .split(b'\n')
+        .map_while(Result::ok)
+        .map(|bytes| {
+            String::from_utf8_lossy(&bytes)
+                .trim_end_matches('\r')
+                .to_string()
+        })
+}
+
+// Overall progress for the UI. yt-dlp downloads merged formats one stream after
+// another (video, then audio), each going 0→100%, and with concurrent fragments
+// the per-stream percentage jitters backwards. This maps streams onto one bar
+// (video ≈85%, audio the rest) and never lets it move backwards.
+#[derive(Default)]
+struct ProgressTracker {
+    streams: u32,
+    stream: u32,
+    stream_has_progress: bool,
+    emitted: u8,
+}
+
+impl ProgressTracker {
+    fn observe_line(&mut self, line: &str) {
+        // "[info] <id>: Downloading 1 format(s): 137+140"
+        if line.starts_with("[info]") && line.contains("format(s):") {
+            let ids = line.rsplit("format(s):").next().unwrap_or("");
+            self.streams = (ids.trim().matches('+').count() as u32 + 1).min(4);
+        }
+        // Each stream announces its own destination file.
+        if line.starts_with("[download] Destination:") && self.stream_has_progress {
+            self.stream = (self.stream + 1).min(self.streams.max(1) - 1);
+            self.stream_has_progress = false;
+        }
+    }
+
+    fn overall(&mut self, raw: u8) -> u8 {
+        self.stream_has_progress = true;
+        let raw = raw.min(100) as u32;
+        let pct = if self.streams <= 1 {
+            raw
+        } else if self.stream == 0 {
+            raw * 85 / 100
+        } else {
+            let span = 15 / (self.streams - 1);
+            85 + span * (self.stream - 1) + raw * span / 100
+        };
+        self.emitted = self.emitted.max(pct.min(100) as u8);
+        self.emitted
+    }
+}
+
 fn parse_progress(line: &str) -> Option<(u8, String)> {
-    if !line.contains('%') {
+    if !line.starts_with("[download]") || !line.contains('%') {
         return None;
     }
 
@@ -2067,6 +2350,9 @@ fn parse_progress(line: &str) -> Option<(u8, String)> {
 
     percent.map(|p| (p, speed))
 }
+
+#[cfg(test)]
+mod e2e_tests;
 
 #[cfg(test)]
 mod tests {
@@ -2227,8 +2513,9 @@ async fn pick_folder() -> Result<Option<String>, String> {
     }
 }
 
+// Async so the kill/pkill processes never run on the UI thread.
 #[tauri::command]
-fn cancel_download(download_id: String) -> Result<(), String> {
+async fn cancel_download(download_id: String) -> Result<(), String> {
     if let Ok(mut cancelled) = cancelled_downloads().lock() {
         cancelled.insert(download_id.clone());
     }
@@ -2248,6 +2535,11 @@ fn cancel_download(download_id: String) -> Result<(), String> {
     #[cfg(target_family = "unix")]
     {
         let pid_arg = pid.to_string();
+        // Every download process runs in its own group (own_process_group), so
+        // signal the whole group: yt-dlp and the ffmpeg it spawned.
+        let _ = Command::new("kill")
+            .args(["-TERM", "--", &format!("-{}", pid)])
+            .status();
         let term_output = Command::new("kill")
             .arg("-TERM")
             .arg(&pid_arg)
@@ -2353,7 +2645,7 @@ fn set_min_window_height(window: Window, height: u32) -> Result<(), String> {
         .map_err(|e| format!("Failed to set minimum window size: {}", e))
 }
 
-fn thumbnail_cache_dir(app: &AppHandle) -> Result<PathBuf, String> {
+fn thumbnail_cache_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
     let cache_root = app
         .path()
         .app_cache_dir()
@@ -2364,8 +2656,8 @@ fn thumbnail_cache_dir(app: &AppHandle) -> Result<PathBuf, String> {
     Ok(thumb_dir)
 }
 
-fn cache_thumbnail_for_download(
-    app: &AppHandle,
+fn cache_thumbnail_for_download<R: Runtime>(
+    app: &AppHandle<R>,
     ytdlp_path: &str,
     url: &str,
     download_id: &str,
@@ -2906,11 +3198,26 @@ async fn get_ytdlp_version() -> YtdlpVersionInfo {
 // rename into place. Skips the download when that tag is already installed.
 // Returns the version tag on success. Never touches the bundled engine.
 async fn download_latest_ytdlp() -> Result<String, String> {
+    // One update at a time: the launch-time auto-update and the Settings button
+    // would otherwise delete each other's half-extracted .tmp folder.
+    static UPDATING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    if UPDATING.swap(true, std::sync::atomic::Ordering::SeqCst) {
+        return Err("An engine update is already running".to_string());
+    }
+    let result = download_latest_ytdlp_inner().await;
+    UPDATING.store(false, std::sync::atomic::Ordering::SeqCst);
+    result
+}
+
+async fn download_latest_ytdlp_inner() -> Result<String, String> {
     let bin_dir = managed_bin_dir().ok_or("Could not resolve app-support dir")?;
     fs::create_dir_all(&bin_dir).map_err(|e| format!("Could not create bin dir: {}", e))?;
 
+    // Timeouts so the Settings "Update" button can never spin forever.
     let client = reqwest::Client::builder()
         .user_agent("super-downloads")
+        .connect_timeout(std::time::Duration::from_secs(15))
+        .timeout(std::time::Duration::from_secs(300))
         .build()
         .map_err(|e| format!("HTTP client error: {}", e))?;
 

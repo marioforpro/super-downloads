@@ -944,6 +944,12 @@ body.theme-light .download-item {
   margin-top: 4px;
   padding-top: 4px;
   border-top: 1px solid rgba(255, 68, 68, 0.2);
+  white-space: pre-line;
+  /* Long engine errors must not blow a row up to 190px. */
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* Download Item Actions */
@@ -1000,6 +1006,14 @@ body.theme-light .download-item {
   z-index: 320;
   display: none;
   flex-direction: column;
+}
+
+/* Near the bottom of the list the menu opens upwards instead of being clipped. */
+.download-item-menu.open-up {
+  top: auto;
+  bottom: 100%;
+  margin-top: 0;
+  margin-bottom: 4px;
 }
 
 .download-item-menu.visible {
@@ -1655,4 +1669,15 @@ select:focus {
 .license-section.hidden,
 #activation-row.hidden {
   display: none;
+}
+
+/* Respect macOS "Reduce motion": no pulsing or sliding, states stay readable. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -20,7 +20,7 @@ const INJECTED_TYPE = /AppHandle|WebviewWindow|Window|State\s*<|tauri::/;
 
 // --- Rust side: command name -> set of caller-supplied param names ---
 const commands = new Map();
-const cmdRe = /#\[tauri::command\]\s*(?:pub\s+)?(?:async\s+)?fn\s+(\w+)\s*\(([^)]*)\)/g;
+const cmdRe = /#\[tauri::command\]\s*(?:pub\s+)?(?:async\s+)?fn\s+(\w+)\s*(?:<[^>]*>)?\s*\(([^)]*)\)/g;
 for (const m of libRs.matchAll(cmdRe)) {
   const [, name, rawParams] = m;
   const params = new Set();

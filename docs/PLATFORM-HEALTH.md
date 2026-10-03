@@ -159,6 +159,21 @@ Review all URLs quarterly even without WARNs.
 extractor test URLs (a good default source when a probe rots — they are what
 upstream CI exercises).
 
+## Baseline — 2026-10-03 (v1.4.0 QA: real downloads, Vimeo DRM)
+
+- **Metadata PASS ≠ downloadable.** The live E2E (`cd src-tauri && cargo test
+  e2e_downloads_live -- --ignored --nocapture`, real `download_video`, real
+  engine/ffmpeg) found Vimeo failing every download while this check said
+  `vimeo T1 PASS`: Vimeo now serves **only DRM-encrypted HLS** — via the embed
+  path, the direct path and logged in (Chrome cookies); same on yt-dlp stable
+  2026.08.19 and nightly 2026.09.27. ffmpeg "downloads" it into an undecodable
+  file (14k decode errors), so the hlsnative refusal is correct. The app never
+  circumvents DRM; it now says "This video is DRM-protected by the site".
+  Vimeo can't be certified as Tier 1 while this lasts — run the E2E before a
+  release, not just this metadata check.
+- Other 6 platforms: real downloads OK in 3–8 s each (onedir engine); TikTok
+  1080p arrives HEVC and is converted to H.264 after download.
+
 ## Baseline — 2026-09-27 (probe repair + LinkedIn cookie fix)
 
 Engine: bundled yt-dlp `2026.08.19` (39d old, **= upstream latest stable**). Result

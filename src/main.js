@@ -15,7 +15,8 @@ function showConfirm(message) {
       </div>
     `;
     document.body.appendChild(overlay);
-    requestAnimationFrame(() => overlay.classList.add("visible"));
+    void overlay.offsetWidth; // commit the hidden state so the fade-in runs
+  overlay.classList.add("visible");
     const close = (result) => {
       overlay.classList.remove("visible");
       setTimeout(() => overlay.remove(), 200);
@@ -24,6 +25,10 @@ function showConfirm(message) {
     overlay.querySelector(".confirm-cancel").addEventListener("click", () => close(false));
     overlay.querySelector(".confirm-ok").addEventListener("click", () => close(true));
     overlay.addEventListener("click", (e) => { if (e.target === overlay) close(false); });
+    overlay.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") { e.stopPropagation(); close(false); }
+    });
+    overlay.querySelector(".confirm-ok").focus();
   });
 }
 
@@ -39,7 +44,8 @@ function showToast(message, duration = 2000) {
   toast.className = "toast";
   toast.textContent = message;
   container.appendChild(toast);
-  requestAnimationFrame(() => toast.classList.add("visible"));
+  void toast.offsetWidth; // commit the hidden state so the fade-in runs
+  toast.classList.add("visible");
   setTimeout(() => {
     toast.classList.remove("visible");
     setTimeout(() => toast.remove(), 300);
@@ -263,16 +269,11 @@ function markOnboardingSeen() {
 
 async function openExternal(url) {
   try {
-    const openerModule = await import("@tauri-apps/plugin-opener");
-    const open = openerModule.openUrl || openerModule.open || openerModule.default?.open;
-    if (open) {
-      await open(url);
-      return;
-    }
+    await window.__TAURI__.opener.openUrl(url);
   } catch (err) {
     console.warn("Opener plugin failed for external URL:", err);
+    window.open(url, "_blank");
   }
-  window.open(url, "_blank");
 }
 
 // Email activation (the user list is the asset; usage is never blocked by a server failure)
@@ -332,7 +333,8 @@ function showActivationCard() {
     </div>
   `;
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add("visible"));
+  void overlay.offsetWidth; // commit the hidden state so the fade-in runs
+  overlay.classList.add("visible");
   const emailInput = overlay.querySelector(".activation-email-input");
   const optIn = overlay.querySelector(".activation-optin-checkbox");
   const btn = overlay.querySelector(".onboarding-start-btn");
@@ -393,7 +395,8 @@ function showOnboarding() {
     </div>
   `;
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add("visible"));
+  void overlay.offsetWidth; // commit the hidden state so the fade-in runs
+  overlay.classList.add("visible");
   overlay.querySelector("#onboarding-terms-link").addEventListener("click", (e) => {
     e.preventDefault();
     openExternal("https://superdownloads.app/terms");
@@ -450,7 +453,8 @@ function showAbout() {
     </div>
   `;
   document.body.appendChild(overlay);
-  requestAnimationFrame(() => overlay.classList.add("visible"));
+  void overlay.offsetWidth; // commit the hidden state so the fade-in runs
+  overlay.classList.add("visible");
   const close = () => { overlay.classList.remove("visible"); setTimeout(() => overlay.remove(), 200); };
   overlay.querySelector(".confirm-ok").addEventListener("click", close);
   overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
@@ -735,14 +739,15 @@ function updateDownload(id, updates) {
       const metadataDiv = existingItem.querySelector('.download-item-metadata');
       const isConverting = downloads[index].status === "converting";
       const visualProgress = isConverting
-        ? Math.max(1, Math.min(99, Math.round(downloads[index].conversionProgress || 0)))
+        ? Math.max(0, Math.min(99, Math.round(downloads[index].conversionProgress || 0)))
         : downloads[index].progress;
       
       if (progressFill && (updates.progress !== undefined || updates.conversionProgress !== undefined)) {
-        progressFill.style.width = `${visualProgress}%`;
+        progressFill.style.width = `${Math.max(2, visualProgress)}%`;
+        progressFill.classList.toggle("converting-pulse", isConverting && visualProgress === 0);
       }
       if (percentSpan && (updates.progress !== undefined || updates.conversionProgress !== undefined)) {
-        percentSpan.textContent = `${visualProgress}%`;
+        percentSpan.textContent = isConverting && visualProgress === 0 ? "" : `${visualProgress}%`;
       }
       if (speedSpan && updates.speed !== undefined) {
         speedSpan.textContent = updates.speed;
@@ -898,7 +903,12 @@ function toggleContextMenu(downloadId) {
   closeAllContextMenus();
   const menu = document.getElementById(`menu-${downloadId}`);
   if (menu) {
+    menu.classList.remove("open-up");
     menu.classList.add("visible");
+    const listBox = downloadList.getBoundingClientRect();
+    if (menu.getBoundingClientRect().bottom > listBox.bottom) {
+      menu.classList.add("open-up");
+    }
   }
 }
 
@@ -918,21 +928,12 @@ async function handleMenuAction(action, downloadId) {
     case "open-file":
       if (download.filePath) {
         try {
-          const openerModule = await import("@tauri-apps/plugin-opener");
-          const openPath = openerModule.openPath || openerModule.default?.openPath;
-          if (openPath) {
-            await openPath(download.filePath.trim());
-          } else {
-            const open = openerModule.open || openerModule.default?.open;
-            if (open) await open(download.filePath.trim());
-          }
+          await window.__TAURI__.opener.openPath(download.filePath.trim());
         } catch (err) {
           try {
-            if (window.__TAURI__?.core?.invoke) {
-              await window.__TAURI__.core.invoke("reveal_in_finder", { path: download.filePath.trim() });
-            }
+            await window.__TAURI__.core.invoke("reveal_in_finder", { path: download.filePath.trim() });
           } catch {
-            showToast("Could not open file");
+            showToast("File was moved or deleted");
           }
         }
       }
@@ -1059,7 +1060,8 @@ async function retryDownload(downloadId) {
   const newDownloadId = addDownload(existing.url);
   updateDownload(newDownloadId, {
     title: existing.title || existing.url,
-    thumbnail: existing.thumbnail || ""
+    thumbnail: existing.thumbnail || "",
+    outputFormat: existing.outputFormat || "mp4"
   });
 
   try {
@@ -1069,7 +1071,7 @@ async function retryDownload(downloadId) {
       downloadId: newDownloadId,
       downloadLocation: settings.downloadLocation || null,
       quality: settings.videoQuality || "best",
-      format: settings.outputFormat || "mp4"
+      format: existing.outputFormat || "mp4"
     });
     return true;
   } catch (err) {
@@ -1112,8 +1114,7 @@ function createDownloadItemHTML(download) {
   if (download.fps) metadataParts.push(download.fps);
   const metadataLine = metadataParts.length > 0 ? metadataParts.join(" · ") : "";
   const terminalLabel = download.status === "completed" ? "Completed ✓" :
-    download.status === "cancelled" ? "Cancelled" :
-    download.status === "error" ? "Failed" : "";
+    download.status === "cancelled" ? "Cancelled" : ""; // errors: the FAILED pill says it once
   const terminalStatusClass = download.status === "completed"
     ? "status-completed"
     : download.status === "cancelled"
@@ -1126,13 +1127,21 @@ function createDownloadItemHTML(download) {
   const canCancel = !["completed", "error", "cancelled"].includes(download.status);
 
   const statusPill = getFinalStatusPill(download);
+  const isStarting = download.status === "queued" || download.status === "starting";
+  const conversionPct = Math.max(0, Math.min(99, Math.round(download.conversionProgress || 0)));
   const progressValue = download.status === "converting"
-    ? Math.max(1, Math.min(99, Math.round(download.conversionProgress || 0)))
-    : (download.status === "queued" || download.status === "starting")
-      ? 8
-    : download.status === "completed"
+    ? Math.max(2, conversionPct)
+    : isStarting
+      ? 6
+    : download.status === "completed" || download.status === "merging"
       ? 100
-      : download.progress;
+      : Math.max(2, download.progress || 0);
+  // Phases without measurable progress pulse instead of looking frozen.
+  const pulseClass = isStarting
+    ? "starting-pulse"
+    : download.status === "merging" || (download.status === "converting" && conversionPct === 0)
+      ? "converting-pulse"
+      : "";
 
   return `
     <div class="download-item ${statusClass}" data-download-id="${download.id}">
@@ -1156,22 +1165,24 @@ function createDownloadItemHTML(download) {
           </div>
           <div class="download-item-metadata ${metadataLine ? "" : "is-empty"}">${metadataLine ? escapeHtml(metadataLine) : "&nbsp;"}</div>
             <div class="download-item-progress ${isTerminal ? "is-terminal" : ""}">
-              <div class="progress-bar-thin">
-                <div class="progress-bar-fill ${download.status === 'converting' ? 'converting-pulse' : ''} ${(download.status === 'queued' || download.status === 'starting') ? 'starting-pulse' : ''}" style="width: ${progressValue}%"></div>
+              <div class="progress-bar-thin" role="progressbar" aria-label="Download progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progressValue}">
+                <div class="progress-bar-fill ${pulseClass}" style="width: ${progressValue}%"></div>
               </div>
             </div>
             <div class="download-item-progress-meta ${isTerminal ? "is-terminal" : ""}">
               ${download.status === 'converting' ? `
-                <span class="download-item-converting">Converting to H.264...</span>
-                <span class="download-item-percent converting">${progressValue}%</span>
-              ` : (download.status === 'queued' || download.status === 'starting') ? `
-                <span class="download-item-starting">Starting download...</span>
+                <span class="download-item-converting">Converting to H.264 for editing…</span>
+                <span class="download-item-percent converting">${conversionPct > 0 ? `${conversionPct}%` : ""}</span>
+              ` : download.status === 'merging' ? `
+                <span class="download-item-converting">Finishing…</span>
+              ` : isStarting ? `
+                <span class="download-item-starting">Starting download…</span>
               ` : isTerminal ? `
                 ${terminalLabel ? `<span class="download-item-terminal ${terminalStatusClass}">${terminalLabel}</span>` : ""}
               ` : `
                 <span class="download-item-percent">${download.progress}%</span>
-                ${download.speed ? `<span class="download-item-speed">${download.speed}</span>` : ''}
-                ${download.eta ? `<span class="download-item-eta">${download.eta}</span>` : ''}
+                <span class="download-item-speed">${escapeHtml(download.speed || "")}</span>
+                <span class="download-item-eta">${escapeHtml(download.eta || "")}</span>
               `}
             </div>
           ${download.error && download.status !== "cancelled" ? `<div class="download-item-error">${escapeHtml(download.error)}</div>` : ''}
@@ -1511,8 +1522,40 @@ function getFriendlyErrorMessage(errorMessage) {
   const rawMessage = String(errorMessage || "Download failed");
   const lowerMessage = rawMessage.toLowerCase();
 
+  if (lowerMessage.includes("drm-protected") || lowerMessage.includes("drm protected")) {
+    return "This video is DRM-protected by the site, so it can't be downloaded.";
+  }
+
+  if (lowerMessage.includes("errno 8") || lowerMessage.includes("nodename nor servname") ||
+      lowerMessage.includes("getaddrinfo") || lowerMessage.includes("network is unreachable") ||
+      lowerMessage.includes("internet connection appears to be offline")) {
+    return "You're offline. Check your internet connection and try again.";
+  }
+
+  if (lowerMessage.includes("not a bot") || lowerMessage.includes("sign in to confirm")) {
+    return "YouTube wants a sign-in for this video. Open youtube.com in your browser, make sure you're logged in, and try again.";
+  }
+
+  if (lowerMessage.includes("private video") || lowerMessage.includes("video unavailable") ||
+      lowerMessage.includes("has been removed") || lowerMessage.includes("http error 404")) {
+    return "This video is private, removed or unavailable.";
+  }
+
+  if (lowerMessage.includes("registered users") || lowerMessage.includes("login required") ||
+      lowerMessage.includes("log in to") || lowerMessage.includes("requires authentication")) {
+    return "This video needs you to be logged in on the site. Log in with your browser and try again.";
+  }
+
+  if (lowerMessage.includes("http error 429") || lowerMessage.includes("too many requests")) {
+    return "The site is rate-limiting downloads right now. Wait a few minutes and try again.";
+  }
+
+  if (lowerMessage.includes("no space left")) {
+    return "Your disk is full. Free some space or choose another folder in Settings.";
+  }
+
   if (lowerMessage.includes("yt-dlp") && (lowerMessage.includes("not found") || lowerMessage.includes("no such file"))) {
-    return "yt-dlp is not available. Install it with `brew install yt-dlp` and try again.";
+    return "The download engine is missing. Use Update in Settings → Engine, or reinstall the app from superdownloads.app.";
   }
 
   if (lowerMessage.includes("ffmpeg") && (lowerMessage.includes("not found") || lowerMessage.includes("no such file"))) {
@@ -1524,7 +1567,7 @@ function getFriendlyErrorMessage(errorMessage) {
   }
 
   if (lowerMessage.includes("timed out") || lowerMessage.includes("network")) {
-    return `${rawMessage}\n\nCheck your internet connection and try again.`;
+    return "The connection timed out. Check your internet connection and try again.";
   }
 
   if (lowerMessage.includes("age-restricted") || lowerMessage.includes("sign in to confirm your age")) {
@@ -1684,10 +1727,13 @@ async function browseForLocation() {
 }
 
 // Download Video
+let lastDownloadStartedAt = 0;
+
 async function startDownloadForUrl(url, options = {}) {
   const { silent = false, focusAfterStart = false } = options;
   if (!url) {
-    if (!silent) {
+    // A double-click on Download hits an already-cleared input: ignore it.
+    if (!silent && performance.now() - lastDownloadStartedAt > 800) {
       showToast("Paste a URL first");
     }
     return "empty";
@@ -1724,9 +1770,20 @@ async function startDownloadForUrl(url, options = {}) {
     }
   }
 
+  const alreadyRunning = downloads.some(d =>
+    !isTerminalStatus(d.status) && normalizeVideoUrl(d.url) === normalizeVideoUrl(url));
+  if (alreadyRunning) {
+    if (!silent) showToast("This video is already downloading");
+    return "duplicate";
+  }
+
+  const settingsForFormat = JSON.parse(localStorage.getItem("appSettings") || "{}");
+  const outputFormat = settingsForFormat.audioOnlyEnabled === true ? "mp3" : "mp4";
+
   // Add download to list
   const downloadId = addDownload(url);
-  updateDownload(downloadId, { status: "starting" });
+  lastDownloadStartedAt = performance.now();
+  updateDownload(downloadId, { status: "starting", outputFormat });
   
   // Clear input
   input.value = "";
@@ -1743,7 +1800,7 @@ async function startDownloadForUrl(url, options = {}) {
       downloadId: downloadId,
       downloadLocation: settings.downloadLocation || null,
       quality: settings.videoQuality || "best",
-      format: settings.audioOnlyEnabled === true ? "mp3" : "mp4"
+      format: outputFormat
     });
     if (!FREE_MODE) incrementDailyCounter();
     return "started";
@@ -1752,7 +1809,7 @@ async function startDownloadForUrl(url, options = {}) {
     // Only set error if invoke itself fails (not download process)
     updateDownload(downloadId, {
       status: "error",
-      error: getFriendlyErrorMessage(err.toString() || err.message || "Failed to start download. Please check if yt-dlp is installed.")
+      error: getFriendlyErrorMessage(err.toString() || err.message || "Failed to start the download.")
     });
     return "invoke-error";
   }
@@ -1971,7 +2028,8 @@ document.addEventListener("keydown", async (e) => {
     return;
   }
 
-  if (!shortcutKey && e.key === "Enter" && !isEditableTarget(document.activeElement)) {
+  const focused = document.activeElement;
+  if (!shortcutKey && e.key === "Enter" && (!focused || focused === document.body)) {
     e.preventDefault();
     downloadVideo();
   }
@@ -2103,7 +2161,7 @@ async function startUpdate() {
       btn.textContent = "Retry";
     }
     if (text) text.textContent = "Update failed";
-    showToast("Update failed: " + e);
+    showToast("Couldn't update — check your connection and try again");
   }
 }
 
@@ -2194,39 +2252,51 @@ if (keepHistoryEnabled) {
 }
 
 // Tauri Event Listeners
+// Events can still arrive for a row the user cancelled (the backend may be
+// mid-step); a cancelled row must never come back to life.
+function isCancelledLocally(downloadId) {
+  return downloads.find(d => d.id === downloadId)?.status === "cancelled";
+}
+
 window.__TAURI__.event.listen("download-started", (event) => {
   const [downloadId, title, thumbnail] = event.payload;
+  if (isCancelledLocally(downloadId)) return;
   transferStats.delete(downloadId);
   progressUiState.delete(downloadId);
-  stopConversionProgress(downloadId);
+  // Title and thumbnail only: the row stays in "Starting…" until real progress
+  // arrives, so the bar never drops back to 0.
   updateDownload(downloadId, {
     title: title || "Unknown Video",
-    thumbnail: thumbnail || "",
-    status: "downloading"
+    thumbnail: thumbnail || ""
   });
 });
 
 window.__TAURI__.event.listen("download-progress", (event) => {
   const [downloadId, percent, resolution, speed, status] = event.payload;
   const currentDownload = downloads.find(d => d.id === downloadId);
-  const nextStatus = status || "downloading";
+  if (!currentDownload || isCancelledLocally(downloadId)) return;
+  const PHASE_ORDER = { queued: 0, starting: 0, downloading: 1, merging: 2, converting: 3 };
+  let nextStatus = status || "downloading";
+  // Phases only move forward (a late "queued" must not reset a running row).
+  if ((PHASE_ORDER[nextStatus] ?? 1) < (PHASE_ORDER[currentDownload.status] ?? 0)) {
+    nextStatus = currentDownload.status;
+  }
+  // Still connecting: keep the "Starting…" state instead of a 0% bar.
+  if (nextStatus === "downloading" && percent <= 0 && (currentDownload.status === "queued" || currentDownload.status === "starting")) {
+    return;
+  }
   if (!shouldRenderProgressUpdate(downloadId, percent, nextStatus)) {
     return;
   }
   const smoothedMetrics = getSmoothedProgressMetrics(downloadId, percent, speed || "");
   const isConverting = nextStatus === "converting";
-  if (isConverting) {
-    startConversionProgress(downloadId);
-  } else {
-    stopConversionProgress(downloadId);
-  }
-  // Always update resolution if provided (even if empty, to clear old values)
+  // Real conversion progress comes from ffmpeg in the backend.
   const updates = {
-    progress: percent,
-    speed: smoothedMetrics.speed,
-    eta: smoothedMetrics.eta,
+    progress: isConverting ? currentDownload.progress : Math.max(currentDownload.progress || 0, percent),
+    speed: isConverting ? "" : smoothedMetrics.speed,
+    eta: isConverting ? "" : smoothedMetrics.eta,
     conversionProgress: isConverting
-      ? Math.max((currentDownload?.conversionProgress || 0), 5)
+      ? (currentDownload.status === "converting" ? Math.max(currentDownload.conversionProgress || 0, percent) : percent)
       : 0
   };
   if (!currentDownload || currentDownload.status !== nextStatus) {
@@ -2245,6 +2315,7 @@ window.__TAURI__.event.listen("download-progress", (event) => {
 
 window.__TAURI__.event.listen("download-metadata", (event) => {
   const [downloadId, duration, size, format, fps, thumbnail] = event.payload;
+  if (isCancelledLocally(downloadId)) return;
   updateDownload(downloadId, {
     duration: duration || "",
     size: size || "",
@@ -2257,6 +2328,7 @@ window.__TAURI__.event.listen("download-metadata", (event) => {
 
 window.__TAURI__.event.listen("download-finished", (event) => {
   const [downloadId, title, filePath, duration, size, format, resolution, fps, thumbnail] = event.payload;
+  if (isCancelledLocally(downloadId)) return;
   transferStats.delete(downloadId);
   progressUiState.delete(downloadId);
   stopConversionProgress(downloadId);
@@ -2288,17 +2360,9 @@ window.__TAURI__.event.listen("download-finished", (event) => {
 
 window.__TAURI__.event.listen("download-error", (event) => {
   const [downloadId, errorMessage] = event.payload;
-  
-  // Add helpful message for Vimeo impersonation errors
-  let displayError = getFriendlyErrorMessage(errorMessage || "Download failed");
-  if (errorMessage && (errorMessage.includes("impersonation") || errorMessage.includes("impersonate") || errorMessage.includes("unauthentic"))) {
-    if (errorMessage.includes("unauthenticated request") || errorMessage.includes("mature content")) {
-      displayError = errorMessage + "\n\nThis Vimeo video may require:\n- Authentication (cookies/login)\n- VPN if you're in Europe\n- Or the video may be age-restricted\n\nTry: yt-dlp --cookies-from-browser chrome <URL>";
-    } else {
-      displayError = errorMessage + "\n\nNote: Impersonation support is installed, but this video may require authentication or have location restrictions.";
-    }
-  }
-  
+  if (isCancelledLocally(downloadId)) return;
+  const displayError = getFriendlyErrorMessage(errorMessage || "Download failed");
+
   updateDownload(downloadId, {
     status: "error",
     error: displayError,
