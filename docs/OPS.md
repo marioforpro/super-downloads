@@ -55,4 +55,4 @@ Run before every `gh release create`. Failure means the artifact was built from 
 ## Constraints
 
 - Code signing deferred — Tauri uses own Ed25519 signing
-- Freemium: 5 downloads/day free, unlimited Pro
+- Free: no download limit, email activation (no payments provider since 2026-10-03)

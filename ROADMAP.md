@@ -26,15 +26,15 @@ updated: 2026-08-03
   - target: re-baseline at LS-verify session start
   - source: docs/LAUNCH.md, NEXT.md, docs/OPS.md
   - moved: 2026-05-06
-- **R-SD-002** · P2 · on-hold · Publish launch announcement (Reddit r/macapps + HN Show HN)
-  - on-hold: 2026-10-03 — founder: no announcement for now; the app is for Mario + friends to test first, promotion decided later (`docs/DECISIONS.md` 2026-10-03). Draft kept current for v1.4.0 in `docs/ANNOUNCEMENT-DRAFT.md`.
+- **R-SD-002** · P2 · backlog · Publish launch announcement (Reddit r/macapps + HN Show HN)
+  - backlog: 2026-10-03 (on hold) — founder: no announcement for now; the app is for Mario + friends to test first, promotion decided later (`docs/DECISIONS.md` 2026-10-03). Draft kept current for v1.4.0 in `docs/ANNOUNCEMENT-DRAFT.md`.
   - unblocked: 2026-10-03 — v1.3.0 free-mode build published and the landing is live with free-mode copy; the announcement can go out (`docs/ANNOUNCEMENT-DRAFT.md`). Founder posts.
-  - next: copy DRAFTED (OOO-auto 2026-10-02) → `docs/ANNOUNCEMENT-DRAFT.md` (r/macapps + Show HN + pre-post checklist); post only after the free-mode build ships and `web/src/pages/index.astro` drops «5 downloads per day» / «€29 Pro»
+  - next: none while on hold — when promotion is decided, start from the checklist in `docs/ANNOUNCEMENT-DRAFT.md` §3. [Historical: copy DRAFTED (OOO-auto 2026-10-02) → `docs/ANNOUNCEMENT-DRAFT.md` (r/macapps + Show HN + pre-post checklist); post only after the free-mode build ships and `web/src/pages/index.astro` drops «5 downloads per day» / «€29 Pro»]
   - note: 2026-08-10 · re-anclada por la decisión free-until-further-notice (`docs/DECISIONS.md §2026-08-10`) — el announcement ya NO espera el checkout LS; espera la build en modo free + el copy de landing actualizado. El ángulo "Free for a limited time" ES parte del pitch del announcement.
   - depends_on: R-SD-004
   - source: docs/MARKETING.md
-  - moved: 2026-04-23
-- **R-SD-004** · P0 · active · Relaunch hardening — v1.2.0 reliability release + legal repositioning
+  - moved: 2026-10-03
+- **R-SD-004** · P0 · shipped · Relaunch hardening — v1.2.0 reliability release + legal repositioning
   - note: 2026-10-03 · **v1.3.0 FREE mode shipped** (founder decision 2026-08-10): no daily limit, license gate hidden (LemonSqueezy code intact behind `FREE_MODE`), email activation via `register_activation` → `web/api/activate.js` → Airtable workspace SUPER DOWNLOADS › `SD · Users`; release published, updater serves 1.3.0 (both arches), activation verified E2E. Track C2 (LemonSqueezy) stays deferred.
   - gate: Big Sur (Santalucía / Oriol Villar) client delivery — founder decision 2026-07-27, Weekly Loop. Reopen the moment Big Sur ships. This item is NOT blocked: nothing external stops Track C2, the founder's attention is committed elsewhere and saying so out loud beats carrying an unworked P0. Two consecutive Weekly Loops (2026-07-19, 2026-07-27) named C2 as the next move and neither week moved it — the gate records why instead of letting the board keep asserting a priority that execution contradicts.
   - gate-resolved: 2026-08-03 — founder decision SD-F-002 «Aceptar (a) — ships» (ledger: `00_System/AUDITS/2026-08-03-audit-program-final-consolidation/FOUNDER-DECISIONS-RESPONSES-2026-08-03.md` §1.1). The client-facing Big Sur v1 delivery on 2026-07-30 satisfies the gate ("Big Sur" = the STUDIO client job, not macOS 11). **Track C2 (six Lemon Squeezy E2E gates, `NEXT.md` step 4) is the live next move.** The four remaining STUDIO client loose ends stay in STUDIO as quality/licensing residue and do NOT re-block this item. Unblocks R-SD-002 and R-GROW-003.
@@ -51,7 +51,8 @@ updated: 2026-08-03
   - progress 2026-07-16: **Track B SHIPPED to production** (landing: PostHog cookieless, Privacy rewrite, Terms-as-EULA, /copyright page, tiered platform claims, footer disclaimer; docs/README sanitized). **Track A code COMPLETE** — health protocol v2 live (CERTIFIED OPERATIONAL at baseline) + v1.2.0 reliability code committed (impersonation, wider auth retry, default-browser cookies, engine UI, version guard, onboarding terms), bundled yt-dlp → 2026.07.04, `npm run check` green, signed artifacts built. **Track C1 prepped** (LS compliance email draft + mitigations checklist in NEXT.md; local activation cache still pending — v1.2.x).
   - next: v1.2.0 PUBLISHED 2026-07-16 ✅ (release live, anonymous URLs 200, updater manifest serving) → post-release smoke test + C1 email + C2 E2E gates
   - source: docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md
-  - moved: 2026-07-16
+  - moved: 2026-10-03
+  - shipped: 2026-10-03 — Track B (legal, 2026-07-16) + Track A (reliability: v1.2.0 → v1.4.0 onedir engine, QA pass with live E2E) done; Track C closed (no payments provider). Follow-up lives in NEXT.md (friends-testing phase).
 
 ## Shipped (last 30d)
 

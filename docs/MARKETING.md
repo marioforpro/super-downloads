@@ -1,6 +1,8 @@
 # Marketing Plan — Super Downloads
 
 > Estrategia de marketing inicial. Simplicidad máxima para un solo operador.
+>
+> **2026-10-03:** pricing/promo de este plan (5/día, €29 Pro, LAUNCH30) desfasados — la app es gratis y sin proveedor de pagos; tampoco hay promoción pública por ahora (uso propio + amigos). Ver `docs/DECISIONS.md` 2026-10-03.
 
 ---
 
