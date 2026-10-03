@@ -297,13 +297,61 @@ fn managed_bin_dir() -> Option<PathBuf> {
     )
 }
 
-// Path to the managed yt-dlp if it exists on disk.
+// The engine is yt-dlp's "onedir" macOS build (yt-dlp_macos + _internal/), not
+// the single-file yt-dlp_macos. The single file unpacks itself into a fresh temp
+// dir on every run and macOS scans those new files each time: ~7s per call.
+// The onedir build is scanned once, then starts in ~0.2s.
+const ENGINE_EXE: &str = "yt-dlp_macos";
+const ENGINE_RESOURCE_DIR: &str = "yt-dlp-engine";
+const MANAGED_ENGINE_PREFIX: &str = "engine-";
+
+// Bundled engine: Contents/Resources/yt-dlp-engine/ in the .app; next to the
+// executable in `tauri dev` (target/debug/yt-dlp-engine/).
+fn find_bundled_ytdlp() -> Option<String> {
+    let exe_dir = get_bundled_binaries_dir()?;
+    [
+        exe_dir.join("../Resources").join(ENGINE_RESOURCE_DIR),
+        exe_dir.join(ENGINE_RESOURCE_DIR),
+    ]
+    .iter()
+    .map(|dir| dir.join(ENGINE_EXE))
+    .find(|p| p.exists())
+    .and_then(|p| p.to_str().map(|s| s.to_string()))
+}
+
+// Managed engines live in bin/engine-<tag>/ (tags are dates: YYYY.MM.DD[.N]).
+// Returns (tag, dir) sorted oldest → newest; string order is version order.
+fn managed_engines() -> Vec<(String, PathBuf)> {
+    let Some(bin_dir) = managed_bin_dir() else {
+        return Vec::new();
+    };
+    let mut engines: Vec<(String, PathBuf)> = fs::read_dir(&bin_dir)
+        .map(|entries| {
+            entries
+                .flatten()
+                .filter_map(|e| {
+                    let name = e.file_name().to_str()?.to_string();
+                    let tag = name.strip_prefix(MANAGED_ENGINE_PREFIX)?;
+                    if !is_engine_tag(tag) || !e.path().join(ENGINE_EXE).exists() {
+                        return None;
+                    }
+                    Some((tag.to_string(), e.path()))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+    engines.sort();
+    engines
+}
+
+fn is_engine_tag(tag: &str) -> bool {
+    !tag.is_empty() && tag.chars().all(|c| c.is_ascii_digit() || c == '.')
+}
+
+// Path to the newest managed yt-dlp if one is installed.
 fn find_managed_ytdlp() -> Option<String> {
-    let path = managed_bin_dir()?.join("yt-dlp");
-    if path.exists() {
-        return path.to_str().map(|s| s.to_string());
-    }
-    None
+    let (_, dir) = managed_engines().pop()?;
+    dir.join(ENGINE_EXE).to_str().map(|s| s.to_string())
 }
 
 // Find yt-dlp executable in common locations
@@ -315,8 +363,9 @@ fn find_ytdlp() -> Option<String> {
         return Some(managed);
     }
 
-    // SECOND: bundled binary (for distributed app)
-    if let Some(bundled) = find_bundled_binary("yt-dlp") {
+    // SECOND: bundled engine (for distributed app)
+    if let Some(bundled) = find_bundled_ytdlp() {
+        eprintln!("Using bundled yt-dlp at: {}", bundled);
         return Some(bundled);
     }
 
@@ -2012,6 +2061,44 @@ fn parse_progress(line: &str) -> Option<(u8, String)> {
 
 #[cfg(test)]
 mod tests {
+    // Live (network) end-to-end check of the engine self-update in a throwaway
+    // HOME: legacy cleanup → onedir install → fast second start → no re-download.
+    // Mutates HOME, so run it alone:
+    //   cargo test engine_self_update_live -- --ignored --nocapture
+    #[test]
+    #[ignore]
+    fn engine_self_update_live() {
+        use std::time::Instant;
+        let home = std::env::temp_dir().join(format!("sd-engine-test-{}", std::process::id()));
+        let bin = home.join("Library/Application Support/com.supermac.super-downloads/bin");
+        std::fs::create_dir_all(bin.join("engine-2000.01.01.tmp")).unwrap();
+        std::fs::write(bin.join("yt-dlp"), b"legacy onefile").unwrap();
+        std::fs::write(bin.join("yt-dlp.tmp"), b"interrupted").unwrap();
+        std::env::set_var("HOME", &home);
+
+        super::prepare_ytdlp_engine();
+        assert!(!bin.join("yt-dlp").exists(), "legacy onefile engine removed");
+        assert!(!bin.join("yt-dlp.tmp").exists(), "interrupted file removed");
+        assert!(!bin.join("engine-2000.01.01.tmp").exists(), "interrupted dir removed");
+
+        let tag = tauri::async_runtime::block_on(super::download_latest_ytdlp()).unwrap();
+        let managed = super::find_managed_ytdlp().expect("managed engine installed");
+        assert!(managed.ends_with(&format!("engine-{}/yt-dlp_macos", tag)));
+
+        let t = Instant::now();
+        assert_eq!(super::binary_version(&managed).as_deref(), Some(tag.as_str()));
+        let warm = t.elapsed();
+        println!("LIVE engine {} · warm --version {:?}", tag, warm);
+        assert!(warm.as_secs() < 3, "onedir engine should start fast once scanned");
+
+        let t = Instant::now();
+        let again = tauri::async_runtime::block_on(super::download_latest_ytdlp()).unwrap();
+        assert_eq!(again, tag);
+        println!("LIVE second update call (no download) {:?}", t.elapsed());
+
+        let _ = std::fs::remove_dir_all(&home);
+    }
+
     #[test]
     fn vimeo_oauth_401_signature_is_recognised() {
         let err = "ERROR: [vimeo] 76979871: Unable to download macos API JSON: HTTP Error 401: Unauthorized";
@@ -2717,24 +2804,48 @@ fn binary_version(path: &str) -> Option<String> {
         .filter(|v| !v.is_empty())
 }
 
-// After an app update the bundled yt-dlp may be fresher than an old managed
-// copy. yt-dlp versions are dates (YYYY.MM.DD), so a plain string comparison
-// orders them correctly. Delete the managed copy when it lost the race — the
-// bundled binary takes over until the next self-update.
-fn prune_stale_managed_ytdlp() {
-    let (Some(managed), Some(bundled)) = (find_managed_ytdlp(), find_bundled_binary("yt-dlp"))
-    else {
-        return;
-    };
-    let (Some(mv), Some(bv)) = (binary_version(&managed), binary_version(&bundled)) else {
-        return;
-    };
-    if mv < bv {
-        eprintln!(
-            "Managed yt-dlp {} is older than bundled {} — removing managed copy",
-            mv, bv
-        );
-        let _ = fs::remove_file(&managed);
+// Launch-time engine housekeeping (background thread, never on the UI path):
+// 1. Remove leftovers: the single-file engine of v1.2–1.3 and interrupted
+//    downloads (*.tmp).
+// 2. Keep only the newest managed engine. Older ones are removed here, at
+//    launch, never during an update, so a running download keeps its files.
+// 3. After an app update the bundled engine may be fresher than the managed
+//    one; drop the managed copy when it lost the race. Versions are dates
+//    (YYYY.MM.DD), so string order is version order.
+// 4. Warm the active engine: its first run after install/update is scanned by
+//    macOS (~7s); paying that here keeps it off the user's first download.
+fn prepare_ytdlp_engine() {
+    if let Some(bin_dir) = managed_bin_dir() {
+        let _ = fs::remove_file(bin_dir.join("yt-dlp"));
+        if let Ok(entries) = fs::read_dir(&bin_dir) {
+            for entry in entries.flatten() {
+                if entry.file_name().to_string_lossy().ends_with(".tmp") {
+                    let path = entry.path();
+                    let _ = fs::remove_dir_all(&path).or_else(|_| fs::remove_file(&path));
+                }
+            }
+        }
+    }
+
+    let mut engines = managed_engines();
+    if let Some((newest_tag, newest_dir)) = engines.pop() {
+        for (_, dir) in engines {
+            let _ = fs::remove_dir_all(dir);
+        }
+        let bundled_version = find_bundled_ytdlp().and_then(|p| binary_version(&p));
+        if let Some(bv) = bundled_version {
+            if newest_tag < bv {
+                eprintln!(
+                    "Managed yt-dlp {} is older than bundled {} — removing managed copy",
+                    newest_tag, bv
+                );
+                let _ = fs::remove_dir_all(newest_dir);
+            }
+        }
+    }
+
+    if let Some(active) = find_ytdlp() {
+        let _ = binary_version(&active);
     }
 }
 
@@ -2745,15 +2856,14 @@ struct YtdlpVersionInfo {
 }
 
 // Engine version shown in Settings next to the "Update engine" button.
-// Async + spawn_blocking: the standalone yt-dlp takes ~7s to answer --version
-// (it unpacks itself and macOS scans the fresh files on every run). A sync
-// command would run on the main thread and freeze the UI at launch.
+// Async + spawn_blocking: an engine's first run after install is scanned by
+// macOS (~7s). A sync command would run on the main thread and freeze the UI.
 #[tauri::command]
 async fn get_ytdlp_version() -> YtdlpVersionInfo {
     tauri::async_runtime::spawn_blocking(|| {
         let source = if find_managed_ytdlp().is_some() {
             "self-updated"
-        } else if find_bundled_binary("yt-dlp").is_some() {
+        } else if find_bundled_ytdlp().is_some() {
             "bundled"
         } else {
             "system"
@@ -2770,9 +2880,10 @@ async fn get_ytdlp_version() -> YtdlpVersionInfo {
     })
 }
 
-// Download the latest standalone macOS yt-dlp into the managed bin dir.
-// Atomic: download → chmod → verify --version → rename into place.
-// Returns the new version tag on success. Never touches the bundled binary.
+// Install the latest onedir macOS yt-dlp into bin/engine-<tag>/.
+// Atomic: download zip → extract into engine-<tag>.tmp → verify --version →
+// rename into place. Skips the download when that tag is already installed.
+// Returns the version tag on success. Never touches the bundled engine.
 async fn download_latest_ytdlp() -> Result<String, String> {
     let bin_dir = managed_bin_dir().ok_or("Could not resolve app-support dir")?;
     fs::create_dir_all(&bin_dir).map_err(|e| format!("Could not create bin dir: {}", e))?;
@@ -2796,9 +2907,18 @@ async fn download_latest_ytdlp() -> Result<String, String> {
         .and_then(|v| v.as_str())
         .ok_or("No tag_name in latest release")?
         .to_string();
+    // The tag becomes a directory name — accept only YYYY.MM.DD[.N].
+    if !is_engine_tag(&tag) {
+        return Err(format!("Unexpected yt-dlp tag: {}", tag));
+    }
+
+    let final_dir = bin_dir.join(format!("{}{}", MANAGED_ENGINE_PREFIX, tag));
+    if final_dir.join(ENGINE_EXE).exists() {
+        return Ok(tag);
+    }
 
     let url = format!(
-        "https://github.com/yt-dlp/yt-dlp/releases/download/{}/yt-dlp_macos",
+        "https://github.com/yt-dlp/yt-dlp/releases/download/{}/yt-dlp_macos.zip",
         tag
     );
     let bytes = client
@@ -2810,41 +2930,44 @@ async fn download_latest_ytdlp() -> Result<String, String> {
         .await
         .map_err(|e| format!("Read error: {}", e))?;
 
-    // Sanity: the standalone macOS binary is tens of MB; reject truncated/HTML responses.
-    if bytes.len() < 1_000_000 {
+    // Sanity: the onedir zip is tens of MB; reject truncated/HTML responses.
+    if bytes.len() < 10_000_000 {
         return Err(format!(
             "Downloaded yt-dlp too small ({} bytes)",
             bytes.len()
         ));
     }
 
-    let tmp_path = bin_dir.join("yt-dlp.tmp");
-    let final_path = bin_dir.join("yt-dlp");
-    fs::write(&tmp_path, &bytes).map_err(|e| format!("Write failed: {}", e))?;
+    let zip_path = bin_dir.join(format!("engine-{}.zip.tmp", tag));
+    let tmp_dir = bin_dir.join(format!("{}{}.tmp", MANAGED_ENGINE_PREFIX, tag));
+    let _ = fs::remove_dir_all(&tmp_dir);
+    fs::write(&zip_path, &bytes).map_err(|e| format!("Write failed: {}", e))?;
 
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = fs::metadata(&tmp_path)
-            .map_err(|e| format!("Stat failed: {}", e))?
-            .permissions();
-        perms.set_mode(0o755);
-        fs::set_permissions(&tmp_path, perms).map_err(|e| format!("chmod failed: {}", e))?;
-    }
-
-    // Verify the freshly downloaded binary actually runs before promoting it.
-    let runs = Command::new(&tmp_path)
-        .arg("--version")
-        .output()
-        .map(|o| o.status.success())
+    // ditto ships with macOS and keeps the executable bits stored in the zip.
+    let extracted = Command::new("/usr/bin/ditto")
+        .args(["-x", "-k"])
+        .arg(&zip_path)
+        .arg(&tmp_dir)
+        .status()
+        .map(|s| s.success())
         .unwrap_or(false);
+    let _ = fs::remove_file(&zip_path);
+
+    // Verify the freshly extracted engine actually runs before promoting it.
+    // This first run is also the slow macOS scan, so the user never pays it.
+    let runs = extracted
+        && tmp_dir
+            .join(ENGINE_EXE)
+            .to_str()
+            .and_then(binary_version)
+            .is_some();
     if !runs {
-        let _ = fs::remove_file(&tmp_path);
+        let _ = fs::remove_dir_all(&tmp_dir);
         return Err("Downloaded yt-dlp failed its --version check".to_string());
     }
 
-    // Atomic promote — a partial/corrupt download never becomes the active binary.
-    fs::rename(&tmp_path, &final_path).map_err(|e| format!("Promote failed: {}", e))?;
+    // Atomic promote — a partial/corrupt download never becomes the active engine.
+    fs::rename(&tmp_dir, &final_dir).map_err(|e| format!("Promote failed: {}", e))?;
     Ok(tag)
 }
 
@@ -2871,7 +2994,7 @@ pub fn run() {
             tauri::async_runtime::spawn(async {
                 // A stale managed copy must never shadow a fresher bundled binary
                 // (e.g. right after an app update). Prune before self-updating.
-                let _ = tauri::async_runtime::spawn_blocking(prune_stale_managed_ytdlp).await;
+                let _ = tauri::async_runtime::spawn_blocking(prepare_ytdlp_engine).await;
 
                 // Weekly yt-dlp self-update; on any failure the bundled binary
                 // remains the fallback (see find_ytdlp). The check is stamped

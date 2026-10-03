@@ -80,8 +80,8 @@ weekly yt-dlp self-update, shipped in v1.2.0).
 ## Runbook (escalation by symptom)
 
 1. **Tier-1 FAIL** → refresh yt-dlp and re-probe (fix for ~90% of failures):
-   download the latest `yt-dlp_macos` (universal) into
-   `src-tauri/binaries/yt-dlp-{aarch64,x86_64}-apple-darwin`, re-run the check,
+   extract the latest `yt-dlp_macos.zip` (universal onedir build, since v1.4)
+   into `src-tauri/binaries/yt-dlp-onedir/` (`docs/DEVELOPMENT.md`), re-run the check,
    and ship a patch release. Users on v1.2.0+ also receive the engine via the
    in-app weekly self-update, but the bundle must not rot (first-run experience).
 2. **Tier-1 FAIL persists on a fresh engine** → the platform changed and yt-dlp

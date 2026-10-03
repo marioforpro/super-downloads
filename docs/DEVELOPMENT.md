@@ -62,15 +62,23 @@ npm run check:rust     # cargo fmt + clippy + test
 5. **`src/index.html`**: Update placeholder text if appropriate
 
 ## Updating Bundled Binaries
-The app bundles yt-dlp, ffmpeg, and ffprobe for both architectures in `src-tauri/binaries/`.
+The app bundles ffmpeg and ffprobe per architecture (`externalBin`) and yt-dlp as
+a universal **onedir** build (`src-tauri/binaries/yt-dlp-onedir/` → bundle
+resource `Contents/Resources/yt-dlp-engine/`). Not the single-file `yt-dlp_macos`:
+that one unpacks itself into a fresh temp dir on every run and macOS scans those
+files each time (~7s per call, measured 2026-10-03); onedir is scanned once, then
+starts in ~0.2s.
 
 To update yt-dlp:
 ```bash
-# Download latest for both architectures
-curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos -o src-tauri/binaries/yt-dlp-aarch64-apple-darwin
-curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos -o src-tauri/binaries/yt-dlp-x86_64-apple-darwin
-chmod +x src-tauri/binaries/yt-dlp-*
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos.zip -o /tmp/yt-dlp_macos.zip
+rm -rf src-tauri/binaries/yt-dlp-onedir
+ditto -x -k /tmp/yt-dlp_macos.zip src-tauri/binaries/yt-dlp-onedir
+src-tauri/binaries/yt-dlp-onedir/yt-dlp_macos --version
 ```
+The in-app self-update installs the same zip into
+`~/Library/Application Support/com.supermac.super-downloads/bin/engine-<tag>/`.
+Live test: `cd src-tauri && cargo test engine_self_update_live -- --ignored --nocapture`.
 
 ## Debugging
 - Backend logs go to stderr: `eprintln!()` statements throughout lib.rs
@@ -106,7 +114,7 @@ version-less names the landing page links to via `releases/latest/download/`).
 > parallel — release builds can OOM. Permanent fix: `brew uninstall rust` and use
 > rustup exclusively.
 
-Verify the fix shipped: mount a DMG and check `Super Downloads.app/Contents/MacOS/yt-dlp --version`.
+Verify the fix shipped: mount a DMG and check `Super Downloads.app/Contents/Resources/yt-dlp-engine/yt-dlp_macos --version`.
 Then run `./scripts/check-release-artifacts.sh dist/Super-Downloads_*.dmg` before publishing.
 
 ## Releasing an update (one-click auto-update)

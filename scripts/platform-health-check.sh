@@ -103,8 +103,10 @@ case "$ARCH" in
   *)      YTDLP_ARCH="aarch64-apple-darwin" ;;
 esac
 
-BUNDLED="src-tauri/binaries/yt-dlp-${YTDLP_ARCH}"
-MANAGED="$HOME/Library/Application Support/com.supermac.super-downloads/bin/yt-dlp"
+# Since v1.4 the app ships yt-dlp's onedir build (fast start); the managed
+# self-update copy is the newest bin/engine-<tag>/ directory.
+BUNDLED="src-tauri/binaries/yt-dlp-onedir/yt-dlp_macos"
+MANAGED="$(ls -d "$HOME/Library/Application Support/com.supermac.super-downloads/bin/engine-"*/ 2>/dev/null | sort | tail -1)yt-dlp_macos"
 if [[ "$USE_SYSTEM" == "1" ]]; then
   YTDLP="$(command -v yt-dlp || true)"
   SOURCE="system"
@@ -301,7 +303,11 @@ if [[ "$DOWNLOAD_PROBE" == "1" ]]; then
   printf " %-10s %-3s" "pipeline" "T1"
   tmpdir="$(mktemp -d /tmp/sd-download-probe.XXXXXX)"
   yt_url="$(printf '%s\n' "${PROBES[@]}" | awk -F'|' '$1=="youtube"{print $2}')"
-  "$YTDLP" -f "worst[height>=360][ext=mp4]/worst" --no-warnings --socket-timeout 30 \
+  # Mirror the app: YouTube no longer serves progressive (single-file) formats,
+  # so a real download is always separate video + audio merged by ffmpeg.
+  "$YTDLP" -f "bestvideo[vcodec^=avc1][height<=360]+bestaudio[acodec^=mp4a]/bestvideo[height<=360]+bestaudio/best" \
+      --ffmpeg-location "src-tauri/binaries/ffmpeg-${YTDLP_ARCH}" --merge-output-format mp4 \
+      --download-sections "*0-10" --no-warnings --socket-timeout 30 \
       --user-agent "$UA" -o "$tmpdir/probe.%(ext)s" "$yt_url" >/dev/null 2>/tmp/sd_dp_err
   dprc=$?
   f="$(find "$tmpdir" -type f -size +100k | head -1)"
