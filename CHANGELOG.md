@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.3.0] — 2026-10-03
+
+Free mode — the whole app is free for a limited time, activated with an email.
+
+### Changed
+- **No daily limit.** The 5-downloads/day freemium cap and the Pro/license UI are hidden behind `FREE_MODE` (LemonSqueezy code kept intact, Track C deferred).
+- Landing: "Free for a limited time", single free plan, install FAQ for the not-yet-notarized build ("Open Anyway" / `xattr`), privacy policy covers the activation email.
+
+### Added
+- **Email activation** — asked once (onboarding for new users, a one-time card for existing ones; Pro licence holders can skip). Stored locally first; sent to `superdownloads.app/api/activate` → Airtable in the background and retried on launch. Downloads are never blocked by a server failure.
+- `web/api/activate.js` — Vercel function (env: `AIRTABLE_TOKEN`, `AIRTABLE_BASE_ID`, `AIRTABLE_SD_USERS_TABLE`).
+
+### Fixed
+- LinkedIn: try logged-out first, browser cookies only as retry (`99768b6`).
+- Vimeo: match yt-dlp 2026.08+ login-wall text in the embed retry (`c587dbb`).
+
+---
+
 ## [1.2.0] — 2026-07-16 (released)
 
 GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.2.0
