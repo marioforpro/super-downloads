@@ -2745,19 +2745,29 @@ struct YtdlpVersionInfo {
 }
 
 // Engine version shown in Settings next to the "Update engine" button.
+// Async + spawn_blocking: the standalone yt-dlp takes ~7s to answer --version
+// (it unpacks itself and macOS scans the fresh files on every run). A sync
+// command would run on the main thread and freeze the UI at launch.
 #[tauri::command]
-fn get_ytdlp_version() -> YtdlpVersionInfo {
-    let source = if find_managed_ytdlp().is_some() {
-        "self-updated"
-    } else if find_bundled_binary("yt-dlp").is_some() {
-        "bundled"
-    } else {
-        "system"
-    };
-    YtdlpVersionInfo {
-        version: find_ytdlp().and_then(|p| binary_version(&p)),
-        source: source.to_string(),
-    }
+async fn get_ytdlp_version() -> YtdlpVersionInfo {
+    tauri::async_runtime::spawn_blocking(|| {
+        let source = if find_managed_ytdlp().is_some() {
+            "self-updated"
+        } else if find_bundled_binary("yt-dlp").is_some() {
+            "bundled"
+        } else {
+            "system"
+        };
+        YtdlpVersionInfo {
+            version: find_ytdlp().and_then(|p| binary_version(&p)),
+            source: source.to_string(),
+        }
+    })
+    .await
+    .unwrap_or(YtdlpVersionInfo {
+        version: None,
+        source: "unknown".to_string(),
+    })
 }
 
 // Download the latest standalone macOS yt-dlp into the managed bin dir.
@@ -2856,21 +2866,27 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|_app| {
-            // A stale managed copy must never shadow a fresher bundled binary
-            // (e.g. right after an app update). Cheap: two --version calls.
-            prune_stale_managed_ytdlp();
+            // Engine maintenance runs off the main thread: each yt-dlp --version
+            // costs ~7s, and setup() blocks the window until it returns.
+            tauri::async_runtime::spawn(async {
+                // A stale managed copy must never shadow a fresher bundled binary
+                // (e.g. right after an app update). Prune before self-updating.
+                let _ = tauri::async_runtime::spawn_blocking(prune_stale_managed_ytdlp).await;
 
-            // Weekly background yt-dlp self-update. Non-blocking; on any failure
-            // the bundled binary remains the fallback (see find_ytdlp).
-            if should_check_ytdlp_update() {
-                touch_ytdlp_check();
-                tauri::async_runtime::spawn(async {
+                // Weekly yt-dlp self-update; on any failure the bundled binary
+                // remains the fallback (see find_ytdlp). The check is stamped
+                // only on success, so an update interrupted by quitting the app
+                // retries on the next launch instead of a week later.
+                if should_check_ytdlp_update() {
                     match download_latest_ytdlp().await {
-                        Ok(v) => eprintln!("yt-dlp self-update: updated to {}", v),
+                        Ok(v) => {
+                            touch_ytdlp_check();
+                            eprintln!("yt-dlp self-update: updated to {}", v);
+                        }
                         Err(e) => eprintln!("yt-dlp self-update skipped: {}", e),
                     }
-                });
-            }
+                }
+            });
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

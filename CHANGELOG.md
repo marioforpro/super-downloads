@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.3.1] — 2026-10-03
+
+### Fixed
+- **Launch freeze (~7s).** The app froze right after opening: the Settings engine label called `get_ytdlp_version`, a sync command (runs on the main thread), and the standalone yt-dlp takes ~7s to answer `--version` (it unpacks itself and macOS scans the fresh files on every run). Now async + `spawn_blocking`. The startup stale-engine prune (two more `--version` calls, ~14s when a self-updated engine exists) moved off `setup()` into a background task.
+- Weekly engine self-update is stamped only on success — quitting the app mid-update no longer skips it for a week.
+
+### Changed
+- Activation: the email opt-in is ticked by default, copy "Email me about updates and new products". Privacy policy updated (legitimate interest / LSSI 21.2, opt-out at activation and in every email).
+
+---
+
 ## [1.3.0] — 2026-10-03
 
 Free mode — the whole app is free for a limited time, activated with an email.

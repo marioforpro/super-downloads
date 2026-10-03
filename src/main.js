@@ -314,8 +314,8 @@ function activationFieldsHtml() {
   return `
       <input type="email" class="activation-email-input" placeholder="you@email.com" spellcheck="false" autocomplete="email" />
       <label class="checkbox-label activation-optin">
-        <input type="checkbox" class="activation-optin-checkbox" />
-        <span>Send me product updates (rare)</span>
+        <input type="checkbox" class="activation-optin-checkbox" checked />
+        <span>Email me about updates and new products</span>
       </label>`;
 }
 
