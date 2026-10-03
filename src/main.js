@@ -93,7 +93,6 @@ const MAX_WINDOW_HEIGHT = 1200;
 const MIN_VISIBLE_DOWNLOADS = 6;
 const FALLBACK_DOWNLOAD_ROW_HEIGHT = 68;
 const MAX_TERMINAL_HISTORY = 100;
-const CONVERSION_PROGRESS_CAP = 93;
 const CLIPBOARD_WATCH_INTERVAL_MS = 1200;
 // Free until further notice: flip to false to restore the freemium limit + license UI.
 const FREE_MODE = true;
@@ -1173,6 +1172,7 @@ function createDownloadItemHTML(download) {
               ${download.status === 'converting' ? `
                 <span class="download-item-converting">Converting to H.264 for editing…</span>
                 <span class="download-item-percent converting">${conversionPct > 0 ? `${conversionPct}%` : ""}</span>
+                <span class="download-item-eta">${escapeHtml(download.eta || "")}</span>
               ` : download.status === 'merging' ? `
                 <span class="download-item-converting">Finishing…</span>
               ` : isStarting ? `
@@ -1330,40 +1330,6 @@ function stopConversionProgress(downloadId) {
     clearInterval(state.timer);
   }
   conversionState.delete(downloadId);
-}
-
-function startConversionProgress(downloadId) {
-  const existing = conversionState.get(downloadId);
-  if (existing?.timer) {
-    return;
-  }
-
-  const timer = setInterval(() => {
-    const download = downloads.find(d => d.id === downloadId);
-    if (!download || download.status !== "converting") {
-      stopConversionProgress(downloadId);
-      return;
-    }
-
-    const current = Number.isFinite(download.conversionProgress) ? download.conversionProgress : 0;
-    if (current >= CONVERSION_PROGRESS_CAP) {
-      return;
-    }
-
-    // Keep conversion progress believable: smooth and slower near the end,
-    // and never pretend it is "almost done" for too long.
-    const bump = current < 25
-      ? 0.95
-      : current < 55
-        ? 0.65
-        : current < 78
-          ? 0.4
-          : 0.2;
-    const next = Math.min(CONVERSION_PROGRESS_CAP, current + bump);
-    updateDownload(downloadId, { conversionProgress: next });
-  }, 420);
-
-  conversionState.set(downloadId, { timer });
 }
 
 function isHistoryEnabled() {
@@ -2290,11 +2256,21 @@ window.__TAURI__.event.listen("download-progress", (event) => {
   }
   const smoothedMetrics = getSmoothedProgressMetrics(downloadId, percent, speed || "");
   const isConverting = nextStatus === "converting";
+  // Conversion ETA from real ffmpeg progress: elapsed × remaining / done.
+  let conversionEta = "";
+  if (isConverting) {
+    const conv = conversionState.get(downloadId) || { startedAt: performance.now() };
+    conversionState.set(downloadId, conv);
+    const elapsed = (performance.now() - conv.startedAt) / 1000;
+    if (percent >= 3 && elapsed > 3) {
+      conversionEta = formatEtaFromSeconds((elapsed * (100 - percent)) / percent);
+    }
+  }
   // Real conversion progress comes from ffmpeg in the backend.
   const updates = {
     progress: isConverting ? currentDownload.progress : Math.max(currentDownload.progress || 0, percent),
     speed: isConverting ? "" : smoothedMetrics.speed,
-    eta: isConverting ? "" : smoothedMetrics.eta,
+    eta: isConverting ? conversionEta : smoothedMetrics.eta,
     conversionProgress: isConverting
       ? (currentDownload.status === "converting" ? Math.max(currentDownload.conversionProgress || 0, percent) : percent)
       : 0
