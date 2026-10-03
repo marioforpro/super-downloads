@@ -12,6 +12,7 @@ Faster downloads — every yt-dlp call used to cost ~7s before any work started.
 - **Engine switched to yt-dlp's onedir build** (`yt-dlp_macos.zip`, bundled as `Contents/Resources/yt-dlp-engine/`). The single-file build unpacked itself into a fresh temp dir on every run and macOS scanned those files each time: ~7s per call, and a download makes several (impersonation probe, metadata, download). Onedir is scanned once, then starts in ~0.2s (measured).
 - Engine self-update installs the onedir zip into `bin/engine-<tag>/` (ditto extract → `--version` check → atomic rename); skips the download when that tag is already installed (it re-downloaded weekly before). Older engines are removed at the next launch, never mid-download.
 - At launch, a background task cleans up the v1.2–1.3 single-file engine and interrupted downloads, and warms the active engine so its one-time macOS scan never lands on the user's first download.
+- **No needless re-encode at 4K.** "Best Available" re-encoded every 1440p+ video to H.264, even when the source already offered H.264 at that resolution (Vimeo 4K). Now it converts only when the top resolution exists solely as VP9/AV1 (YouTube 4K) — faster and lossless otherwise.
 - Health check: probes the onedir engine; the YouTube download probe now merges video+audio like the app (YouTube no longer serves single-file formats, which made the old probe report a false pipeline FAIL).
 
 ---

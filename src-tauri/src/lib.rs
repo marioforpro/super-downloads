@@ -619,6 +619,11 @@ fn download_video(
             _ => None,
         };
         let mut has_h264_for_requested = false;
+        // Tallest stream overall vs tallest H.264 stream. When H.264 reaches the
+        // top resolution (e.g. Vimeo 4K), "Best Available" takes it directly
+        // instead of re-encoding (YouTube 4K is VP9/AV1 only, so it still converts).
+        let mut max_height: u64 = 0;
+        let mut max_h264_height: u64 = 0;
 
         // Try metadata extraction for all videos, including Vimeo
         // For Vimeo, try without cookies first (many videos are public)
@@ -688,6 +693,7 @@ fn download_video(
                         if let Some(formats) = json["formats"].as_array() {
                             for fmt in formats {
                                 if let Some(height) = fmt["height"].as_u64() {
+                                    max_height = max_height.max(height);
                                     if height >= 1440 {
                                         has_4k_available = true;
                                         eprintln!(
@@ -702,6 +708,7 @@ fn download_video(
                                             || vcodec_lower.contains("h264"))
                                             && vcodec_lower != "none";
                                         if is_h264 {
+                                            max_h264_height = max_h264_height.max(height);
                                             if let Some(max_height) = requested_max_height {
                                                 if height <= max_height {
                                                     has_h264_for_requested = true;
@@ -914,20 +921,22 @@ fn download_video(
 
         // Determine format selector based on quality setting and available resolutions
         // For "Best Available":
-        //   - If 4K+ available: get best quality (VP9/AV1) and convert to H.264
-        //   - If max is 1080p or lower: prefer H.264 directly (fast, no conversion)
+        //   - If 4K+ is only available as VP9/AV1 (YouTube): get it and convert to H.264
+        //   - Otherwise (max ≤1080p, or H.264 reaches the top, e.g. Vimeo 4K):
+        //     prefer H.264 directly (fast, no conversion, no quality loss)
         // For specific resolutions: prefer H.264 directly
+        let best_needs_conversion = has_4k_available && max_h264_height < max_height;
         let format_selector = match quality.as_deref() {
             _ if is_audio_only => "bestaudio/best",
             Some("1080p") => "bestvideo[vcodec^=avc1][height<=1080]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1][height<=1080]+bestaudio/bestvideo[height<=1080]+bestaudio/best[height<=1080]/best",
             Some("720p") => "bestvideo[vcodec^=avc1][height<=720]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1][height<=720]+bestaudio/bestvideo[height<=720]+bestaudio/best[height<=720]/best",
             _ => {
-                // "Best Available" - check if 4K+ is available
-                if has_4k_available {
-                    // 4K available: get best quality (will convert to H.264)
+                // "Best Available" - is the top resolution H.264 already?
+                if best_needs_conversion {
+                    // 4K+ only as VP9/AV1: get best quality (will convert to H.264)
                     "bestvideo+bestaudio/best"
                 } else {
-                    // Max is 1080p or lower: prefer H.264 directly (no conversion needed)
+                    // H.264 covers the top resolution: take it directly (no conversion needed)
                     "bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/bestvideo[vcodec^=avc1]+bestaudio/bestvideo+bestaudio/best"
                 }
             }
@@ -973,10 +982,10 @@ fn download_video(
         }
 
         // Only convert when needed:
-        // - "Best Available" with 4K+ content: convert VP9/AV1 to H.264
+        // - "Best Available" with 4K+ only as VP9/AV1: convert to H.264
         // - No H.264 stream available for requested quality: convert for Premiere compatibility
-        let needs_conversion =
-            !is_audio_only && ((is_best_available && has_4k_available) || !has_h264_for_requested);
+        let needs_conversion = !is_audio_only
+            && ((is_best_available && best_needs_conversion) || !has_h264_for_requested);
 
         if needs_conversion {
             // Re-encode video to H.264 using GPU (VideoToolbox) - optimized for Apple Silicon
@@ -2077,19 +2086,31 @@ mod tests {
         std::env::set_var("HOME", &home);
 
         super::prepare_ytdlp_engine();
-        assert!(!bin.join("yt-dlp").exists(), "legacy onefile engine removed");
+        assert!(
+            !bin.join("yt-dlp").exists(),
+            "legacy onefile engine removed"
+        );
         assert!(!bin.join("yt-dlp.tmp").exists(), "interrupted file removed");
-        assert!(!bin.join("engine-2000.01.01.tmp").exists(), "interrupted dir removed");
+        assert!(
+            !bin.join("engine-2000.01.01.tmp").exists(),
+            "interrupted dir removed"
+        );
 
         let tag = tauri::async_runtime::block_on(super::download_latest_ytdlp()).unwrap();
         let managed = super::find_managed_ytdlp().expect("managed engine installed");
         assert!(managed.ends_with(&format!("engine-{}/yt-dlp_macos", tag)));
 
         let t = Instant::now();
-        assert_eq!(super::binary_version(&managed).as_deref(), Some(tag.as_str()));
+        assert_eq!(
+            super::binary_version(&managed).as_deref(),
+            Some(tag.as_str())
+        );
         let warm = t.elapsed();
         println!("LIVE engine {} · warm --version {:?}", tag, warm);
-        assert!(warm.as_secs() < 3, "onedir engine should start fast once scanned");
+        assert!(
+            warm.as_secs() < 3,
+            "onedir engine should start fast once scanned"
+        );
 
         let t = Instant::now();
         let again = tauri::async_runtime::block_on(super::download_latest_ytdlp()).unwrap();
