@@ -1,40 +1,39 @@
-# BORRADOR — no publicar sin OK de Mario (OOO-auto 2026-10-02)
+# BORRADOR EN PAUSA — no publicar (decisión founder 2026-10-03)
 
-SUPER-DOWNLOADS · announcement copy (R-SD-002). Hechos sólo de README.md, CONTEXT.md, docs/DECISIONS.md (2026-08-10, 2026-08-16), ROADMAP.md, docs/LAUNCH-PLAN.md, docs/ARCHITECTURE.md, THIRD-PARTY-NOTICES (vía README), web/src/pages/index.astro. Nada se ha publicado.
-
-Ángulo (ROADMAP R-SD-002 nota 2026-08-10): "Free for a limited time" ES parte del pitch. Sin fecha de fin comprometida.
+> **Estado:** R-SD-002 **en pausa**. Mario usa la app él mismo y con amigos para testearla; la promoción pública se decide más adelante (`docs/DECISIONS.md` 2026-10-03). Este copy se mantiene al día para ese momento — no es un plan activo.
+>
+> Actualizado 2026-10-03 contra la **v1.4.0** publicada. Hechos verificados en la sesión de QA de ese día (E2E real en 7 plataformas).
 
 ---
 
 ## 1. r/macapps
 
 **Título, opción A**
-Super Downloads: a free (for a limited time) macOS video downloader for editors, outputs Premiere-ready H.264/MP4 [I'm the dev]
+Super Downloads: a free macOS video downloader for editors — outputs Premiere-ready H.264/MP4 [I'm the dev]
 
 **Título, opción B**
-I built a native macOS app that saves videos as edit-ready H.264/MP4 for Premiere Pro. Free for now, feedback wanted
+I built a native Mac app that saves web video as edit-ready H.264/MP4 for Premiere Pro. Free, feedback wanted
 
-**Cuerpo (~230 palabras)**
+**Cuerpo (~240 palabras)**
 
-Hi r/macapps, I'm Mario, the developer of Super Downloads. Disclosure: it's my own app. It's free for now ("free for a limited time", no end date set, and I'll say so here before anything changes).
+Hi r/macapps, I'm Mario, the developer of Super Downloads. Disclosure: it's my own app. It's free for now (no end date set, and I'll say so here before anything changes).
 
 **What it does**
-- Paste a video URL, it joins a queue with live progress and speed.
-- Works out of the box with YouTube, TikTok and Vimeo.
-- Instagram, Facebook, X/Twitter and LinkedIn work best-effort and can use your browser's login session. The session stays local; the app never sees or stores your passwords.
-- Everything is converted to H.264/AAC/MP4 so it drops into Premiere Pro without re-encoding.
-- Also: MP3-only mode, clipboard auto-add, dark/light theme, optional download history (off by default).
+- Paste a video URL, it joins a queue with live progress, speed and time remaining.
+- YouTube, TikTok and Vimeo work out of the box. X/Twitter, Instagram, Facebook and LinkedIn work too and can use your browser's login session when a post needs it — the session stays on your Mac.
+- Every file ends up as H.264/AAC/MP4, so it drops straight into Premiere Pro. "Best" keeps the highest resolution (4K included) and converts on your Mac's hardware encoder with a real progress bar; 1080p/720p are the fast options.
+- Also: MP3-only mode, clipboard auto-add, light/dark theme, optional download history.
 
 **What it doesn't do**
-- It's meant for content you own, have licensed, or are authorized to download. It doesn't circumvent DRM. [VERIFICAR: "no DRM circumvention" aparece en el borrador del email a LemonSqueezy (NEXT.md), no en el README/landing; confirmar antes de afirmarlo]
+- It's for content you own, have licensed, or are authorized to download. It never circumvents DRM — Vimeo videos whose owner turned on Vimeo's DRM can't be downloaded, and the app says so.
 - Instagram/Facebook/X/LinkedIn can break when those sites change. I'd rather say that up front.
 - macOS only (Apple Silicon and Intel).
 
-**Heads-up:** the build is unsigned (no Apple Developer ID yet). On macOS 15 use System Settings > Privacy & Security > "Open Anyway", or run `xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"`.
+**Heads-up:** the build isn't signed with an Apple Developer ID yet. On first launch use System Settings → Privacy & Security → "Open Anyway", or run `xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"`.
 
-Activation captures your email. [VERIFICAR: flujo de activación por email aún no implementado según 00_System/TASKS.md; decidir cómo se describe]
+Activation asks for an email once (you can opt out of product emails). No account, no daily limit.
 
-Link: superdownloads.app [VERIFICAR: la landing aún muestra el plan 5/día + €29 Pro]
+Link: superdownloads.app
 
 What would make this useful for your workflow? Bugs and platform requests welcome.
 
@@ -48,34 +47,34 @@ Show HN: Super Downloads – macOS video downloader for editors (Tauri, Rust, yt
 **Título, opción B**
 Show HN: A native Mac app that saves web video as Premiere-ready H.264/MP4
 
-**Primer comentario (~190 palabras)**
+**Primer comentario (~230 palabras)**
 
-Hi HN, I'm the author. Super Downloads is a macOS app (Apple Silicon and Intel) that saves video for offline editing and converts it to H.264/AAC/MP4 so Premiere Pro opens it directly.
+Hi HN, I'm the author. Super Downloads is a macOS app (Apple Silicon and Intel) that saves video for offline editing and guarantees H.264/AAC/MP4, so Premiere Pro opens it directly.
 
-Stack: Tauri 2.x, a Rust backend and a vanilla JS frontend with no framework. The backend spawns bundled yt-dlp and ffmpeg/ffprobe processes, parses yt-dlp's stdout for progress, and emits events to the UI. The landing page is Astro on Vercel.
+Stack: Tauri 2, a Rust backend and a vanilla JS frontend with no framework. The backend runs bundled yt-dlp and ffmpeg, maps yt-dlp's per-stream progress onto one bar, and emits events to the UI. The landing is Astro on Vercel.
 
 Things I learned that might interest you:
-- Platform extractors break constantly. I run a daily platform health check against real URLs, and it caught Vimeo failing for ~13 days when yt-dlp's anonymous OAuth bootstrap was revoked upstream (yt-dlp #17271). The app now retries via player.vimeo.com.
-- Instagram anonymous endpoints are unreliable. I added an endpoint-format fallback inspired by instaloader. I couldn't verify its real-world hit rate, so that tier stays "best-effort". [VERIFICAR: re-comprobar con `scripts/platform-health-check.sh --ig-fallback` desde red residencial antes de publicar]
-- Third-party licensing: yt-dlp is The Unlicense; ffmpeg/ffprobe builds are GPL-family and differ by CPU architecture (see THIRD-PARTY-NOTICES.md in the repo).
+- The single-file macOS build of yt-dlp unpacks itself into a fresh temp dir on every run, and macOS scans those new files each time: ~7 s per call, before any work. Switching to the "onedir" build made it ~0.2 s.
+- Pick the format by resolution first and prefer H.264 only at equal resolution; then check the real codec of the downloaded file with ffprobe and convert only what isn't H.264. TikTok's 1080p is HEVC; YouTube's 4K is VP9/AV1. 4K→H.264 on VideoToolbox runs about real time on an M4 Pro — hardware decode or parallel sessions don't help.
+- Vimeo DRM is opt-in per owner. My first test videos happened to be Vimeo's own (DRM on), which nearly convinced me "all of Vimeo" was encrypted.
+- A metadata-only health check said "Vimeo PASS" while every download failed. Now there's a live end-to-end test on the real download command before each release.
 
-It's free for now, unsigned, and meant for content you own or are authorized to download. Repo: github.com/marioforpro/super-downloads [VERIFICAR: es público; NEXT.md dice "flipped private → public 2026-05-06", pero confirmar licencia y que el código fuente está abierto, no sólo las releases]. Feedback welcome.
+Free for now, unsigned, for content you own or are authorized to download. Feedback welcome.
 
 ---
 
-## 3. Checklist antes de publicar
+## 3. Checklist antes de publicar (cuando se decida)
 
-- [ ] Build en modo FREE distribuida (gate de licencia y límite 5/día quitados, activación por email, emails capturados en lista consultable). Fuente: 00_System/TASKS.md § SUPER-DOWNLOADS "Done when"; ROADMAP.md R-SD-002 nota 2026-08-10. Estado hoy: sin completar; landing/web index.astro sigue con "5 downloads per day" + "€29 Pro".
-- [ ] Landing actualizada a copy free-mode (retirar pricing €29 de la superficie). Fuente: docs/DECISIONS.md §2026-08-10 Consequence; ROADMAP.md R-SD-002.
-- [ ] Instrucciones de instalación para app sin firmar en landing + FAQ (xattr / "Abrir igualmente"). Fuente: docs/DECISIONS.md SD-F-009 (2026-08-16); docs/LAUNCH.md Gate 2 (casilla abierta). Parte ya en index.astro (~l.215).
-- [ ] Release con las correcciones de main (Vimeo retry, IG fallback, fix LinkedIn 99768b6) publicada; hoy sólo v1.2.0 está pública. Fuente: NEXT.md (2026-09-27), ROADMAP.md R-SD-004 nota 2026-08-17.
-- [ ] Screenshots (3-5) y GIF/vídeo demo. Fuente: docs/LAUNCH.md Gate 5; docs/LAUNCH-PLAN.md Pre-Launch.
-- [ ] Canal de soporte y FAQ (instalación, Gatekeeper, plataformas). Fuente: docs/LAUNCH.md Gate 5.
-- [ ] 3-5 beta testers con la versión final; bugs críticos resueltos. Fuente: docs/LAUNCH.md Gate 6.
-- [ ] Probado en macOS 13+ y About con contacto. Fuente: docs/LAUNCH.md Gate 1. [VERIFICAR: tauri.conf.json dice minimumSystemVersion 10.13 y la landing "macOS 10.13+"; no está probado en la práctica]
-- [ ] Disclaimer de uso responsable + Privacy/Terms revisados. Fuente: docs/LAUNCH.md Gate 3 (parcialmente hecho en Track B, ROADMAP.md R-SD-004).
-- [ ] Normas de r/macapps (flair/disclosure de autor, apps gratis) revisadas el día. Fuente: no documentadas en el repo [VERIFICAR].
-- [ ] Gate de lanzamiento comercial (seis gates LemonSqueezy C2) NO es requisito: diferido. Fuente: docs/DECISIONS.md §2026-08-10.
-- [ ] OK explícito de Mario (propose, founder approves). Fuente: CLAUDE.md raíz.
+- [x] Build en modo FREE publicada (sin límite diario, activación por email → Airtable). v1.3.0+, hoy v1.4.0.
+- [x] Landing con copy free-mode y FAQ de instalación sin firmar.
+- [x] Terms/Privacy al día (sin Pro, sin LemonSqueezy, opt-in de emails, "no DRM circumvention" en Terms §4).
+- [ ] Unas semanas de uso propio + amigos sin bugs críticos (fase actual).
+- [ ] Screenshots (3-5) y GIF/vídeo demo con la v1.4.0 (Settings nuevo).
+- [ ] Canal de soporte decidido (support@superdownloads.app ya existe).
+- [ ] Probado en un macOS antiguo (la app declara 10.13+; nunca probado por debajo del actual).
+- [ ] Instagram: re-verificar el fallback sin login con `scripts/platform-health-check.sh --ig-fallback` (sus URLs de prueba estaban muertas el 2026-10-03).
+- [ ] Repo público **sin licencia** (código visible, no open source): decidir si se menciona el repo y con qué licencia antes de enlazarlo en HN.
+- [ ] Normas de r/macapps (flair/disclosure de autor) revisadas el día.
+- [ ] OK explícito de Mario.
 
-Nota: docs/LAUNCH-PLAN.md y su borrador siguen en modo de pago (€29, LAUNCH30) y está desfasado frente a la decisión free; no usar ese copy.
+Nota: `docs/LAUNCH-PLAN.md` sigue en modo de pago (€29, LAUNCH30) y está desfasado; no usar ese copy.
