@@ -5,7 +5,9 @@
 > **REOPENED 2026-07-16** — recommit explícito del founder. Plan activo: relaunch hardening (reliability + legal + payments), spec en `superpowers/specs/2026-07-16-relaunch-hardening-design.md`, orden de ejecución B → A → C. Estuvo PARKED 2026-06-15 (producto enviado v1.1.1, sin lanzar comercialmente). La verificación E2E de LemonSqueezy (paso 4 abajo) sigue vigente como **Track C2** del plan.
 
 
-> **NEXT (2026-09-27):** fix de LinkedIn en `main` (`99768b6` — sin cookies primero, cookies sólo como reintento; con sesión abierta en el navegador la descarga fallaba) **sin publicar**: llega a los usuarios sólo con una release (v1.2.1). Primer paso: decidir si se publica → `npm run tauri build` + `scripts/check-release-artifacts.sh` (OPS.md). Health check 7/7 CERTIFIED; `cargo fmt --check` marca una línea heredada de `c587dbb` (Vimeo) — `npm run check` no estará verde hasta formatearla.
+> **NEXT (2026-10-03):** **v1.3.0 FREE publicada** (release GitHub, updater 1.3.0, landing «Free for a limited time», activaciones → Airtable `SD · Users` verificadas). Siguiente: **publicar el anuncio** (R-SD-002, `docs/ANNOUNCEMENT-DRAFT.md`: r/macapps + Show HN) — lo postea Mario. Contraseña del updater: `load-secrets` (ver `docs/DEVELOPMENT.md`).
+
+> **NEXT (2026-09-27, superado por la v1.3.0):** fix de LinkedIn en `main` (`99768b6` — sin cookies primero, cookies sólo como reintento; con sesión abierta en el navegador la descarga fallaba) **sin publicar**: llega a los usuarios sólo con una release (v1.2.1). Primer paso: decidir si se publica → `npm run tauri build` + `scripts/check-release-artifacts.sh` (OPS.md). Health check 7/7 CERTIFIED; `cargo fmt --check` marca una línea heredada de `c587dbb` (Vimeo) — `npm run check` no estará verde hasta formatearla.
 ---
 
 ## ✅ v1.2.0 PUBLISHED — 2026-07-16 23:05 (founder instruction, smoke test skipped)

@@ -11,7 +11,7 @@ resolution_factor: 1.0
 validity_factor: 1.0
 next_milestone: Relaunch hardening — v1.2.0 reliability release + legal repositioning live (reopened 2026-07-16)
 last_updated: 2026-08-03
-validated_end_to_end: null  # field added 2026-08-10 (TASKS.md "cuatro proyectos") — never measured; the pending validator IS Track C2 (R-SD-004): LemonSqueezy E2E verification, six gates. Contract only requires this field at live-post-launch; null here documents non-verifiability instead of hiding it.
+validated_end_to_end: 2026-10-03  # free-mode path: founder smoke test of the v1.3.0 DMG (activation card + YouTube download) + superdownloads.app/api/activate → Airtable SD · Users verified (200 + row; 400 on bad email). LemonSqueezy Track C2 stays deferred with free mode.
 stack: Tauri v2, Rust, vanilla JS, Astro
 repo: marioforpro/super-downloads
 ---
@@ -20,7 +20,7 @@ repo: marioforpro/super-downloads
 
 ## Status
 - **State**: REOPENED 2026-07-16 (founder recommit) — relaunch hardening active: download reliability (v1.2.0) + legal repositioning + payments resilience. Plan: `docs/superpowers/specs/2026-07-16-relaunch-hardening-design.md`. Was PARKED 2026-06-15 (product shipped, commercially un-launched).
-- **Version**: v1.2.0 (published 2026-07-16 — relaunch hardening Track A: download reliability, wider auth retry, engine UI, bundled yt-dlp 2026.07.04). Previous: v1.1.1 (2026-05-31 — yt-dlp 360p fix + one-click in-app auto-update)
+- **Version**: v1.3.0 (published 2026-10-03 — FREE mode: no daily limit, license UI hidden, email activation → Airtable `SD · Users`; landing «Free for a limited time» + unsigned-install FAQ; includes the LinkedIn and Vimeo fixes). Previous: v1.2.0 (published 2026-07-16 — relaunch hardening Track A: download reliability, wider auth retry, engine UI, bundled yt-dlp 2026.07.04). Previous: v1.1.1 (2026-05-31 — yt-dlp 360p fix + one-click in-app auto-update)
 - **Phase**: Relaunch hardening (R-SD-004, order B → A → C). LemonSqueezy E2E verification = Track C2, the live next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03; gates NOT yet executed). Historical: Track C2 absorbed R-SD-001, dropped 2026-07-21 — do not cite that ID as live.
 - **Build**: macOS DMGs (Apple Silicon + Intel)
 - **Monitoring**: daily platform health-check via launchd (shipped 2026-05-31). Lifecycle truth: the agent was dead 2026-07-02 → 2026-08-03 (plist sat renamed `.plist.disabled`; zero automated runs; one manual run 2026-07-16). Reloaded 2026-08-03 (audit Wave D, no kickstart) — first scheduled run expected 2026-08-04 10:00; registered in `00_System/AUTOMATIONS.md`.
