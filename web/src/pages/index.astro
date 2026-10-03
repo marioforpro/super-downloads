@@ -1,5 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+
+// Free mode: the Pro (LemonSqueezy) card is hidden but kept in the markup.
+const SHOW_PRO = false;
 ---
 
 <Layout
@@ -68,18 +71,18 @@ import Layout from '../layouts/Layout.astro';
       },
       {
         "@type": "Question",
-        "name": "How much does Super Downloads cost?",
+        "name": "Is Super Downloads really free?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Super Downloads has a free plan with 5 downloads per day and all features included. The Pro license is a one-time payment of €29 for lifetime access with unlimited downloads and up to 3 devices."
+          "text": "Yes. Super Downloads is free for a limited time, with unlimited downloads and all features included. You activate it once with your email inside the app. No credit card, no payment."
         }
       },
       {
         "@type": "Question",
-        "name": "How do I get a refund?",
+        "name": "macOS says the app can't be opened or is damaged. What do I do?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Email support@superdownloads.app within 14 days of purchase for a full refund, no questions asked."
+          "text": "The app is not notarized by Apple yet (independent build), and it is safe to open. On macOS 15 or later: open System Settings, Privacy & Security, scroll down and click Open Anyway. If macOS says the app is damaged, open Terminal and run: xattr -dr com.apple.quarantine \"/Applications/Super Downloads.app\""
         }
       }
     ]
@@ -102,7 +105,7 @@ import Layout from '../layouts/Layout.astro';
   <!-- Hero -->
   <section class="hero">
     <div class="hero-inner">
-      <div class="hero-badge">Native macOS App</div>
+      <div class="hero-badge">Free for a limited time</div>
       <h1 class="hero-title">The video downloader<br /><span class="hero-accent">built for editors.</span></h1>
       <p class="hero-subtitle">
         Download from YouTube, TikTok, Vimeo and more — including Instagram, Facebook, X and LinkedIn with your browser login.<br />
@@ -112,7 +115,7 @@ import Layout from '../layouts/Layout.astro';
         <a href="#download" class="btn btn-primary">Download Free</a>
         <a href="#pricing" class="btn btn-secondary">See Pricing</a>
       </div>
-      <p class="hero-note">macOS 10.13+ — Apple Silicon & Intel</p>
+      <p class="hero-note">Native macOS app — 10.13+, Apple Silicon & Intel</p>
     </div>
   </section>
 
@@ -158,22 +161,25 @@ import Layout from '../layouts/Layout.astro';
   <!-- Pricing -->
   <section id="pricing" class="pricing">
     <div class="section-inner">
-      <h2 class="section-title">Simple pricing. Pay once, download forever.</h2>
-      <div class="pricing-grid">
-        <div class="pricing-card">
+      <h2 class="section-title">Free for a limited time.</h2>
+      <div class="pricing-grid" style="max-width:340px">
+        <div class="pricing-card featured">
+          <div class="pricing-badge">Limited time</div>
           <div class="pricing-tier">Free</div>
           <div class="pricing-price">€0</div>
-          <div class="pricing-period">forever</div>
+          <div class="pricing-period">free for a limited time</div>
           <ul class="pricing-features">
-            <li>5 downloads per day</li>
+            <li><strong>Unlimited downloads</strong></li>
             <li>All 7 platforms</li>
             <li>All quality options</li>
-            <li>H.264 conversion</li>
+            <li>H.264/MP4 conversion</li>
             <li>MP3 mode</li>
             <li>Dark & Light themes</li>
           </ul>
-          <a href="#download" class="btn btn-secondary" style="width:100%">Download Free</a>
+          <a href="#download" class="btn btn-primary" style="width:100%">Download Free</a>
+          <p class="pricing-promo">Activate with your email in the app. No card needed.</p>
         </div>
+        {SHOW_PRO && (
         <div class="pricing-card featured">
           <div class="pricing-badge">Best Value</div>
           <div class="pricing-tier">Pro</div>
@@ -192,6 +198,7 @@ import Layout from '../layouts/Layout.astro';
           <a href="https://superdownloads.lemonsqueezy.com/checkout/buy/21db1cfb-37f8-4371-8085-b5e30f89645f" class="btn btn-primary" style="width:100%" id="pro-checkout-btn">Get Pro — €29</a>
           <p class="pricing-promo">Use code <strong>LAUNCH30</strong> for 30% off</p>
         </div>
+        )}
       </div>
     </div>
   </section>
@@ -212,19 +219,15 @@ import Layout from '../layouts/Layout.astro';
         </a>
       </div>
       <div class="download-install-note">
-        <h4>First launch (unsigned app)</h4>
-        <ol>
-          <li>Right-click the app and choose <strong>Open</strong></li>
-          <li>Click <strong>Open</strong> again in the warning dialog</li>
-        </ol>
-        <p>If macOS says the app is damaged, open Terminal and run:<br />
-        <code>xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"</code></p>
+        <h4>How to install</h4>
+        <p>Open the .dmg and drag Super Downloads to Applications. The app is not notarized by Apple yet, so macOS may block the first launch.
+        <a href="#faq-macos">See how to open it</a> (takes 10 seconds).</p>
       </div>
     </div>
   </section>
 
   <!-- FAQ -->
-  <section class="faq">
+  <section class="faq" id="faq">
     <div class="section-inner">
       <h2 class="section-title">FAQ</h2>
       <div class="faq-list">
@@ -241,12 +244,14 @@ import Layout from '../layouts/Layout.astro';
           <p>Video editors, content creators, and creative professionals who need to download reference footage, client assets, or social media clips and edit them immediately. The automatic H.264 conversion eliminates the format compatibility issues editors commonly face.</p>
         </details>
         <details class="faq-item">
-          <summary>How much does Super Downloads cost?</summary>
-          <p>There's a free plan with 5 downloads per day and all features included. The Pro license is a one-time payment of €29 for lifetime access with unlimited downloads and up to 3 devices.</p>
+          <summary>Is Super Downloads really free?</summary>
+          <p>Yes. It's free for a limited time, with unlimited downloads and all features included. You activate it once with your email inside the app. No credit card, no payment.</p>
         </details>
-        <details class="faq-item">
-          <summary>Why does macOS warn me about the app?</summary>
-          <p>The app is not signed with an Apple Developer ID yet. This means macOS Gatekeeper will show a warning the first time you open it. Right-click the app, choose Open, then click Open again. This only happens once.</p>
+        <details class="faq-item" id="faq-macos">
+          <summary>macOS says the app can't be opened or is damaged</summary>
+          <p>The app is not notarized by Apple yet (independent build), so Gatekeeper blocks the first launch. It's safe to open. On macOS 15 or later: open System Settings, go to Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>. On older versions, right-click the app, choose Open, then click Open again.</p>
+          <p>If macOS says the app is "damaged", open Terminal and run:<br />
+          <code>xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"</code></p>
         </details>
         <details class="faq-item">
           <summary>What video quality can I download?</summary>
@@ -259,10 +264,6 @@ import Layout from '../layouts/Layout.astro';
         <details class="faq-item">
           <summary>Can I use this on Windows or Linux?</summary>
           <p>Not yet. Super Downloads is currently macOS only (Apple Silicon and Intel). Other platforms may come in the future.</p>
-        </details>
-        <details class="faq-item">
-          <summary>How do I get a refund?</summary>
-          <p>Email support@superdownloads.app within 14 days of purchase for a full refund, no questions asked.</p>
         </details>
       </div>
     </div>
@@ -285,6 +286,15 @@ import Layout from '../layouts/Layout.astro';
       <div class="footer-copy">&copy; 2026 Super Downloads. All rights reserved.</div>
     </div>
   </footer>
+  <script is:inline>
+    // Open the macOS FAQ item when linked from the install note.
+    function openFaqFromHash() {
+      var el = location.hash && document.querySelector(location.hash);
+      if (el && el.tagName === 'DETAILS') el.open = true;
+    }
+    window.addEventListener('hashchange', openFaqFromHash);
+    openFaqFromHash();
+  </script>
 </Layout>
 
 <style>

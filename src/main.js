@@ -90,12 +90,18 @@ const MAX_TERMINAL_HISTORY = 100;
 const CONVERSION_PROGRESS_CAP = 93;
 const SETTINGS_OVERLAY_BREAKPOINT = 620;
 const CLIPBOARD_WATCH_INTERVAL_MS = 1200;
+// Free until further notice: flip to false to restore the freemium limit + license UI.
+const FREE_MODE = true;
 const FREE_DAILY_LIMIT = 5;
 const DOWNLOAD_COUNTER_KEY = "dailyDownloadCounter";
 const LICENSE_KEY_STORAGE = "proLicenseKey";
 const LICENSE_INSTANCE_STORAGE = "proLicenseInstance";
 const LICENSE_NAME_STORAGE = "proLicenseName";
 const FIRST_RUN_KEY = "hasSeenOnboarding";
+const ACTIVATION_EMAIL_KEY = "activationEmail";
+const ACTIVATION_SYNCED_KEY = "activationSynced";
+const ACTIVATION_SKIPPED_KEY = "activationSkipped"; // Pro (paid) users only
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const LEMONSQUEEZY_CHECKOUT_URL = "https://superdownloads.lemonsqueezy.com/checkout/buy/21db1cfb-37f8-4371-8085-b5e30f89645f";
 let lastRequestedMinWindowHeight = 0;
 let lastAutoFilledClipboardText = "";
@@ -122,6 +128,7 @@ function getDailyCounter() {
 }
 
 function incrementDailyCounter() {
+  if (FREE_MODE) return;
   const today = getTodayKey();
   const current = getDailyCounter();
   localStorage.setItem(DOWNLOAD_COUNTER_KEY, JSON.stringify({ date: today, count: current + 1 }));
@@ -134,12 +141,18 @@ function getRemainingDownloads() {
 }
 
 function canDownload() {
+  if (FREE_MODE) return true;
   return isProUser() || getDailyCounter() < FREE_DAILY_LIMIT;
 }
 
 function updateDownloadCounterUI() {
   const counterEl = document.querySelector("#download-counter");
   if (!counterEl) return;
+  if (FREE_MODE) {
+    counterEl.classList.add("hidden");
+    return;
+  }
+  counterEl.classList.remove("hidden");
   if (isProUser()) {
     counterEl.textContent = "Pro";
     counterEl.className = "download-counter pro";
@@ -159,6 +172,17 @@ function updateLicenseUI() {
   const upgradeLink = document.querySelector("#upgrade-pro-link");
   if (!statusEl) return;
 
+  const licenseSection = document.querySelector("#license-section");
+  const activationRow = document.querySelector("#activation-row");
+  if (licenseSection) licenseSection.classList.toggle("hidden", FREE_MODE);
+  if (upgradeLink && FREE_MODE) upgradeLink.classList.add("hidden");
+  if (activationRow) {
+    const email = localStorage.getItem(ACTIVATION_EMAIL_KEY);
+    activationRow.classList.toggle("hidden", !email);
+    const emailEl = document.querySelector("#activation-email-display");
+    if (emailEl) emailEl.textContent = email || "";
+  }
+
   if (isProUser()) {
     const key = localStorage.getItem(LICENSE_KEY_STORAGE) || "";
     const name = localStorage.getItem(LICENSE_NAME_STORAGE) || "";
@@ -172,7 +196,7 @@ function updateLicenseUI() {
     statusEl.innerHTML = `<span class="license-badge free">Free — ${FREE_DAILY_LIMIT}/day</span>`;
     inputRow.style.display = "flex";
     activeRow.style.display = "none";
-    upgradeLink.classList.remove("hidden");
+    upgradeLink.classList.toggle("hidden", FREE_MODE);
     upgradeLink.href = LEMONSQUEEZY_CHECKOUT_URL;
   }
   updateDownloadCounterUI();
@@ -252,6 +276,87 @@ async function openExternal(url) {
   window.open(url, "_blank");
 }
 
+// Email activation (the user list is the asset; usage is never blocked by a server failure)
+function isValidEmail(value) {
+  const v = (value || "").trim();
+  return v.length <= 254 && EMAIL_PATTERN.test(v);
+}
+
+function getActivationEmail() {
+  return (localStorage.getItem(ACTIVATION_EMAIL_KEY) || "").trim();
+}
+
+async function syncActivation(email, marketingOptIn) {
+  try {
+    await window.__TAURI__.core.invoke("register_activation", { email, marketingOptIn });
+    localStorage.setItem(ACTIVATION_SYNCED_KEY, "1");
+  } catch (err) {
+    console.warn("Activation sync failed (will retry next launch):", err);
+  }
+}
+
+function storeActivation(email, marketingOptIn) {
+  localStorage.setItem(ACTIVATION_EMAIL_KEY, email);
+  localStorage.setItem("activationMarketingOptIn", marketingOptIn ? "1" : "0");
+  localStorage.removeItem(ACTIVATION_SYNCED_KEY);
+  updateLicenseUI();
+  syncActivation(email, marketingOptIn);
+}
+
+function retryActivationSync() {
+  const email = getActivationEmail();
+  if (email && localStorage.getItem(ACTIVATION_SYNCED_KEY) !== "1") {
+    syncActivation(email, localStorage.getItem("activationMarketingOptIn") === "1");
+  }
+}
+
+function activationFieldsHtml() {
+  return `
+      <input type="email" class="activation-email-input" placeholder="you@email.com" spellcheck="false" autocomplete="email" />
+      <label class="checkbox-label activation-optin">
+        <input type="checkbox" class="activation-optin-checkbox" />
+        <span>Send me product updates (rare)</span>
+      </label>`;
+}
+
+function showActivationCard() {
+  if (document.querySelector(".onboarding-overlay")) return;
+  const overlay = document.createElement("div");
+  overlay.className = "onboarding-overlay";
+  overlay.innerHTML = `
+    <div class="onboarding-card">
+      <h2 class="onboarding-title">Activate Super Downloads</h2>
+      <p class="onboarding-tagline">Free for a limited time — unlimited downloads. Enter your email to activate.</p>
+      ${activationFieldsHtml()}
+      <button class="onboarding-start-btn" disabled>Activate — it's free</button>
+      ${isProUser() ? '<a href="#" class="activation-skip-link">Skip</a>' : ""}
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add("visible"));
+  const emailInput = overlay.querySelector(".activation-email-input");
+  const optIn = overlay.querySelector(".activation-optin-checkbox");
+  const btn = overlay.querySelector(".onboarding-start-btn");
+  const close = () => {
+    overlay.classList.remove("visible");
+    setTimeout(() => overlay.remove(), 300);
+  };
+  emailInput.addEventListener("input", () => { btn.disabled = !isValidEmail(emailInput.value); });
+  emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !btn.disabled) btn.click(); });
+  btn.addEventListener("click", () => {
+    if (!isValidEmail(emailInput.value)) return;
+    storeActivation(emailInput.value.trim(), optIn.checked);
+    close();
+    input.focus();
+  });
+  overlay.querySelector(".activation-skip-link")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    localStorage.setItem(ACTIVATION_SKIPPED_KEY, "1");
+    close();
+  });
+  setTimeout(() => emailInput.focus(), 350);
+}
+
 function showOnboarding() {
   let overlay = document.querySelector(".onboarding-overlay");
   if (overlay) return;
@@ -281,8 +386,10 @@ function showOnboarding() {
         <div class="onboarding-feature">Every video is Premiere Pro ready — H.264/MP4</div>
         <div class="onboarding-feature">Paste a link, drag from browser, or enable clipboard auto-add</div>
       </div>
-      <div class="onboarding-free-note">${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited</div>
-      <button class="onboarding-start-btn">Get Started</button>
+      <div class="onboarding-free-note">${FREE_MODE ? "Free for a limited time — unlimited downloads." : `${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited`}</div>
+      ${activationFieldsHtml()}
+      <button class="onboarding-start-btn" disabled>Get Started</button>
+      ${isProUser() ? '<a href="#" class="activation-skip-link">Skip</a>' : ""}
       <p class="onboarding-terms">By clicking Get Started you agree to the <a href="#" id="onboarding-terms-link">Terms of Service</a> and <a href="#" id="onboarding-privacy-link">Privacy Policy</a></p>
     </div>
   `;
@@ -296,11 +403,26 @@ function showOnboarding() {
     e.preventDefault();
     openExternal("https://superdownloads.app/privacy");
   });
-  overlay.querySelector(".onboarding-start-btn").addEventListener("click", () => {
+  const startBtn = overlay.querySelector(".onboarding-start-btn");
+  const emailInput = overlay.querySelector(".activation-email-input");
+  const optIn = overlay.querySelector(".activation-optin-checkbox");
+  const finish = () => {
     markOnboardingSeen();
     overlay.classList.remove("visible");
     setTimeout(() => overlay.remove(), 300);
     input.focus();
+  };
+  emailInput.addEventListener("input", () => { startBtn.disabled = !isValidEmail(emailInput.value); });
+  emailInput.addEventListener("keydown", (e) => { if (e.key === "Enter" && !startBtn.disabled) startBtn.click(); });
+  startBtn.addEventListener("click", () => {
+    if (!isValidEmail(emailInput.value)) return;
+    storeActivation(emailInput.value.trim(), optIn.checked);
+    finish();
+  });
+  overlay.querySelector(".activation-skip-link")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    localStorage.setItem(ACTIVATION_SKIPPED_KEY, "1");
+    finish();
   });
 }
 
@@ -310,7 +432,7 @@ function showAbout() {
   if (overlay) overlay.remove();
   overlay = document.createElement("div");
   overlay.className = "confirm-overlay";
-  const version = document.querySelector("#version-label")?.textContent || "v1.1.0";
+  const version = document.querySelector("#version-label")?.textContent || "v1.3.0";
   overlay.innerHTML = `
     <div class="confirm-card about-card">
       <svg width="48" height="48" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
@@ -1520,7 +1642,7 @@ async function startDownloadForUrl(url, options = {}) {
     return "unsupported";
   }
 
-  if (!canDownload()) {
+  if (!FREE_MODE && !canDownload()) {
     if (!silent) {
       showToast("Daily limit reached — upgrade to Pro for unlimited downloads");
     }
@@ -1558,7 +1680,7 @@ async function startDownloadForUrl(url, options = {}) {
       quality: settings.videoQuality || "best",
       format: settings.audioOnlyEnabled === true ? "mp3" : "mp4"
     });
-    incrementDailyCounter();
+    if (!FREE_MODE) incrementDailyCounter();
     return "started";
   } catch (err) {
     console.error("Failed to invoke download_video:", err);
@@ -1840,7 +1962,10 @@ setSettingsOpen(false);
 // First-run onboarding
 if (!hasSeenOnboarding()) {
   setTimeout(() => showOnboarding(), 300);
+} else if (!getActivationEmail() && !(isProUser() && localStorage.getItem(ACTIVATION_SKIPPED_KEY) === "1")) {
+  setTimeout(() => showActivationCard(), 300);
 }
+retryActivationSync();
 
 // Initialize download counter & license UI
 updateDownloadCounterUI();

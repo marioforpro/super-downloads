@@ -89,10 +89,10 @@ fn is_vimeo_oauth_401_error(error_text: &str) -> bool {
     if !lower.contains("vimeo") {
         return false;
     }
-    let old_signature =
-        lower.contains("401") && (lower.contains("macos api json") || lower.contains("oauth token"));
-    let new_signature = lower.contains("only works when logged-in")
-        || lower.contains("only works when logged in");
+    let old_signature = lower.contains("401")
+        && (lower.contains("macos api json") || lower.contains("oauth token"));
+    let new_signature =
+        lower.contains("only works when logged-in") || lower.contains("only works when logged in");
     old_signature || new_signature
 }
 
@@ -2446,6 +2446,59 @@ fn get_instance_name() -> String {
         .unwrap_or_else(|_| uuid::Uuid::new_v4().to_string())
 }
 
+// --- Email activation (free mode) ---
+
+fn activation_arch() -> &'static str {
+    match std::env::consts::ARCH {
+        "aarch64" => "aarch64",
+        "x86_64" => "x86_64",
+        _ => "unknown",
+    }
+}
+
+fn activation_os_version() -> String {
+    std::process::Command::new("sw_vers")
+        .arg("-productVersion")
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+        .filter(|v| !v.is_empty())
+        .unwrap_or_else(|| "unknown".to_string())
+}
+
+#[tauri::command]
+async fn register_activation(
+    app: tauri::AppHandle,
+    email: String,
+    marketing_opt_in: bool,
+) -> Result<(), String> {
+    let body = serde_json::json!({
+        "email": email.trim(),
+        "appVersion": app.package_info().version.to_string(),
+        "arch": activation_arch(),
+        "osVersion": activation_os_version(),
+        "instance": get_instance_name(),
+        "marketingOptIn": marketing_opt_in,
+        "source": "app",
+    });
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("Client error: {}", e))?;
+    let resp = client
+        .post("https://superdownloads.app/api/activate")
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("Network error: {}", e))?;
+    if resp.status().is_success() {
+        Ok(())
+    } else {
+        Err(format!("Activation failed: HTTP {}", resp.status()))
+    }
+}
+
 #[tauri::command]
 async fn activate_license(key: String) -> Result<LicenseResult, String> {
     let instance_name = get_instance_name();
@@ -2833,6 +2886,7 @@ pub fn run() {
             delete_cached_thumbnail,
             show_notification,
             activate_license,
+            register_activation,
             validate_license,
             deactivate_license,
             check_for_update,

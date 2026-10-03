@@ -1557,3 +1557,45 @@ select:focus {
   opacity: 0.6;
   cursor: default;
 }
+
+/* Email activation (onboarding + standalone card) */
+.activation-email-input {
+  width: 100%;
+  height: 32px;
+  box-sizing: border-box;
+  padding: 0 10px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+}
+
+.activation-optin {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 12px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.onboarding-start-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.activation-skip-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-decoration: underline;
+}
+
+.download-counter.hidden,
+.license-section.hidden,
+#activation-row.hidden {
+  display: none;
+}
