@@ -4,6 +4,11 @@
 
 ---
 
+## 2026-10-03 — No public launch for now: private use + friends testing
+**Context:** v1.4.0 published; the next roadmap step was the public announcement (R-SD-002, r/macapps + Show HN).
+**Decision (founder):** «no quiero poner ningún anuncio, primero es para mí y mis amigos y vamos testeando, ya veremos si la promociono». No announcement. The app is used by Mario and shared with friends as a test phase; promotion is decided later.
+**Consequence:** R-SD-002 → on hold. `docs/ANNOUNCEMENT-DRAFT.md` kept up to date (v1.4.0 facts) but marked paused. The public site and GitHub releases stay as they are (they already serve the free app).
+
 ## 2026-10-03 — "Best" always means the highest resolution available (4K included)
 **Context:** v1.4.0 QA measured YouTube 4K (VP9/AV1 only) → H.264 conversion at ~1x real time on an M4 Pro (VideoToolbox; hardware decode, HEVC and two parallel sessions don't help — 4K frame throughput is the limit; a 1080p downscale runs ~3.9x). Option offered: cap "Best" at 1080p and add an explicit "4K" choice.
 **Decision (founder):** «siempre best» — "Best" keeps delivering the highest resolution available, converted to H.264 when needed. 1080p/720p stay as the fast choices.
