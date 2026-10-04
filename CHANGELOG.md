@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.5.0] — 2026-10-04
+
+Less friction from link to download.
+
+### Added
+- **Copy & come back.** Copy a video link anywhere, switch to the app: the link is already in the field and Download is highlighted (↵) — press Enter. It never downloads on its own, never overwrites what you are typing, and never suggests the same copy twice (a dismissed or already-downloaded link stays dismissed).
+- **Paste = download.** Pasting a video link into the empty field, or Cmd+V anywhere in the window, starts it right away. Several links (one per line) all start. Plain text still pastes normally.
+- **Batch mode** (top bar button, ⌘B) replaces "Auto add from clipboard" in Settings: every video link you copy downloads automatically, even with the app in the background. The ribbon counts what was added, a link copied twice downloads once, and whatever was on the clipboard when you switched it on is ignored. Off each time the app opens.
+
 ## [1.4.0] — 2026-10-03 (released)
 
 GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.4.0 — anonymous DMG URLs 200; updater `latest.json` serves 1.4.0 (aarch64 + x86_64). Supersedes the unpublished 1.3.1.
