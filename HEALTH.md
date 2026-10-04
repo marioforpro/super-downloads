@@ -3,14 +3,14 @@ name: Super Downloads
 slug: SUPER-DOWNLOADS
 emoji: "🔵"
 type: product
-status: pre-launch
-lifecycle: pre-launch
+status: active
+lifecycle: active  # 2026-10-03: free app published (v1.4.0), used by Mario + friends; no public promotion yet
 blocked: false
 blocker_reason: null
 resolution_factor: 1.0
 validity_factor: 1.0
 next_milestone: Relaunch hardening — v1.2.0 reliability release + legal repositioning live (reopened 2026-07-16)
-last_updated: 2026-08-03
+last_updated: 2026-10-04
 validated_end_to_end: 2026-10-03  # free-mode path: founder smoke test of the v1.3.0 DMG (activation card + YouTube download) + superdownloads.app/api/activate → Airtable SD · Users verified (200 + row; 400 on bad email). LemonSqueezy Track C2 stays deferred with free mode.
 stack: Tauri v2, Rust, vanilla JS, Astro
 repo: marioforpro/super-downloads

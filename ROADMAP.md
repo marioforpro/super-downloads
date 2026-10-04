@@ -27,8 +27,8 @@ updated: 2026-08-03
   - source: docs/LAUNCH.md, NEXT.md, docs/OPS.md
   - moved: 2026-05-06
 - **R-SD-002** · P2 · backlog · Publish launch announcement (Reddit r/macapps + HN Show HN)
-  - backlog: 2026-10-03 (on hold) — founder: no announcement for now; the app is for Mario + friends to test first, promotion decided later (`docs/DECISIONS.md` 2026-10-03). Draft kept current for v1.4.0 in `docs/ANNOUNCEMENT-DRAFT.md`.
-  - unblocked: 2026-10-03 — v1.3.0 free-mode build published and the landing is live with free-mode copy; the announcement can go out (`docs/ANNOUNCEMENT-DRAFT.md`). Founder posts.
+  - deferral: 2026-10-03 (on hold) — founder: no announcement for now; the app is for Mario + friends to test first, promotion decided later (`docs/DECISIONS.md` 2026-10-03). Draft kept current for v1.4.0 in `docs/ANNOUNCEMENT-DRAFT.md`.
+  - note: 2026-10-03 (was «unblocked») — v1.3.0 free-mode build published and the landing is live with free-mode copy; the announcement can go out (`docs/ANNOUNCEMENT-DRAFT.md`). Founder posts.
   - next: none while on hold — when promotion is decided, start from the checklist in `docs/ANNOUNCEMENT-DRAFT.md` §3. [Historical: copy DRAFTED (OOO-auto 2026-10-02) → `docs/ANNOUNCEMENT-DRAFT.md` (r/macapps + Show HN + pre-post checklist); post only after the free-mode build ships and `web/src/pages/index.astro` drops «5 downloads per day» / «€29 Pro»]
   - note: 2026-08-10 · re-anclada por la decisión free-until-further-notice (`docs/DECISIONS.md §2026-08-10`) — el announcement ya NO espera el checkout LS; espera la build en modo free + el copy de landing actualizado. El ángulo "Free for a limited time" ES parte del pitch del announcement.
   - depends_on: R-SD-004
