@@ -4,7 +4,7 @@ slug: SUPER-DOWNLOADS
 emoji: "🔵"
 type: product
 status: active
-lifecycle: active  # 2026-10-03: free app published (v1.4.0), used by Mario + friends; no public promotion yet
+lifecycle: active
 blocked: false
 blocker_reason: null
 resolution_factor: 1.0
