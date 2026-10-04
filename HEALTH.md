@@ -19,7 +19,7 @@ repo: marioforpro/super-downloads
 # Super Downloads — Health Card
 
 ## Status
-- **State**: FREE app, live — v1.4.0 published 2026-10-03 (release URLs 200, updater serves 1.4.0 for both arches, Terms/Privacy deployed). No payments provider.
+- **State**: FREE app, live — v1.5.0 published 2026-10-04 (release URLs 200, updater serves 1.5.0 for both arches). No payments provider.
 - **Version**: v1.3.0 (published 2026-10-03 — FREE mode: no daily limit, license UI hidden, email activation → Airtable `SD · Users`; landing «Free for a limited time» + unsigned-install FAQ; includes the LinkedIn and Vimeo fixes). Previous: v1.2.0 (published 2026-07-16 — relaunch hardening Track A: download reliability, wider auth retry, engine UI, bundled yt-dlp 2026.07.04). Previous: v1.1.1 (2026-05-31 — yt-dlp 360p fix + one-click in-app auto-update)
 - **Phase**: Private use + friends testing. Public announcement (R-SD-002) on hold by founder decision 2026-10-03. Payments (Track C, LemonSqueezy) CLOSED 2026-10-03 — no account, app is free (`docs/DECISIONS.md`).
 - **Build**: macOS DMGs (Apple Silicon + Intel)
