@@ -14,8 +14,8 @@ Estas cosas están bien implementadas y no necesitan cambios significativos:
 - **Thumbnail system**: Caching local de thumbnails, fallback SVG, cleanup on remove.
 - **Window auto-resize**: Se adapta al contenido dinámicamente.
 - **Error handling**: Mensajes específicos por plataforma (TikTok, Facebook, LinkedIn, Vimeo, YouTube age-restricted).
-- **Keyboard shortcuts**: Cmd+V paste, Cmd+K clear, Enter download, Escape close.
-- **Clipboard auto-add**: Monitorización periódica con auto-start de descargas.
+- **Keyboard shortcuts**: Cmd+V paste-to-download, Cmd+B batch mode, Cmd+K clear, Enter download, Escape close.
+- **Clipboard**: link sugerido al volver a la app (Enter descarga) + Batch mode (monitorización con auto-start, toggle en la barra superior).
 - **Code architecture**: Clean separation frontend/backend, event-based communication.
 
 ---

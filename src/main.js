@@ -65,12 +65,13 @@ const browseBtn = document.querySelector("#browse-btn");
 const downloadLocation = document.querySelector("#download-location");
 const videoQuality = document.querySelector("#video-quality");
 const audioOnlyEnabled = document.querySelector("#audio-only-enabled");
-const autoStartClipboardEnabled = document.querySelector("#auto-start-clipboard-enabled");
+const batchToggle = document.querySelector("#batch-toggle");
 const themeSelect = document.querySelector("#theme-select");
 const settingsInfoBtn = document.querySelector("#settings-info-btn");
 const settingsGuideModal = document.querySelector("#settings-guide-modal");
 const settingsGuideClose = document.querySelector("#settings-guide-close");
 const autoAddRibbon = document.querySelector("#auto-add-ribbon");
+const autoAddRibbonLabel = document.querySelector("#auto-add-ribbon-label");
 const clearListBtn = document.querySelector("#clear-list-btn");
 const keepHistoryEnabled = document.querySelector("#keep-history-enabled");
 
@@ -108,8 +109,16 @@ const ACTIVATION_SKIPPED_KEY = "activationSkipped"; // Pro (paid) users only
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const LEMONSQUEEZY_CHECKOUT_URL = "https://superdownloads.lemonsqueezy.com/checkout/buy/21db1cfb-37f8-4371-8085-b5e30f89645f";
 let lastRequestedMinWindowHeight = 0;
-let lastAutoFilledClipboardText = "";
+// Last clipboard text already acted on (prefilled, pasted, downloaded or
+// dismissed), so the same copy is never suggested or started twice.
+let lastHandledClipboardText = "";
 let clipboardWatchTimer = null;
+// Batch mode: every copied video link downloads on its own. Session-only,
+// off on each launch (docs/DECISIONS.md).
+let batchModeEnabled = false;
+let batchSeenUrls = new Set();
+let batchAddedCount = 0;
+let batchPollBusy = false;
 
 // Freemium / license logic
 function isProUser() {
@@ -384,7 +393,7 @@ function showOnboarding() {
       <div class="onboarding-features">
         <div class="onboarding-feature">Download from YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn</div>
         <div class="onboarding-feature">Every video is Premiere Pro ready — H.264/MP4</div>
-        <div class="onboarding-feature">Paste a link, drag from browser, or enable clipboard auto-add</div>
+        <div class="onboarding-feature">Copy a link and press Enter — or turn on Batch mode to grab many at once</div>
       </div>
       <div class="onboarding-free-note">${FREE_MODE ? "Free for a limited time — unlimited downloads." : `${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited`}</div>
       ${activationFieldsHtml()}
@@ -1575,9 +1584,6 @@ function loadSettings() {
   if (audioOnlyEnabled) {
     audioOnlyEnabled.checked = false;
   }
-  if (autoStartClipboardEnabled) {
-    autoStartClipboardEnabled.checked = false;
-  }
   if (keepHistoryEnabled) {
     keepHistoryEnabled.checked = settings.keepHistory === true;
   }
@@ -1643,7 +1649,6 @@ function saveSettings() {
     downloadLocation: downloadLocation.value,
     videoQuality: videoQuality.value,
     audioOnlyEnabled: audioOnlyEnabled?.checked === true,
-    autoStartClipboardEnabled: autoStartClipboardEnabled?.checked === true,
     theme: themeSelect?.value || "dark",
     keepHistory: keepHistoryEnabled?.checked === true,
     outputFormat: "mp4" // Always use MP4 for best compatibility
@@ -1752,7 +1757,10 @@ async function startDownloadForUrl(url, options = {}) {
   updateDownload(downloadId, { status: "starting", outputFormat });
   
   // Clear input
-  input.value = "";
+  if (!silent || normalizeVideoUrl(input.value.trim()) === normalizeVideoUrl(url)) {
+    input.value = "";
+    setDownloadReady(false);
+  }
   if (focusAfterStart) {
     input.focus();
   }
@@ -1789,63 +1797,128 @@ async function downloadVideo() {
 // Clear Input
 function clearInput() {
   input.value = "";
+  setDownloadReady(false);
   input.focus();
 }
 
-async function tryAutofillFromClipboard() {
-  const autoAddEnabled = autoStartClipboardEnabled?.checked === true;
-  if (!autoAddEnabled) {
+// Split pasted/dropped/copied text into supported video links.
+function extractVideoUrls(text) {
+  return (text || "")
+    .split(/[\r\n]+/)
+    .map(u => u.trim())
+    .filter(u => u && !u.startsWith("#") && isValidURL(u) && isVideoURL(u));
+}
+
+// One link goes through the normal path (bulk confirm, duplicate toast);
+// several are started silently, like a drop.
+async function startDownloadsForUrls(urls) {
+  if (urls.length === 1) {
+    return startDownloadForUrl(urls[0], { focusAfterStart: true });
+  }
+  for (const url of urls) {
+    await startDownloadForUrl(url, { silent: true });
+    await new Promise(resolve => setTimeout(resolve, 120));
+  }
+  return "started";
+}
+
+function setDownloadReady(ready) {
+  button.classList.toggle("is-ready", ready);
+}
+
+// Copy & come back: when the app comes to the front with a new video link
+// on the clipboard, put it in the field so Enter downloads it.
+async function suggestLinkFromClipboard() {
+  // Never steal focus from onboarding/activation or a confirm dialog.
+  if (batchModeEnabled || input.value.trim() ||
+      document.querySelector(".onboarding-overlay, .confirm-overlay")) {
     return;
   }
-
-  const isFocused = document.hasFocus();
-  if (isFocused && input.value.trim()) {
+  const text = (await getClipboardText())?.trim();
+  if (!text || text === lastHandledClipboardText) {
     return;
   }
+  lastHandledClipboardText = text;
+  const [url] = extractVideoUrls(text);
+  if (!url) {
+    return;
+  }
+  const key = normalizeVideoUrl(url);
+  if (downloads.some(d => normalizeVideoUrl(d.url) === key)) {
+    return;
+  }
+  input.value = url;
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  setDownloadReady(true);
+  input.focus();
+  input.select();
+}
 
+async function pollBatchClipboard() {
+  if (!batchModeEnabled || batchPollBusy) {
+    return;
+  }
+  batchPollBusy = true;
   try {
     const text = (await getClipboardText())?.trim();
-    if (!text || text === lastAutoFilledClipboardText) {
+    if (!text || text === lastHandledClipboardText) {
       return;
     }
-
-    if (!isValidURL(text) || !isVideoURL(text)) {
-      return;
-    }
-
-    if (isFocused) {
-      input.value = text;
-      input.dispatchEvent(new Event("input", { bubbles: true }));
-    }
-
-    const result = await startDownloadForUrl(text, { silent: true, focusAfterStart: false });
-    if (result !== "empty") {
-      lastAutoFilledClipboardText = text;
+    lastHandledClipboardText = text;
+    for (const url of extractVideoUrls(text)) {
+      const key = normalizeVideoUrl(url);
+      if (batchSeenUrls.has(key)) continue;
+      batchSeenUrls.add(key);
+      const result = await startDownloadForUrl(url, { silent: true });
+      if (result === "started") {
+        batchAddedCount += 1;
+        renderBatchState();
+      }
     }
   } catch {
-    // Ignore clipboard permission failures and continue without autofill.
+    // Ignore clipboard read failures; the next tick retries.
+  } finally {
+    batchPollBusy = false;
   }
 }
 
 function startClipboardWatcher() {
   if (clipboardWatchTimer) {
     clearInterval(clipboardWatchTimer);
-  }
-  if (autoStartClipboardEnabled?.checked !== true) {
     clipboardWatchTimer = null;
+  }
+  if (!batchModeEnabled) {
     return;
   }
-  clipboardWatchTimer = setInterval(() => {
-    tryAutofillFromClipboard();
-  }, CLIPBOARD_WATCH_INTERVAL_MS);
+  clipboardWatchTimer = setInterval(pollBatchClipboard, CLIPBOARD_WATCH_INTERVAL_MS);
 }
 
-function syncAutoAddUiState() {
-  const enabled = autoStartClipboardEnabled?.checked === true;
-  appRoot?.classList.toggle("auto-add-active", enabled);
-  if (autoAddRibbon) {
-    autoAddRibbon.setAttribute("aria-hidden", enabled ? "false" : "true");
+function renderBatchState() {
+  appRoot?.classList.toggle("auto-add-active", batchModeEnabled);
+  if (batchToggle) {
+    batchToggle.classList.toggle("active", batchModeEnabled);
+    batchToggle.setAttribute("aria-pressed", batchModeEnabled ? "true" : "false");
   }
+  if (autoAddRibbon) {
+    autoAddRibbon.setAttribute("aria-hidden", batchModeEnabled ? "false" : "true");
+  }
+  if (autoAddRibbonLabel) {
+    autoAddRibbonLabel.textContent = batchAddedCount > 0
+      ? `Batch mode · ${batchAddedCount} added`
+      : "Batch mode · copy links to download";
+  }
+}
+
+async function setBatchMode(enabled) {
+  if (enabled) {
+    // Only links copied from now on count, never what was already there.
+    lastHandledClipboardText = ((await getClipboardText()) || "").trim();
+    batchSeenUrls = new Set();
+    batchAddedCount = 0;
+  }
+  batchModeEnabled = enabled;
+  renderBatchState();
+  startClipboardWatcher();
 }
 
 async function getClipboardText() {
@@ -1936,6 +2009,26 @@ input.addEventListener("input", () => {
   } else {
     input.classList.remove("error");
   }
+  if (!input.value.trim()) {
+    setDownloadReady(false);
+  }
+});
+
+// Paste = download: pasting a video link into an empty (or fully selected)
+// field starts it immediately. Other text pastes normally.
+input.addEventListener("paste", (e) => {
+  const text = e.clipboardData?.getData("text/plain")?.trim();
+  if (!text) return;
+  const replacesAll = !input.value.trim() ||
+    (input.selectionStart === 0 && input.selectionEnd === input.value.length);
+  if (!replacesAll) return;
+  const urls = extractVideoUrls(text);
+  if (urls.length === 0) return;
+  e.preventDefault();
+  lastHandledClipboardText = text;
+  input.value = "";
+  setDownloadReady(false);
+  startDownloadsForUrls(urls);
 });
 
 input.addEventListener("keydown", (e) => {
@@ -1978,15 +2071,28 @@ document.addEventListener("keydown", async (e) => {
     return;
   }
 
+  if (shortcutKey && e.key.toLowerCase() === "b") {
+    e.preventDefault();
+    setBatchMode(!batchModeEnabled);
+    return;
+  }
+
+  // Cmd+V anywhere: a video link downloads right away; anything else lands
+  // in the field.
   if (shortcutKey && e.key.toLowerCase() === "v" && !isEditableTarget(document.activeElement)) {
     e.preventDefault();
     input.focus();
     try {
-      const text = await getClipboardText();
+      const text = (await getClipboardText())?.trim();
       if (text) {
-        input.value = text;
-        input.dispatchEvent(new Event("input", { bubbles: true }));
-        lastAutoFilledClipboardText = text.trim();
+        lastHandledClipboardText = text;
+        const urls = extractVideoUrls(text);
+        if (urls.length > 0) {
+          await startDownloadsForUrls(urls);
+        } else {
+          input.value = text;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
       }
     } catch {
       // Ignore clipboard permission failures; focus is still useful.
@@ -2019,34 +2125,31 @@ document.addEventListener("drop", async (e) => {
   appRoot?.classList.remove("drag-over");
   const text = e.dataTransfer.getData("text/plain") || e.dataTransfer.getData("text/uri-list");
   if (text) {
-    const urls = text.split(/[\r\n]+/).map(u => u.trim()).filter(u => u && !u.startsWith("#"));
+    const urls = extractVideoUrls(text);
     for (const url of urls) {
-      if (isValidURL(url) && isVideoURL(url)) {
-        await startDownloadForUrl(url, { silent: true });
-        await new Promise(resolve => setTimeout(resolve, 120));
-      }
+      await startDownloadForUrl(url, { silent: true });
+      await new Promise(resolve => setTimeout(resolve, 120));
     }
-    if (urls.length > 0 && !urls.some(u => isVideoURL(u))) {
+    if (urls.length === 0 && text.trim()) {
       showToast("Not a supported video URL");
     }
   }
 });
 
 window.addEventListener("focus", () => {
-  tryAutofillFromClipboard();
+  suggestLinkFromClipboard();
 });
 
 document.addEventListener("visibilitychange", () => {
   if (!document.hidden) {
-    tryAutofillFromClipboard();
+    suggestLinkFromClipboard();
   }
 });
 
 setTimeout(() => {
-  tryAutofillFromClipboard();
+  suggestLinkFromClipboard();
 }, 250);
-startClipboardWatcher();
-syncAutoAddUiState();
+renderBatchState();
 setSettingsOpen(false);
 
 // First-run onboarding
@@ -2187,11 +2290,9 @@ if (audioOnlyEnabled) {
     syncSettingsControls();
   });
 }
-if (autoStartClipboardEnabled) {
-  autoStartClipboardEnabled.addEventListener("change", () => {
-    saveSettings();
-    syncAutoAddUiState();
-    startClipboardWatcher();
+if (batchToggle) {
+  batchToggle.addEventListener("click", () => {
+    setBatchMode(!batchModeEnabled);
   });
 }
 if (themeSelect) {

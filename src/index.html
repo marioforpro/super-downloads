@@ -22,8 +22,17 @@
           />
           <button class="clear-btn" aria-label="Clear" title="Clear">×</button>
         </div>
+        <button class="batch-btn" id="batch-toggle" type="button" aria-pressed="false" aria-label="Batch mode" title="Batch mode (⌘B) — every video link you copy downloads automatically">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 3 3 7.5 12 12l9-4.5L12 3z"></path>
+            <path d="m3 12 9 4.5 9-4.5"></path>
+            <path d="m3 16.5 9 4.5 9-4.5"></path>
+          </svg>
+          <span class="batch-btn-label">Batch</span>
+        </button>
         <button class="download-btn" id="download-btn">
           <span class="btn-text">Download</span>
+          <span class="btn-kbd" aria-hidden="true">↵</span>
         </button>
         <button class="clear-list-btn icon-only" id="clear-list-btn" aria-label="Clear list" title="Clear all downloads">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -96,12 +105,6 @@
                     </select>
                   </div>
                 </div>
-                <div class="setting-row toggle-row">
-                  <label class="checkbox-label" for="auto-start-clipboard-enabled">
-                    <span>Auto add from clipboard</span>
-                    <input type="checkbox" id="auto-start-clipboard-enabled" />
-                  </label>
-                </div>
               </div>
             </div>
             <div>
@@ -169,13 +172,14 @@
           <div class="settings-guide-title">Quick Guide</div>
           <p><strong>Quality</strong>: <strong>1080p</strong> and <strong>720p</strong> are usually fastest — the app takes an H.264 stream directly. <strong>Best</strong> goes up to 4K; when the source only offers 4K as VP9/AV1 (YouTube) it is converted to H.264 for editing, which takes longer.</p>
           <p><strong>Format</strong>: <strong>Audio MP3</strong> saves only an .mp3 file — no video. It switches back to Video each time the app opens.</p>
-          <p><strong>Auto add from clipboard</strong>: copied video links start downloading automatically. Off each time the app opens.</p>
+          <p><strong>Copy &amp; come back</strong>: copy a video link, switch to the app and it is already in the field — press <strong>Enter</strong>. Pasting a link downloads it right away.</p>
+          <p><strong>Batch mode</strong> (top bar, ⌘B): every video link you copy downloads automatically, even with the app in the background — for grabbing many videos. Off each time the app opens.</p>
           <button class="settings-guide-close" id="settings-guide-close" type="button">Got it</button>
         </div>
       </div>
       <div class="auto-add-ribbon" id="auto-add-ribbon" aria-live="polite" aria-hidden="true">
         <span class="dot" aria-hidden="true"></span>
-        <span class="label">Clipboard Auto Add Active</span>
+        <span class="label" id="auto-add-ribbon-label">Batch mode · copy links to download</span>
       </div>
     </div>
 

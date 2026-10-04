@@ -18,7 +18,7 @@ youtube-best|https://www.youtube.com/watch?v=jNQXAC9IVRw|best|mp4
 youtube-mp3|https://www.youtube.com/watch?v=jNQXAC9IVRw|best|mp3
 tiktok-best|https://www.tiktok.com/@tiktok/video/7106594312292453675|best|mp4
 x-best|https://x.com/SpaceX/status/1732824684683784516|best|mp4
-vimeo-1080p|https://vimeo.com/863362136|1080p|mp4
+vimeo-1080p|https://vimeo.com/1192731173|1080p|mp4
 instagram-best|https://www.instagram.com/reel/Chunk8-jurw/|best|mp4
 facebook-best|https://www.facebook.com/watch/?v=10153231379946729|best|mp4
 linkedin-best|https://www.linkedin.com/posts/the-mathworks_2_what-is-mathworks-cloud-center-activity-7151241570371948544-4Gu7|best|mp4";

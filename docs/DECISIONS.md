@@ -4,6 +4,13 @@
 
 ---
 
+## 2026-10-04 — Download flow: copy & come back by default, Batch mode for many
+**Context:** Founder wanted fewer steps: «cuando tengo la app abierta y hago copy... el link ya debería aparecer»; paste should start the download. The clipboard auto-add already existed but sat in Settings and reset OFF every launch, so in practice it was never used. Merging everything into one always-on clipboard watcher was considered and rejected: every YouTube link copied for any other reason (WhatsApp, notes) would become a download.
+**Decision (founder):** Two modes, modelled on 4K Video Downloader's Paste Link + Smart Mode:
+- **Default (always on, no setting):** when the app comes to the front with a new video link on the clipboard, it is prefilled and Download is highlighted — Enter downloads. Never auto-starts (a link copied 20 min ago must not download just because the app was opened). Pasting a video link (field or Cmd+V anywhere) downloads immediately.
+- **Batch mode** (the old auto-add, renamed): a toggle in the top bar (⌘B), not in Settings. While on, every copied video link downloads on its own, even with the app in the background; the ribbon counts them, duplicates are skipped, and what was on the clipboard when it was turned on is ignored. Still OFF on each launch (2026-03-24 decision kept for this mode).
+**Why:** Copy → come back → Enter is one action and never surprises; bulk work gets a conscious, visible, session-only mode.
+
 ## 2026-10-03 — No public launch for now: private use + friends testing
 **Context:** v1.4.0 published; the next roadmap step was the public announcement (R-SD-002, r/macapps + Show HN).
 **Decision (founder):** «no quiero poner ningún anuncio, primero es para mí y mis amigos y vamos testeando, ya veremos si la promociono». No announcement. The app is used by Mario and shared with friends as a test phase; promotion is decided later.
