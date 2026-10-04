@@ -18,7 +18,7 @@
 | Auto-retry con cookies | Completo | Contenido privado/age-restricted se reintenta automáticamente |
 | Temas dark/light | Completo | CSS variables, toggle en settings |
 | Modo MP3 | Completo | Extracción de audio solamente |
-| Auto-add clipboard | Completo | Monitoriza clipboard para URLs de vídeo |
+| Clipboard (v1.5.0) | Completo | Link sugerido al volver a la app (Enter descarga), pegar = descargar, Batch mode (⌘B) para muchos links |
 | Persistencia | Completo | Download history sobrevive a reinicios |
 | Calidad configurable | Completo | Best / 1080p / 720p |
 | Carpeta de destino | Completo | Selector de carpeta nativo |
@@ -117,7 +117,7 @@ Lo que hace Super Downloads DIFERENTE de otros downloaders:
 1. **Optimización para editores de vídeo** — H.264/Premiere Pro ready. Ningún otro downloader se posiciona así.
 2. **Nativo macOS** — No es Electron, no es web. Tauri = ligero y rápido.
 3. **Multi-plataforma en una sola app** — YouTube + TikTok + X + Vimeo + Instagram + Facebook + LinkedIn.
-4. **Auto-add clipboard** — Workflow de zero-friction para editores.
+4. **Copiar y volver + Batch mode** — Workflow de zero-friction para editores.
 5. **Hardware encoding** — VideoToolbox para conversiones instantáneas.
 
 **Ángulo de posicionamiento recomendado:** "The video downloader built for editors."

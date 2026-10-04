@@ -12,7 +12,7 @@
 >
 > Idea IDs in this file are emitted as `IDEA-SD-NNNN` by the reconstruction engine.
 
-- 2026-04-23 | Batch URL paste / queue for Super Downloads (multi-URL ingestion at once) [size: M] [confidence: 3] [id: 0015] [presence: high] [status: READY] (OOO-auto 2026-10-02: implemented on branch `feat/batch-url-paste` b0e1bb8 — paste 2+ URLs → all queued via the drop path; needs a 1-minute test in the running app before merge)
+- 2026-04-23 | Batch URL paste / queue for Super Downloads (multi-URL ingestion at once) [size: M] [confidence: 3] [id: 0015] [presence: high] [status: DONE] (OOO-auto 2026-10-02: implemented on branch `feat/batch-url-paste` b0e1bb8 — paste 2+ URLs → all queued via the drop path; needs a 1-minute test in the running app before merge) (2026-10-04: shipped in v1.5.0 on `main` — paste-to-download starts every link of a multi-line paste, plus Batch mode; verified in the real app. Local branch `feat/batch-url-paste` is superseded, safe to delete)
   - What: Paste multiple URLs at once and download as a managed queue.
   - Why: Single-URL flow is the #1 friction reported by power users.
   - Where: SUPER-DOWNLOADS / app UX
@@ -57,3 +57,4 @@
   - Where: SUPER-DOWNLOADS / feature (yt-dlp already supports channel/playlist archives via `--download-archive`). Origin: Apple Notes «02 - WORK» line «optimizar descargas Vimeo e YouTube profiles», misfiled as an Operations task until 2026-10-03.
 - 2026-10-03 | "Connect your Vimeo account" (Vimeo API, `video_files` scope): legit route for DRM-protected Vimeo videos — owners get their own originals, and videos whose owner enabled downloads expose source files. Covers editors pulling their own/client footage, which DRM now blocks [kind: project] [parked] [trigger: friends/testers ask for Vimeo videos the app refuses as DRM-protected] [id: 0034]
 - 2026-10-03 | Reuse the metadata pass: hand its JSON to the download with `--load-info-json` instead of a second full extraction — saves ~1.5–3 s per download (3 extractions on Instagram today) [kind: project] [parked] [trigger: next performance pass, or testers say downloads feel slow to start] [id: 0035]
+- 2026-10-04 | Empty-state copy: "Paste a video link to get started" → "Copy a video link and come back" now that copy & come back is the default flow (v1.5.0) [kind: project] [parked] [trigger: next UI copy pass or next release touching the frontend]

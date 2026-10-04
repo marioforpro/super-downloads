@@ -22,7 +22,7 @@ Hi r/macapps, I'm Mario, the developer of Super Downloads. Disclosure: it's my o
 - Paste a video URL, it joins a queue with live progress, speed and time remaining.
 - YouTube, TikTok and Vimeo work out of the box. X/Twitter, Instagram, Facebook and LinkedIn work too and can use your browser's login session when a post needs it — the session stays on your Mac.
 - Every file ends up as H.264/AAC/MP4, so it drops straight into Premiere Pro. "Best" keeps the highest resolution (4K included) and converts on your Mac's hardware encoder with a real progress bar; 1080p/720p are the fast options.
-- Also: MP3-only mode, clipboard auto-add, light/dark theme, optional download history.
+- Also: copy a link and press Enter (or paste to download), Batch mode for many links, MP3-only mode, light/dark theme, optional download history.
 
 **What it doesn't do**
 - It's for content you own, have licensed, or are authorized to download. It never circumvents DRM — Vimeo videos whose owner turned on Vimeo's DRM can't be downloaded, and the app says so.

@@ -11,7 +11,7 @@ Super Downloads is intended for downloading content you own, have licensed, or a
 - Auto-converts to H.264 for Premiere Pro compatibility
 - Can use your browser's login session for platforms that require signing in (your session stays local; passwords are never seen or stored)
 - Dark and light themes
-- Auto-resize window, clipboard auto-add, MP3-only mode
+- Auto-resize window, copy & come back / paste-to-download, Batch mode, MP3-only mode
 - Optional download history — the list persists across restarts when enabled in Settings (off by default)
 
 ## Quick Start
