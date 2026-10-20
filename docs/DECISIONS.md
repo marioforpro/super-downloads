@@ -4,6 +4,11 @@
 
 ---
 
+## 2026-10-20 — Vimeo restricted embeds: our own yt-dlp plugin, shipped as v1.5.1
+**Context:** Founder: a Vimeo video (`vimeo.com/1229184576`) failed in Super Downloads but worked in 4K Video Downloader+ — «arregla nuestra app para que también lo pueda hacer». Stock yt-dlp (latest 2026.08.19) needs a logged-in session for public videos whose embeds are restricted to other domains; vimeo.com plays them anonymously with a per-clip page signature.
+**Decision:** Ship a small yt-dlp plugin with the app that replays vimeo.com's anonymous path, only when the stock extractor asks for login; any failure falls back to the old behaviour. Founder: «publicamos ahora» → v1.5.1 the same day.
+**Consequence:** We maintain this path ourselves (it is not in yt-dlp and is not documented by Vimeo); it reaches users only through app releases, not the engine self-update. E2E case `vimeo-embed-restricted` catches a break before a release. Not a DRM workaround: DRM-protected videos are untouched.
+
 ## 2026-10-04 — Download flow: copy & come back by default, Batch mode for many
 **Context:** Founder wanted fewer steps: «cuando tengo la app abierta y hago copy... el link ya debería aparecer»; paste should start the download. The clipboard auto-add already existed but sat in Settings and reset OFF every launch, so in practice it was never used. Merging everything into one always-on clipboard watcher was considered and rejected: every YouTube link copied for any other reason (WhatsApp, notes) would become a download.
 **Decision (founder):** Two modes, modelled on 4K Video Downloader's Paste Link + Smart Mode:

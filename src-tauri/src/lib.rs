@@ -555,7 +555,9 @@ fn get_video_resolution_from_file(file_path: &str, ffmpeg_dir: &str) -> Option<S
 
 // Vimeo needs up to three attempts: the video page anonymously, then the embed
 // player anonymously (works for most public videos, no Keychain prompt), then
-// the video page with the browser session (owners who restrict embedding).
+// the video page with the browser session. Since v1.5.1 the bundled Vimeo
+// plugin (add_vimeo_plugin) lets the first step succeed for domain-restricted
+// embeds, so the later steps are fallbacks.
 // DRM-protected videos stop at the DRM error — never circumvented.
 #[derive(Clone)]
 enum VimeoStep {

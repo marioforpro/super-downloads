@@ -159,6 +159,21 @@ Review all URLs quarterly even without WARNs.
 extractor test URLs (a good default source when a probe rots — they are what
 upstream CI exercises).
 
+## 2026-10-20 — Vimeo domain-restricted embeds (v1.5.1)
+
+- Public videos whose embed privacy is a domain whitelist (`privacy.embed =
+  whitelist`, e.g. 1229184576, 1399514) failed in stock yt-dlp 2026.08.19 —
+  page: "The web client only works when logged-in"; embed: "Cannot download
+  embed-only video". vimeo.com plays them anonymously: the clip page (served
+  only to a browser TLS fingerprint) has `<meta name="video-signature-<id>">`,
+  and `api.vimeo.com/videos/<id>?anon_signature=…&fields=embed_player_config_url`
+  returns a signed player config.
+- Fix: bundled yt-dlp plugin `src-tauri/ytdlp-plugins/` (Vimeo URLs only, via
+  `--plugin-dirs`); runs only when the stock extractor asks for login and steps
+  aside on any failure. Both videos now download anonymously at their top
+  resolution, no Keychain prompt. E2E case `vimeo-embed-restricted` guards it —
+  this path is undocumented by Vimeo and can change without notice.
+
 ## Baseline — 2026-10-03 (v1.4.0 QA: real downloads, Vimeo DRM)
 
 - **Metadata PASS ≠ downloadable.** The live E2E (`cd src-tauri && cargo test
@@ -169,7 +184,8 @@ upstream CI exercises).
   `hls`, Widevine/PlayReady in `hls_cenc` and `dash`). Vimeo DRM is **opt-in
   per team/video**: third-party videos (1192731173, 278780898, 191827734)
   download clean (0 decode errors) via the embed path. Owners who restrict
-  embedding (1399514 → HTTP 401) need the logged-in step. DRM is never
+  embedding (1399514 → HTTP 401) needed the logged-in step until v1.5.1 (see
+  2026-10-20 below). DRM is never
   circumvented; the app says "This video is DRM-protected by the site".
   Probe switched to 1192731173. Run the E2E before a release, not just this
   metadata check.
