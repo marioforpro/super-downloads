@@ -19,6 +19,7 @@ youtube-mp3|https://www.youtube.com/watch?v=jNQXAC9IVRw|best|mp3
 tiktok-best|https://www.tiktok.com/@tiktok/video/7106594312292453675|best|mp4
 x-best|https://x.com/SpaceX/status/1732824684683784516|best|mp4
 vimeo-1080p|https://vimeo.com/1192731173|1080p|mp4
+vimeo-embed-restricted|https://vimeo.com/1229184576|1080p|mp4
 instagram-best|https://www.instagram.com/reel/Chunk8-jurw/|best|mp4
 facebook-best|https://www.facebook.com/watch/?v=10153231379946729|best|mp4
 linkedin-best|https://www.linkedin.com/posts/the-mathworks_2_what-is-mathworks-cloud-center-activity-7151241570371948544-4Gu7|best|mp4";
@@ -41,6 +42,10 @@ fn link_binaries() {
     };
     let links = [
         ("yt-dlp-engine".to_string(), bin.join("yt-dlp-onedir")),
+        (
+            "ytdlp-plugins".to_string(),
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("ytdlp-plugins"),
+        ),
         (
             "ffmpeg".to_string(),
             bin.join(format!("ffmpeg-{}-apple-darwin", arch)),

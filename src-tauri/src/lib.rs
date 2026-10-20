@@ -319,6 +319,32 @@ fn find_bundled_ytdlp() -> Option<String> {
     .and_then(|p| p.to_str().map(|s| s.to_string()))
 }
 
+// yt-dlp plugins shipped with the app (src-tauri/ytdlp-plugins/). The Vimeo one
+// downloads public videos whose embeds are restricted to other domains, which
+// stock yt-dlp only gets with a logged-in session. Same lookup as the engine.
+const PLUGIN_RESOURCE_DIR: &str = "ytdlp-plugins";
+
+fn find_ytdlp_plugin_dir() -> Option<PathBuf> {
+    let exe_dir = get_bundled_binaries_dir()?;
+    [
+        exe_dir.join("../Resources").join(PLUGIN_RESOURCE_DIR),
+        exe_dir.join(PLUGIN_RESOURCE_DIR),
+    ]
+    .into_iter()
+    .find(|dir| dir.is_dir())
+}
+
+// Only the onedir engine (bundled or managed) is known to take --plugin-dirs;
+// an old Homebrew/pip yt-dlp would reject the flag.
+fn add_vimeo_plugin(cmd: &mut Command, ytdlp_path: &str, url: &str) {
+    if !url.contains("vimeo.com") || !ytdlp_path.ends_with(ENGINE_EXE) {
+        return;
+    }
+    if let Some(dir) = find_ytdlp_plugin_dir() {
+        cmd.arg("--plugin-dirs").arg(dir);
+    }
+}
+
 // Managed engines live in bin/engine-<tag>/ (tags are dates: YYYY.MM.DD[.N]).
 // Returns (tag, dir) sorted oldest → newest; string order is version order.
 fn managed_engines() -> Vec<(String, PathBuf)> {
@@ -679,6 +705,7 @@ fn start_download<R: Runtime>(
                 metadata_cmd.arg("--impersonate").arg("chrome");
             }
 
+            add_vimeo_plugin(&mut metadata_cmd, &ytdlp_path, &url);
             metadata_cmd.arg(&url);
             metadata_cmd
         };
@@ -770,6 +797,7 @@ fn start_download<R: Runtime>(
                         title_cmd.arg("--no-playlist");
                         title_cmd.arg("--get-title").arg("--skip-download");
                         title_cmd.arg("--user-agent").arg(DEFAULT_USER_AGENT);
+                        add_vimeo_plugin(&mut title_cmd, &ytdlp_path, &url);
                         title_cmd.arg(&url);
                         if let Ok(title_output) = title_cmd.output() {
                             if title_output.status.success() {
@@ -1009,6 +1037,7 @@ fn start_download<R: Runtime>(
         // "Unable to extract video" — forcing cookies broke every user signed in
         // to LinkedIn. Login-only posts get cookies via the retry below.
 
+        add_vimeo_plugin(&mut cmd, &ytdlp_path, &url);
         cmd.arg("-o")
             .arg(&planned_output_path)
             .arg(&url)
@@ -1649,6 +1678,7 @@ fn start_download<R: Runtime>(
                     if ytdlp_supports_impersonation(&ytdlp_path) {
                         retry_cmd.arg("--impersonate").arg("chrome");
                     }
+                    add_vimeo_plugin(&mut retry_cmd, &ytdlp_path, &url);
                     retry_cmd
                         .arg("--no-warnings")
                         .arg("-o")

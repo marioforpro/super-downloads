@@ -56,7 +56,8 @@
       "entitlements": null
     },
     "resources": {
-      "binaries/yt-dlp-onedir/": "yt-dlp-engine/"
+      "binaries/yt-dlp-onedir/": "yt-dlp-engine/",
+      "ytdlp-plugins/": "ytdlp-plugins/"
     }
   }
 }
