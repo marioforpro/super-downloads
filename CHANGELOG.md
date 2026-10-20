@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [1.5.1] — 2026-10-20
+## [1.5.1] — 2026-10-20 (released)
+
+GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.5.1 — anonymous DMG URLs 200; updater `latest.json` serves 1.5.1 (aarch64 + x86_64).
 
 ### Fixed
 - **Vimeo videos whose embeds are restricted to other sites** (public on vimeo.com, but the owner only allows embedding on chosen domains) now download — e.g. `vimeo.com/1229184576`, which failed with a login error while other downloaders got it. yt-dlp needs a logged-in session for these; vimeo.com plays them anonymously with a per-clip signature from the video page. A small yt-dlp plugin shipped with the app (`src-tauri/ytdlp-plugins/`, bundled as `Contents/Resources/ytdlp-plugins/`) replays that anonymous path only when the stock extractor asks for login, so there's no Keychain prompt and no cookies. If Vimeo changes it, the plugin steps aside and the old behaviour returns. DRM-protected videos are untouched.
