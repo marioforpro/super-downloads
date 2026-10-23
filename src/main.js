@@ -850,7 +850,7 @@ function renderDownloadList() {
           <path d="M7 12l5 5 5-5"></path>
           <path d="M5 19h14"></path>
         </svg>
-        <div class="empty-state-title">Paste a video link to get started</div>
+        <div class="empty-state-title">Copy a video link and come back</div>
         <div class="empty-state-hint">YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn</div>
       </div>
     `;
@@ -1008,15 +1008,8 @@ async function handleMenuAction(action, downloadId) {
           await navigator.clipboard.writeText(download.url);
           showToast("Link copied");
         }
-      } catch (err) {
-        try {
-          if (window.__TAURI__?.core?.invoke) {
-            await window.__TAURI__.core.invoke("copy_to_clipboard", { text: download.url });
-            showToast("Link copied");
-          }
-        } catch (err2) {
-          showToast("Failed to copy link");
-        }
+      } catch {
+        showToast("Failed to copy link");
       }
       break;
       

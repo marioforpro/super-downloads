@@ -48,7 +48,7 @@
   const invoke = async (cmd) => {
     switch (cmd) {
       case "load_download_history": return JSON.stringify(history);
-      case "get_ytdlp_version": return { version: "2026.08.19", source: "bundled" };
+      case "get_ytdlp_version": return { version: "2026.10.21", source: "bundled" };
       case "check_for_update": return null;
       case "read_clipboard_text": return q.get("clip") || "";
       default: return null;
@@ -57,7 +57,7 @@
   window.__TAURI__ = {
     core: { invoke, convertFileSrc: (p) => p },
     event: { listen: async () => () => {} },
-    app: { getVersion: async () => "1.5.1" },
+    app: { getVersion: async () => "1.5.2" },
     opener: { openUrl: async () => {}, openPath: async () => {} },
   };
 })();

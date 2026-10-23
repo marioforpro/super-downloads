@@ -71,9 +71,7 @@ function topLevelKeys(objSrc) {
 
 // Known-missing commands, pinned so the gate stays green while the debt is
 // tracked on a lifecycle surface. Anything NEW still fails the check.
-// copy_to_clipboard: dead fallback behind navigator.clipboard.writeText —
-// recorded 2026-08-03 in ROADMAP.md Backlog; remove or implement there.
-const KNOWN_MISSING = new Set(["copy_to_clipboard"]);
+const KNOWN_MISSING = new Set([]);
 
 const failures = [];
 let checked = 0;

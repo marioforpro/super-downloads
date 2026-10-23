@@ -1605,8 +1605,8 @@ fn start_download<R: Runtime>(
                     || url.contains("facebook.com")
                     || url.contains("fb.watch")
                     || url.contains("tiktok.com")
-                    || url.contains("twitter.com")
-                    || url.contains("x.com");
+                    || url_host_is(&url, "twitter.com")
+                    || url_host_is(&url, "x.com");
                 // LinkedIn's login wall has no stable error text, so any failed
                 // cookie-less attempt earns one retry with the browser session.
                 let should_retry_with_cookies = (is_auth_required_error(&combined_error_text)
@@ -2451,6 +2451,48 @@ mod e2e_tests;
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn url_host_is_matches_host_not_substring() {
+        assert!(super::url_host_is("https://x.com/user/status/1", "x.com"));
+        assert!(super::url_host_is(
+            "https://mobile.x.com/user/status/1",
+            "x.com"
+        ));
+        assert!(super::url_host_is(
+            "https://twitter.com/user/status/1",
+            "twitter.com"
+        ));
+        assert!(!super::url_host_is(
+            "https://www.dropbox.com/s/abc/video.mp4",
+            "x.com"
+        ));
+        assert!(!super::url_host_is("https://example.com/?u=x.com", "x.com"));
+        assert!(!super::url_host_is("not a url", "x.com"));
+    }
+
+    #[test]
+    fn expected_sha256_reads_yt_dlp_sums_format() {
+        let sums = "7a6fe71d7d680f1fb0ac18d4949873d77db2859e90017c0f44bd94b23be4ee40  yt-dlp_macos\n\
+                    2B5251788B36FCBC476568B4EEA8CB239F0A775759456F2FF9344A437C52F000  yt-dlp_macos.zip\n";
+        assert_eq!(
+            super::expected_sha256(sums, "yt-dlp_macos.zip").as_deref(),
+            Some("2b5251788b36fcbc476568b4eea8cb239f0a775759456f2ff9344a437c52f000")
+        );
+        assert_eq!(super::expected_sha256(sums, "yt-dlp.exe"), None);
+        assert_eq!(
+            super::expected_sha256("nothex  yt-dlp_macos.zip", "yt-dlp_macos.zip"),
+            None
+        );
+    }
+
+    #[test]
+    fn sha256_hex_known_vector() {
+        assert_eq!(
+            super::sha256_hex(b"abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
     // Live (network) end-to-end check of the engine self-update in a throwaway
     // HOME: legacy cleanup → onedir install → fast second start → no re-download.
     // Mutates HOME, so run it alone:
@@ -3288,9 +3330,38 @@ async fn get_ytdlp_version() -> YtdlpVersionInfo {
     })
 }
 
+// True when the URL's host is `domain` or a subdomain of it. A substring
+// check would also match e.g. dropbox.com for "x.com".
+fn url_host_is(url: &str, domain: &str) -> bool {
+    reqwest::Url::parse(url)
+        .ok()
+        .and_then(|u| u.host_str().map(|h| h.to_ascii_lowercase()))
+        .map(|h| h == domain || h.ends_with(&format!(".{}", domain)))
+        .unwrap_or(false)
+}
+
+// yt-dlp publishes SHA2-256SUMS ("<hash>  <file>" per line) with every release.
+fn expected_sha256(sums: &str, file: &str) -> Option<String> {
+    sums.lines().find_map(|line| {
+        let mut parts = line.split_whitespace();
+        let hash = parts.next()?;
+        let name = parts.next()?.trim_start_matches('*');
+        (name == file && hash.len() == 64 && hash.chars().all(|c| c.is_ascii_hexdigit()))
+            .then(|| hash.to_ascii_lowercase())
+    })
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    use sha2::{Digest, Sha256};
+    Sha256::digest(bytes)
+        .iter()
+        .map(|b| format!("{:02x}", b))
+        .collect()
+}
+
 // Install the latest onedir macOS yt-dlp into bin/engine-<tag>/.
-// Atomic: download zip → extract into engine-<tag>.tmp → verify --version →
-// rename into place. Skips the download when that tag is already installed.
+// Atomic: download zip → check it against the release's SHA2-256SUMS →
+// extract into engine-<tag>.tmp → verify --version → rename into place. Skips the download when that tag is already installed.
 // Returns the version tag on success. Never touches the bundled engine.
 async fn download_latest_ytdlp() -> Result<String, String> {
     // One update at a time: the launch-time auto-update and the Settings button
@@ -3340,6 +3411,22 @@ async fn download_latest_ytdlp_inner() -> Result<String, String> {
         return Ok(tag);
     }
 
+    // The checksum comes first: an engine we cannot verify is never installed.
+    let sums = client
+        .get(format!(
+            "https://github.com/yt-dlp/yt-dlp/releases/download/{}/SHA2-256SUMS",
+            tag
+        ))
+        .send()
+        .await
+        .and_then(|r| r.error_for_status())
+        .map_err(|e| format!("Checksum download error: {}", e))?
+        .text()
+        .await
+        .map_err(|e| format!("Checksum read error: {}", e))?;
+    let expected = expected_sha256(&sums, "yt-dlp_macos.zip")
+        .ok_or("No checksum for yt-dlp_macos.zip in SHA2-256SUMS")?;
+
     let url = format!(
         "https://github.com/yt-dlp/yt-dlp/releases/download/{}/yt-dlp_macos.zip",
         tag
@@ -3358,6 +3445,13 @@ async fn download_latest_ytdlp_inner() -> Result<String, String> {
         return Err(format!(
             "Downloaded yt-dlp too small ({} bytes)",
             bytes.len()
+        ));
+    }
+    let actual = sha256_hex(&bytes);
+    if actual != expected {
+        return Err(format!(
+            "Downloaded yt-dlp failed its checksum (expected {}, got {})",
+            expected, actual
         ));
     }
 
