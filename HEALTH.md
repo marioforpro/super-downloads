@@ -9,7 +9,7 @@ blocked: false
 blocker_reason: null
 resolution_factor: 1.0
 validity_factor: 1.0
-next_milestone: Landing refresh deployed + v1.5.2 maintenance release (fresh engine + small fixes) — ROADMAP plan 2026-10-23
+next_milestone: Tester feedback loop (R-SD-008) + signing decision (R-SD-009) — ROADMAP plan 2026-10-23
 last_updated: 2026-10-23
 validated_end_to_end: 2026-10-03  # free-mode path: founder smoke test of the v1.3.0 DMG (activation card + YouTube download) + superdownloads.app/api/activate → Airtable SD · Users verified (200 + row; 400 on bad email). LemonSqueezy Track C2 stays deferred with free mode.
 stack: Tauri v2, Rust, vanilla JS, Astro
@@ -19,11 +19,11 @@ repo: marioforpro/super-downloads
 # Super Downloads — Health Card
 
 ## Status
-- **State**: FREE app, live — v1.5.1 published 2026-10-20 (release URLs 200, updater serves 1.5.1 for both arches). No payments provider.
+- **State**: FREE app, live — v1.5.2 published 2026-10-23 (release URLs 200, updater serves 1.5.2 for both arches). No payments provider.
 - **Version**: v1.5.1 (published 2026-10-20 — Vimeo domain-restricted embeds download anonymously via a bundled yt-dlp plugin; E2E-verified). Previous: v1.5.0 (published 2026-10-04 — copy & come back, paste-to-download, Batch mode; verified in the real app). Previous: v1.4.0 (2026-10-03 — onedir engine, Settings redesign, QA pass). Previous: v1.3.0 (published 2026-10-03 — FREE mode: no daily limit, license UI hidden, email activation → Airtable `SD · Users`; landing «Free for a limited time» + unsigned-install FAQ; includes the LinkedIn and Vimeo fixes). Previous: v1.2.0 (published 2026-07-16 — relaunch hardening Track A: download reliability, wider auth retry, engine UI, bundled yt-dlp 2026.07.04). Previous: v1.1.1 (2026-05-31 — yt-dlp 360p fix + one-click in-app auto-update)
 - **Phase**: Private use + friends testing. Public announcement (R-SD-002) on hold by founder decision 2026-10-03. Payments (Track C, LemonSqueezy) CLOSED 2026-10-03 — no account, app is free (`docs/DECISIONS.md`).
 - **Build**: macOS DMGs (Apple Silicon + Intel)
-- **Monitoring**: daily platform health-check via launchd (shipped 2026-05-31). **2026-10-22: 7/7 PASS but verdict DEGRADED (stale engine)** — bundled yt-dlp 2026.08.19 is 64 d old (gate 28 d); fix = R-SD-006 (v1.5.2) + R-SD-007 (engine self-refresh). Lifecycle truth: the agent was dead 2026-07-02 → 2026-08-03 (plist sat renamed `.plist.disabled`; zero automated runs; one manual run 2026-07-16). Reloaded 2026-08-03 (audit Wave D, no kickstart) — first scheduled run expected 2026-08-04 10:00; registered in `00_System/AUTOMATIONS.md`.
+- **Monitoring**: daily platform health-check via launchd (shipped 2026-05-31). 2026-10-22 DEGRADED (stale bundled engine, 64 d) → resolved by v1.5.2 (bundled yt-dlp 2026.10.21, self-update now checksum-verified). Lifecycle truth: the agent was dead 2026-07-02 → 2026-08-03 (plist sat renamed `.plist.disabled`; zero automated runs; one manual run 2026-07-16). Reloaded 2026-08-03 (audit Wave D, no kickstart) — first scheduled run expected 2026-08-04 10:00; registered in `00_System/AUTOMATIONS.md`.
 
 ## What It Does
 macOS desktop app for downloading media. Tauri v2 with Rust backend, vanilla JS frontend. Astro-based landing page.

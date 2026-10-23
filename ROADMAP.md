@@ -5,7 +5,7 @@ scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: active
 current_phase: Free app, private use + friends testing (v1.5.1 live) — work plan 2026-10-23 below
-next_milestone: Landing refresh deployed + v1.5.2 maintenance release (fresh engine + small fixes)
+next_milestone: Tester feedback loop (R-SD-008) + signing decision (R-SD-009)
 updated: 2026-10-23
 ---
 
@@ -18,20 +18,20 @@ updated: 2026-10-23
 > **Work plan (2026-10-23).** Order = what moves the product most for the least founder time. Now → Next → Later.
 > References behind each call are cited inline (yt-dlp release cadence, Apple notarization, competitor apps).
 
-- **R-SD-005** · P0 · active · Landing refresh — real app screenshots, OG image, editor-first design
+- **R-SD-005** · P0 · shipped · Landing refresh — real app screenshots, OG image, editor-first design
   - added: 2026-10-23
   - moved: 2026-10-23
   - progress: 2026-10-23 · built locally, not deployed. New `web/src/pages/index.astro`: hero = real app window over an editing timeline, «Copy. Switch. Enter.» sequence, three feature rows with real screenshots (dark + light), platforms + trust facts, download, FAQ. `og.png` now exists (it was referenced but missing → every shared link had no preview). Geist as web typeface (BRAND.md had typography «pending»). JSON-LD `softwareVersion` 1.1 → 1.5.1. Screenshots come from the real frontend rendered in WebKit with staged data (`scripts/screenshots/`), thumbnails = Blender Studio open movies, CC BY 4.0, credited in the footer.
-  - next: founder OK → commit + push (Vercel auto-deploys) → check superdownloads.app + share preview (opengraph.xyz or a WhatsApp/X paste).
+  - shipped: 2026-10-23 — live on superdownloads.app (home, og.png, shots 200). Founder check pending: share preview in WhatsApp/X.
   - later: 15-s hero loop (screen recording or HyperFrames) · `/changelog` page fed from GitHub Releases · version + size on the download buttons, read at build time.
-- **R-SD-006** · P0 · active · v1.5.2 maintenance release — fresh engine + small fixes
+- **R-SD-006** · P0 · shipped · v1.5.2 maintenance release — fresh engine + small fixes
   - added: 2026-10-23
   - moved: 2026-10-23
   - why: the daily health check went **DEGRADED (stale engine)** on 2026-10-22 — bundled yt-dlp `2026.08.19` is 64 days old (gate 28 d); upstream is `2026.10.21`. All 7 platforms still PASS. Installed apps already refresh the engine weekly on their own (since v1.2.0), so this mostly matters for fresh installs and for the case where the self-update fails — but yt-dlp ships fixes every 2–4 weeks because sites change, so the bundled copy should not lag.
   - scope: bump bundled yt-dlp → latest stable · fix `url.contains("x.com")` also matching dropbox.com (known bug #6) · remove the dead `copy_to_clipboard` fallback · empty-state copy «Copy a video link and come back» (IDEA-0036) · live E2E before publishing · verify the real minimum macOS (Tauri 2 targets 10.15; `tauri.conf.json` and the JSON-LD still claim 10.13) and align the landing.
   - progress: 2026-10-23 · code done on `main`: bundled yt-dlp 2026.08.19 → 2026.10.21 (checksum-verified), host-based X/Twitter match, dead `copy_to_clipboard` fallback removed (`KNOWN_MISSING` now empty), empty-state copy, engine checksum (R-SD-007). `npm run check` green.
-  - next: live E2E → build → publish. Minimum-macOS check still open.
-- **R-SD-007** · P1 · active · Engine self-update verified by checksum
+  - shipped: 2026-10-23 — live E2E 9/9 (YouTube, MP3, TikTok, X, Vimeo, Vimeo embed-restricted, Instagram, Facebook, LinkedIn) → published; URLs 200, `latest.json` 1.5.2 both arches, DMG carries engine 2026.10.21. Minimum-macOS check moved to the backlog.
+- **R-SD-007** · P1 · shipped · Engine self-update verified by checksum
   - added: 2026-10-23
   - moved: 2026-10-23
   - correction 2026-10-23: the weekly background refresh **already existed** (v1.2.0: launch-time check, atomic install into `bin/engine-<tag>/`, bundled engine as fallback). The plan first said otherwise — wrong. What was missing was integrity: the downloaded zip was only size-checked (known bug #7).
@@ -103,6 +103,7 @@ updated: 2026-10-23
 - Analytics telemetry opt-in (from Phase 2 deferred list)
 - Windows/Linux expansion
 - Browser extension (was Phase 8 in prior roadmap — legitimately future work)
+- Verify the real minimum macOS (Tauri 2 targets 10.15; `tauri.conf.json` + JSON-LD claim 10.13) and align the landing
 - MacUpdate / AlternativeTo directory submissions — bundle with R-SD-002 when promotion is decided
 - Product Hunt launch (timing TBD) — needs R-SD-009 first: an unsigned app on launch day turns the comment thread into install support
 - **Founder comp license via LemonSqueezy** — **void 2026-10-03** (no LemonSqueezy account; app is free). ~~— issue real comp license through Lemon dashboard (Product → Licenses → Issue License Key, comp/free) for `supermariomonteiro@gmail.com`, replace local `FOUNDER-MARIO-001` stop-gap (Session 201 inject, see `docs/SECURITY-NOTES.md`). Validates the full activation flow end-to-end with a real Lemon-tracked record. Depends on: Lemon product live (linked to R-SD-001 Phase 4 LS-verify). **Sequencing constraint** (surfaced 2026-08-03 from `docs/SECURITY-NOTES.md` prose, SD-F-014): replace the FOUNDER-MARIO-001 stop-gap before/with the license-hardening review below, so any revalidation layer doesn't lock the founder's injected keys out.~~

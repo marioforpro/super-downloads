@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [1.5.2] — 2026-10-23
+## [1.5.2] — 2026-10-23 (released)
+
+GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.5.2 — anonymous DMG URLs 200 (97/109 MB); updater `latest.json` serves 1.5.2 (aarch64 + x86_64); DMG verified: engine 2026.10.21 + Vimeo plugin bundled. Live E2E 9/9 before publishing.
 
 Maintenance release.
 
