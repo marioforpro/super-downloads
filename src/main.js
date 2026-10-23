@@ -589,6 +589,8 @@ async function openProblemReport(download = null) {
 }
 
 document.querySelector("#report-problem-btn")?.addEventListener("click", () => openProblemReport());
+// The 24-second demo film lives on the landing (#demo).
+document.querySelector("#watch-demo-btn")?.addEventListener("click", () => openExternal("https://superdownloads.app/#demo"));
 
 // Initialize
 const syncQualitySegmented = enhanceSegmented(videoQuality);

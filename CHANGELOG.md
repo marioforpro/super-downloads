@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Unreleased]
+
+### Added
+- Settings › Help › **Watch demo** opens the 24-second demo on superdownloads.app/#demo.
+
 ## [1.5.4] — 2026-10-23 (released)
 
 GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.5.4 — tag on the built commit `1e4630c`, notes from this section; DMG URLs 200 (97/109 MB); `latest.json` serves 1.5.4 (both arches). Live E2E 9/9 + WebKit UI check 39/39 before publishing.
