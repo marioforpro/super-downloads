@@ -4,6 +4,11 @@
 
 ---
 
+## 2026-10-23 — App CSP keeps `img-src https:` (audit T1 closed, won't-fix)
+**Context:** The 2026-03-24 audit (T1) suggested narrowing the app's `img-src 'self' https: data:` to thumbnail domains; it was the last open audit item.
+**Decision:** Keep it. Thumbnails come from many platform CDNs that rotate subdomains (TikTok, Instagram, Facebook); an allowlist would break thumbnails silently on the next CDN change. The webview runs only bundled code (`script-src 'self'`, no inline script), so an image source cannot execute anything; the audit itself rated it low risk.
+**Consequence:** Revisit only if the app ever renders third-party HTML or loosens `script-src`.
+
 ## 2026-10-23 — Apple signing + notarization: yes, in December
 **Context:** R-SD-009 trigger reached (113 DMG downloads > 100). Founder asked whether Apple could refuse a downloader app.
 **Decision (founder):** Sign with Developer ID and notarize, during the Christmas break (target 2026-12-20). Not the Mac App Store: guideline 5.2.3 forbids apps that download media from third-party sources, so the app stays distributed from the website/GitHub. Notarization is Apple's automated malware + signing check, not App Review.

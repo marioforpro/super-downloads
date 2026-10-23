@@ -785,10 +785,11 @@ mod tests {
     #[test]
     #[ignore]
     fn live_fallback_against_real_instagram_posts() {
-        let probe_post = "https://www.instagram.com/p/CqzZ0HwI9bA/";
-        let probe_reel = "https://www.instagram.com/reel/C1z0j9nIQwB/";
+        // Same reel as the daily probe and the E2E (yt-dlp's own test reel);
+        // the two earlier posts were deleted.
+        let probe_reel = "https://www.instagram.com/reel/Chunk8-jurw/";
 
-        for url in [probe_post, probe_reel] {
+        for url in [probe_reel] {
             match fetch_instagram_direct_video_url(url) {
                 Ok(video_url) => {
                     println!("LIVE PASS [{}] -> {}", url, video_url);

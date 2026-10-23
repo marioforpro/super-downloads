@@ -2,7 +2,7 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
-> **NEXT (2026-10-23):** **v1.5.4 publicada** (descargas colgadas → error con Retry a los 90 s, menú ⋯ estable, foco en Settings, macOS mínimo real 12/10.15, animación de filas). Primer paso founder: actualizar con el banner. Después: arreglar lo que reporten los amigos (llegan por «Report a problem»). Decisiones abiertas: qué pasa al acabar «Free for a limited time» · frase «Made by Mario Monteiro». Firma Apple: diciembre (R-SD-009, objetivo 2026-12-20).
+> **NEXT (2026-10-23):** **v1.5.4 publicada.** Landing: nueva página `/changelog` (novedades en lenguaje claro), sitemap al día, notas de GitHub rellenadas. Plan del proyecto vaciado de todo lo hacible sin ti. Primer paso founder: actualizar con el banner. Después: arreglar lo que reporten los amigos. Decisiones abiertas: qué pasa al acabar «Free for a limited time» · frase «Made by Mario Monteiro» · ¿vídeo en bucle en el hero? · borrar ramas viejas `feat/batch-url-paste` y `ooo/platform-health-2026-08-17` (no integradas tal cual; su trabajo se rehízo en main). Firma Apple: diciembre (R-SD-009, objetivo 2026-12-20).
 
 ## Dónde estamos (2026-10-23)
 
@@ -19,7 +19,6 @@
 4. ~~«Report a problem» dentro de la app~~ — **publicado en la v1.5.3** (2026-10-23; E2E 9/9, UI 30/30). Probado por el founder: abre Apple Mail con el correo listo. Los reportes de amigos llegan a support@ — de ahí salen los siguientes arreglos.
 5. **Firma + notarización de Apple** (R-SD-009): **decidido — sí, en diciembre (Navidad, objetivo 2026-12-20).** Tu paso: alta en Apple Developer (99 USD/año, `marioforpro@gmail.com`) + certificado Developer ID. El resto lo hago yo. App Store no (norma 5.2.3).
 6. ~~v1.5.4~~ (R-SD-010) — **publicada 2026-10-23** (E2E 9/9, UI 39/39). Release: `source ~/.secrets && ./scripts/make-release.sh` → `--no-build --publish` (procedimiento completo: `docs/OPS.md` § Release pipeline).
-7. **Pendiente menor:** URLs de prueba muertas — fallback de Instagram (`--ig-fallback` da WARN) y sonda de LinkedIn en `scripts/platform-health-check.sh`. Buscar vídeos públicos que sirvan.
 
 ## Regenerar screenshots de la landing
 
@@ -34,7 +33,7 @@ Cuando cambie la UI de la app: ver `scripts/screenshots/README.md` (renderiza el
 5. ~~Las filas nuevas no tenían animación de entrada~~ → v1.5.4.
 6. ~~`url.contains("x.com")` casaba con dropbox.com~~ → arreglado en v1.5.2.
 7. ~~Sin verificación SHA256 del motor auto-actualizado~~ → arreglado en v1.5.2.
-8. Las URLs de prueba del fallback de Instagram están muertas (`--ig-fallback` da WARN).
+8. ~~URLs de prueba del fallback de Instagram muertas~~ → cambiadas al reel vivo (2026-10-23). **Hallazgo:** el fallback propio ya no resuelve ni ese reel (dice «unavailable or deleted» mientras yt-dlp lo baja bien). Está dormido — solo entra si yt-dlp falla con el HTTP 400 — así que hoy no afecta. Si Instagram vuelve a romperse, primer paso: poner al día sus endpoints o quitarlo.
 9. Intel: la primera ejecución del motor tras instalar tarda ~10 s (Rosetta; el calentamiento en segundo plano lo absorbe).
 
 ## Claves y secretos

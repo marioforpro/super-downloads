@@ -2,6 +2,8 @@
 
 > Auditoría completa del estado actual del producto. Fecha: 2026-03-24.
 
+> **Reconciled 2026-10-23 — historical snapshot of v1.1.0, do not work from it.** Nearly every item shipped across v1.1–v1.5.4 (see `CHANGELOG.md`); the residue list was re-verified 2026-08-03 (SD-F-012). The last open item, the app CSP item (T1 in APP-AUDIT, `img-src https:`), is closed as won't-fix: thumbnails come from many platform CDNs that rotate subdomains, so an allowlist would silently break them, and with `script-src 'self'` an image cannot run code (`docs/DECISIONS.md` 2026-10-23). Live work: `ROADMAP.md` + `NEXT.md`.
+
 ---
 
 ## 1. Estado Actual del Producto

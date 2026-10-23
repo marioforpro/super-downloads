@@ -27,7 +27,7 @@
 ## Release pipeline
 
 1. **Tests** — `npm run check`, then the live E2E on the real `download_video`: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture` (9 platform cases; the metadata-only health check once said Vimeo PASS while every download failed).
-2. **Version + CHANGELOG** — bump `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml` (+ `cargo update -p super-downloads --offline` for `Cargo.lock`); write the `## [x.y.z]` CHANGELOG section — it becomes the GitHub release notes.
+2. **Version + CHANGELOG** — bump `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml` (+ `cargo update -p super-downloads --offline` for `Cargo.lock`); write the `## [x.y.z]` CHANGELOG section — it becomes the GitHub release notes — and add a plain-language entry at the top of `web/src/data/releases.js` (the landing's `/changelog`).
 3. **Commit + push first** — the provenance gate compares DMG mtimes with the last release-critical commit, and the tag must point at a commit already on `origin/main`.
 4. **Build** — `source ~/.secrets && ./scripts/make-release.sh` builds both arches, signs the updater artifacts (Ed25519 key `src-tauri/.tauri-update-key`, password `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in `~/.secrets`; public key in `tauri.conf.json` = the `.pub` file verbatim) and writes `dist/latest.json`.
 5. **Publish** — `./scripts/make-release.sh --no-build --publish`: runs the provenance gate, tags HEAD (`--target`), uses the CHANGELOG section as notes, uploads both DMGs + both `.app.tar.gz` + `latest.json`. The in-app updater polls `releases/latest/download/latest.json`, so `latest.json` must always be an asset. Auto mode cannot publish: the founder runs this line.
