@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-10-23 — Landing: no timeline strip under the hero; demo not posted on social yet
+**Context:** Founder review of the live landing: «elimina esto de la web… creo que confunde un timeline ahí».
+**Decision (founder):** the hero shows the app window only (the editing-timeline strip is gone; the demo film right below
+shows the timeline in context). Nav and buttons get a subtle LED edge + glow («tech future, sin pasarse»), the hero window too.
+The v8 demo goes on the landing; **nothing is posted on Instagram/X for now**. Demo music = the founder's original Suno track.
+
 ## 2026-10-23 — The demo film carries no «Made by Mario Monteiro»
 **Context:** Founder review of the demo v5: «no es necesario tenerlo tan visible en la demo».
 **Decision (founder):** the end card is the product alone — icon, «Super Downloads», «Free for Mac · superdownloads.app», the film credit. The maker line stays on the landing and in the app (decision below); only the demo drops it.
