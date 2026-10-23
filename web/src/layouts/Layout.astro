@@ -15,12 +15,18 @@ const { title, description } = Astro.props;
     <meta name="description" content={description} />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="canonical" href="https://superdownloads.app" />
+    <meta name="theme-color" content="#0a163f" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="canonical" href={new URL(Astro.url.pathname, 'https://superdownloads.app').href} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://superdownloads.app" />
     <meta property="og:image" content="https://superdownloads.app/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
@@ -50,11 +56,12 @@ const { title, description } = Astro.props;
         "Audio-only MP3 extraction",
         "Copy a link and press Enter; Batch mode for many links",
         "Drag and drop support",
+        "Dark and light themes",
         "Apple Silicon and Intel support"
       ],
       "url": "https://superdownloads.app",
       "downloadUrl": "https://superdownloads.app/#download",
-      "softwareVersion": "1.1",
+      "softwareVersion": "1.5.1",
       "creator": {
         "@type": "Organization",
         "name": "Super Downloads",
@@ -93,6 +100,17 @@ const { title, description } = Astro.props;
     --gray-400: #94a3b8;
     --gray-600: #475569;
     --gray-900: #0f172a;
+    /* Landing tokens (brand palette from docs/BRAND.md) */
+    --navy-950: #0a163f;
+    --navy-800: #162b73;
+    --blue: #30a7ff;
+    --blue-200: #8cd0ff;
+    --blue-50: #d5ebff;
+    --ink: #0f172a;
+    --slate: #475569;
+    --mist: #f4f7fc;
+    --line: #e2e8f0;
+    --link: #0b6bcb;
   }
 
   * {
@@ -102,14 +120,18 @@ const { title, description } = Astro.props;
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", sans-serif;
+    font-family: "Geist", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
     color: var(--gray-900);
     background: var(--white);
     -webkit-font-smoothing: antialiased;
   }
 
+  html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  :focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 4px; }
+
   a {
-    color: var(--blue-bright);
+    color: var(--link);
     text-decoration: none;
   }
 

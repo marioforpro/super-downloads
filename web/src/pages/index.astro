@@ -1,291 +1,278 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-// Free mode: the Pro (LemonSqueezy) card is hidden but kept in the markup.
-const SHOW_PRO = false;
+const DMG_ARM = 'https://github.com/marioforpro/super-downloads/releases/latest/download/Super-Downloads_aarch64.dmg';
+const DMG_INTEL = 'https://github.com/marioforpro/super-downloads/releases/latest/download/Super-Downloads_x64.dmg';
+
+// Clips on the hero timeline: width follows real duration (seconds).
+const clips = [
+  { name: 'Spring — Blender Open Movie.mp4', thumb: 'WhWc3b3KhnY', secs: 464 },
+  { name: 'WING IT! — Blender Open Movie.mp4', thumb: 'u9lj-c29dxI', secs: 238 },
+  { name: 'Coffee Run — Blender Open Movie.mp4', thumb: 'PVGeM40dABA', secs: 185 },
+  { name: 'CHARGE — Blender Open Movie.mp4', thumb: 'UXqq0ZvbOnk', secs: 263 },
+];
+
+// Audio waveform for the A1 track: deterministic bar heights, tiled as an SVG.
+const wave = (() => {
+  let seed = 7;
+  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
+  let bars = '';
+  for (let i = 0; i < 64; i++) {
+    const h = Math.round(4 + rnd() * 18 * (0.55 + 0.45 * Math.abs(Math.sin(i / 5))));
+    bars += `<rect x='${i * 4}' y='${(26 - h) / 2}' width='2' height='${h}' rx='1'/>`;
+  }
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='256' height='26' fill='%238cd0ff' fill-opacity='.6'>${bars}</svg>`;
+  return `url("data:image/svg+xml;utf8,${svg}")`;
+})();
+
+const faqs = [
+  {
+    q: 'What is Super Downloads?',
+    a: 'A native macOS app for saving video to your offline editing workflow — your own content, licensed, Creative Commons, or authorized content. It works out of the box with YouTube, TikTok and Vimeo, and also supports Instagram, Facebook, X and LinkedIn using your browser login. Every download is an H.264/MP4 file, ready for Premiere Pro, DaVinci Resolve or Final Cut Pro.',
+  },
+  {
+    q: 'Is it really free?',
+    a: 'Yes. It is free for a limited time, with unlimited downloads and every feature included. You activate it once with your email inside the app. No card, no payment.',
+  },
+  {
+    q: 'Why do some platforms need my browser login?',
+    a: 'Instagram, Facebook, X and LinkedIn only serve video to signed-in users. Super Downloads reads your existing local browser session to authenticate — it never asks for, sees, or stores your passwords. YouTube, TikTok and Vimeo work without login.',
+  },
+  {
+    q: 'What quality can I download?',
+    a: 'Best (up to 4K), 1080p or 720p. 1080p and 720p are usually fastest, because the app takes an H.264 stream directly. When a source only offers 4K as VP9 or AV1, Best converts it to H.264 using your Mac’s hardware encoder.',
+  },
+  {
+    q: 'Do I need an internet connection?',
+    a: 'Only to download. The app runs entirely on your Mac — no cloud processing, and no download passes through our servers.',
+  },
+  {
+    q: 'Can I use it on Windows or Linux?',
+    a: 'Not yet. Super Downloads is macOS only, for Apple Silicon and Intel Macs.',
+  },
+];
 ---
 
 <Layout
   title="Super Downloads — The video downloader built for editors"
-  description="Save videos for your offline editing workflow — from YouTube, TikTok and Vimeo, plus Instagram, Facebook, X and LinkedIn with your browser login. Every download is Premiere Pro ready — H.264/MP4. Native macOS app."
+  description="Save videos for your offline editing workflow — from YouTube, TikTok and Vimeo, plus Instagram, Facebook, X and LinkedIn with your browser login. Every download is Premiere Pro ready — H.264/MP4. Native macOS app, free."
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "What is Super Downloads?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Super Downloads is a native macOS app for saving video to your offline editing workflow — your own content, licensed, Creative Commons, or authorized content. It works out of the box with YouTube, TikTok, and Vimeo, and also supports Instagram, Facebook, X/Twitter, and LinkedIn using your browser login. Every download is automatically converted to H.264/MP4, so files are ready to edit in Premiere Pro, DaVinci Resolve, or Final Cut Pro without conversion."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Why do some platforms need my browser login?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Instagram, Facebook, X/Twitter, and LinkedIn only serve video to logged-in users, so downloads from these platforms work best when you are signed in. Super Downloads reads your existing local browser session to authenticate — it never asks for, sees, or stores your passwords. YouTube, TikTok, and Vimeo work out of the box without login."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Who is Super Downloads for?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Super Downloads is built for video editors, content creators, and creative professionals who need to download reference footage, client assets, or social media clips and edit them immediately. The automatic H.264 conversion eliminates the format compatibility issues editors commonly face."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Why does macOS warn me about the app?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "The app is not signed with an Apple Developer ID yet. macOS Gatekeeper will show a warning the first time you open it. Right-click the app, choose Open, then click Open again. This only happens once."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "What video quality can I download?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "You can choose Best Available, 1080p, or 720p. All downloads are automatically converted to H.264/MP4 for editing compatibility. Picking 1080p or 720p is often faster since it avoids conversion."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Do I need an internet connection?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, to download videos. But the app itself runs 100% locally — no account needed, no cloud processing, no data sent anywhere."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Can I use Super Downloads on Windows or Linux?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Not yet. Super Downloads is currently macOS only, supporting both Apple Silicon (M1/M2/M3/M4) and Intel Macs. Other platforms may come in the future."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is Super Downloads really free?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes. Super Downloads is free for a limited time, with unlimited downloads and all features included. You activate it once with your email inside the app. No credit card, no payment."
-        }
-      },
+      ...faqs.map(f => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
       {
         "@type": "Question",
         "name": "macOS says the app can't be opened or is damaged. What do I do?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "The app is not notarized by Apple yet (independent build), and it is safe to open. On macOS 15 or later: open System Settings, Privacy & Security, scroll down and click Open Anyway. If macOS says the app is damaged, open Terminal and run: xattr -dr com.apple.quarantine \"/Applications/Super Downloads.app\""
+          "text": "The app is not notarized by Apple yet (independent build), and it is safe to open. On macOS 15 or later: open System Settings, Privacy & Security, scroll down and click Open Anyway. On older versions, right-click the app, choose Open, then click Open again. If macOS says the app is damaged, open Terminal and run: xattr -dr com.apple.quarantine \"/Applications/Super Downloads.app\""
         }
       }
     ]
   })} />
-  <!-- Nav -->
-  <nav class="nav">
-    <div class="nav-inner">
-      <div class="nav-brand">
-        <img src="/icon.svg" alt="Super Downloads" class="nav-icon" width="28" height="28" />
-        <span class="nav-name">Super Downloads</span>
-      </div>
-      <div class="nav-links">
-        <a href="#features">Features</a>
-        <a href="#pricing">Pricing</a>
-        <a href="#download" class="nav-cta">Download</a>
-      </div>
-    </div>
-  </nav>
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="hero-inner">
-      <div class="hero-badge">Free for a limited time</div>
-      <h1 class="hero-title">The video downloader<br /><span class="hero-accent">built for editors.</span></h1>
-      <p class="hero-subtitle">
-        Download from YouTube, TikTok, Vimeo and more — including Instagram, Facebook, X and LinkedIn with your browser login.<br />
-        Every video is Premiere Pro ready — H.264/MP4. No conversion needed.
-      </p>
-      <div class="hero-actions">
-        <a href="#download" class="btn btn-primary">Download Free</a>
-        <a href="#pricing" class="btn btn-secondary">See Pricing</a>
-      </div>
-      <p class="hero-note">Native macOS app — 10.13+, Apple Silicon & Intel</p>
-    </div>
-  </section>
-
-  <!-- Features -->
-  <section id="features" class="features">
-    <div class="section-inner">
-      <h2 class="section-title">Everything you need. Nothing you don't.</h2>
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">7</div>
-          <h3>7 Platforms</h3>
-          <p>Works out of the box: YouTube, TikTok, Vimeo. With your browser login: Instagram, Facebook, X/Twitter, LinkedIn — one app for all.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">H.264</div>
-          <h3>Edit-Ready Output</h3>
-          <p>Every download is auto-converted to H.264/AAC/MP4 — drag straight into Premiere Pro, DaVinci, or Final Cut.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">HW</div>
-          <h3>Hardware Accelerated</h3>
-          <p>VideoToolbox encoding means conversions are fast. Your Mac's GPU does the heavy lifting.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">MP3</div>
-          <h3>Audio Extraction</h3>
-          <p>MP3-only mode pulls just the audio. Perfect for music, podcasts, and sound effects.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">CB</div>
-          <h3>Copy, Enter, Done</h3>
-          <p>Copy a link and switch to the app — it's already there, just press Enter. Grabbing many? Batch mode downloads every link you copy.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">D&D</div>
-          <h3>Drag & Drop</h3>
-          <p>Drag links from your browser directly into the app window. Downloads start instantly.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Pricing -->
-  <section id="pricing" class="pricing">
-    <div class="section-inner">
-      <h2 class="section-title">Free for a limited time.</h2>
-      <div class="pricing-grid" style="max-width:340px">
-        <div class="pricing-card featured">
-          <div class="pricing-badge">Limited time</div>
-          <div class="pricing-tier">Free</div>
-          <div class="pricing-price">€0</div>
-          <div class="pricing-period">free for a limited time</div>
-          <ul class="pricing-features">
-            <li><strong>Unlimited downloads</strong></li>
-            <li>All 7 platforms</li>
-            <li>All quality options</li>
-            <li>H.264/MP4 conversion</li>
-            <li>MP3 mode</li>
-            <li>Dark & Light themes</li>
-          </ul>
-          <a href="#download" class="btn btn-primary" style="width:100%">Download Free</a>
-          <p class="pricing-promo">Activate with your email in the app. No card needed.</p>
-        </div>
-        {SHOW_PRO && (
-        <div class="pricing-card featured">
-          <div class="pricing-badge">Best Value</div>
-          <div class="pricing-tier">Pro</div>
-          <div class="pricing-price">€29</div>
-          <div class="pricing-period">one-time — lifetime license</div>
-          <ul class="pricing-features">
-            <li><strong>Unlimited downloads</strong></li>
-            <li>All 7 platforms</li>
-            <li>All quality options</li>
-            <li>H.264 conversion</li>
-            <li>MP3 mode</li>
-            <li>Dark & Light themes</li>
-            <li><strong>3 devices</strong></li>
-            <li><strong>Priority updates</strong></li>
-          </ul>
-          <a href="https://superdownloads.lemonsqueezy.com/checkout/buy/21db1cfb-37f8-4371-8085-b5e30f89645f" class="btn btn-primary" style="width:100%" id="pro-checkout-btn">Get Pro — €29</a>
-          <p class="pricing-promo">Use code <strong>LAUNCH30</strong> for 30% off</p>
-        </div>
-        )}
-      </div>
-    </div>
-  </section>
-
-  <!-- Download -->
-  <section id="download" class="download">
-    <div class="section-inner">
-      <h2 class="section-title">Download Super Downloads</h2>
-      <p class="download-subtitle">Choose your architecture. Both include the same features.</p>
-      <div class="download-buttons">
-        <a href="https://github.com/marioforpro/super-downloads/releases/latest/download/Super-Downloads_aarch64.dmg" class="btn btn-primary btn-download">
-          <span class="btn-arch">Apple Silicon</span>
-          <span class="btn-chip">M1 / M2 / M3 / M4</span>
-        </a>
-        <a href="https://github.com/marioforpro/super-downloads/releases/latest/download/Super-Downloads_x64.dmg" class="btn btn-secondary btn-download">
-          <span class="btn-arch">Intel</span>
-          <span class="btn-chip">2012–2020 Macs</span>
-        </a>
-      </div>
-      <div class="download-install-note">
-        <h4>How to install</h4>
-        <p>Open the .dmg and drag Super Downloads to Applications. The app is not notarized by Apple yet, so macOS may block the first launch.
-        <a href="#faq-macos">See how to open it</a> (takes 10 seconds).</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section class="faq" id="faq">
-    <div class="section-inner">
-      <h2 class="section-title">FAQ</h2>
-      <div class="faq-list">
-        <details class="faq-item">
-          <summary>What is Super Downloads?</summary>
-          <p>Super Downloads is a native macOS app for saving video to your offline editing workflow — your own content, licensed, Creative Commons, or authorized content. It works out of the box with YouTube, TikTok, and Vimeo, and also supports Instagram, Facebook, X/Twitter, and LinkedIn using your browser login. Every download is automatically converted to H.264/MP4, so files are ready to edit in Premiere Pro, DaVinci Resolve, or Final Cut Pro without conversion.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Why do some platforms need my browser login?</summary>
-          <p>Instagram, Facebook, X/Twitter, and LinkedIn only serve video to logged-in users, so downloads from these platforms work best when you're signed in. Super Downloads reads your existing local browser session to authenticate — it never asks for, sees, or stores your passwords. YouTube, TikTok, and Vimeo work out of the box without login.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Who is Super Downloads for?</summary>
-          <p>Video editors, content creators, and creative professionals who need to download reference footage, client assets, or social media clips and edit them immediately. The automatic H.264 conversion eliminates the format compatibility issues editors commonly face.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Is Super Downloads really free?</summary>
-          <p>Yes. It's free for a limited time, with unlimited downloads and all features included. You activate it once with your email inside the app. No credit card, no payment.</p>
-        </details>
-        <details class="faq-item" id="faq-macos">
-          <summary>macOS says the app can't be opened or is damaged</summary>
-          <p>The app is not notarized by Apple yet (independent build), so Gatekeeper blocks the first launch. It's safe to open. On macOS 15 or later: open System Settings, go to Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>. On older versions, right-click the app, choose Open, then click Open again.</p>
-          <p>If macOS says the app is "damaged", open Terminal and run:<br />
-          <code>xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"</code></p>
-        </details>
-        <details class="faq-item">
-          <summary>What video quality can I download?</summary>
-          <p>You can choose Best Available, 1080p, or 720p. All downloads are automatically converted to H.264/MP4 for editing compatibility. Picking 1080p or 720p is often faster since it avoids conversion.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Do I need an internet connection?</summary>
-          <p>Yes, to download videos. But the app itself runs 100% locally — no account needed, no cloud processing, no data sent anywhere.</p>
-        </details>
-        <details class="faq-item">
-          <summary>Can I use this on Windows or Linux?</summary>
-          <p>Not yet. Super Downloads is currently macOS only (Apple Silicon and Intel). Other platforms may come in the future.</p>
-        </details>
-      </div>
-    </div>
-  </section>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="section-inner footer-inner">
-      <div class="footer-brand">
-        <img src="/icon.svg" alt="Super Downloads" width="20" height="20" />
+  <header class="nav">
+    <div class="wrap nav-inner">
+      <a class="brand" href="/" aria-label="Super Downloads home">
+        <img src="/icon.svg" alt="" width="26" height="26" />
         <span>Super Downloads</span>
+      </a>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#faq">FAQ</a>
+        <a href="#download" class="btn btn-blue btn-sm">Download</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero: the app window, landing clips on an editing timeline -->
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <p class="pill">Free for a limited time</p>
+          <h1>The video downloader built for editors.</h1>
+          <p class="lede">Paste a link from YouTube, Vimeo, TikTok, Instagram and more. Get an H.264 MP4 that drops straight into Premiere Pro, Resolve or Final Cut.</p>
+          <div class="hero-actions">
+            <a href="#download" class="btn btn-blue btn-lg">Download for Mac</a>
+            <span class="hero-meta">Apple Silicon and Intel.<br />No account, no card.</span>
+          </div>
+        </div>
+
+        <figure class="window window-dark hero-window">
+          <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
+          <img src="/shots/list-dark.webp" width="1120" height="800" alt="Super Downloads window: one video downloading at 64%, one converting to H.264, three completed" fetchpriority="high" />
+        </figure>
       </div>
-      <div class="footer-links">
+
+      <div class="wrap">
+        <div class="timeline" aria-hidden="true">
+          <div class="ruler">
+            <span>00:00:00:00</span><span>00:05:00:00</span><span>00:10:00:00</span><span>00:15:00:00</span><span>00:20:00:00</span>
+          </div>
+          <div class="track track-v">
+            <b class="track-name">V1</b>
+            <div class="clips">
+              {clips.map((c) => (
+                <div class="clip" style={`flex-grow:${c.secs}`}>
+                  <img src={`/shots/thumbs/${c.thumb}.webp`} alt="" loading="lazy" width="240" height="135" />
+                  <span>{c.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div class="track track-a">
+            <b class="track-name">A1</b>
+            <div class="clips">
+              {clips.map((c, i) => <div class="clip clip-audio" style={`flex-grow:${c.secs};background-image:${wave};background-position:${-i * 37}px center`}></div>)}
+            </div>
+          </div>
+          <div class="playhead"><span>00:12:31:08</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it works: a real three-step sequence -->
+    <section id="how" class="section how">
+      <div class="wrap split">
+        <div>
+          <h2>Copy. Switch. Enter.</h2>
+          <ol class="steps">
+            <li><strong>Copy a link</strong> in your browser — a YouTube video, a Vimeo reference, a client’s Instagram reel.</li>
+            <li><strong>Switch to Super Downloads.</strong> The link is already in the field.</li>
+            <li><strong>Press Enter.</strong> The MP4 lands in your folder, ready to import. Pasting a link with ⌘V starts it right away.</li>
+          </ol>
+        </div>
+        <figure class="window window-dark">
+          <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
+          <img src="/shots/empty-dark.webp" width="1120" height="640" alt="A copied YouTube link waiting in the field, Download button highlighted" loading="lazy" />
+        </figure>
+      </div>
+    </section>
+
+    <!-- Features: one claim per row, each shown in the real app -->
+    <section id="features" class="section features">
+      <div class="wrap">
+        <div class="row">
+          <div class="row-copy">
+            <h2>Files your editor opens without asking.</h2>
+            <p>Every download comes out as an MP4 your NLE already understands. No transcoding step, no “unsupported codec” dialog.</p>
+            <dl class="specs">
+              <div><dt>Video</dt><dd>H.264, hardware-encoded with VideoToolbox</dd></div>
+              <div><dt>Audio</dt><dd>AAC, or MP3-only when you just need the sound</dd></div>
+              <div><dt>Quality</dt><dd>Best (up to 4K), 1080p or 720p</dd></div>
+              <div><dt>Works in</dt><dd>Premiere Pro, DaVinci Resolve, Final Cut Pro</dd></div>
+            </dl>
+          </div>
+          <figure class="window window-light">
+            <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
+            <img src="/shots/list-light.webp" width="1120" height="800" alt="Light theme: a download converting to H.264 for editing, with completed MP4s below" loading="lazy" />
+          </figure>
+        </div>
+
+        <div class="row row-flip">
+          <div class="row-copy">
+            <h2>Pulling a whole reference board? Turn on Batch.</h2>
+            <p>Press <kbd>⌘</kbd><kbd>B</kbd> and keep browsing. Every video link you copy downloads on its own, even with the app in the background. Duplicates and plain text are ignored.</p>
+          </div>
+          <figure class="window window-dark">
+            <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
+            <img src="/shots/batch-dark.webp" width="1120" height="800" alt="Batch mode on: three videos downloading in parallel" loading="lazy" />
+          </figure>
+        </div>
+
+        <div class="row">
+          <div class="row-copy">
+            <h2>Set it once, then forget it.</h2>
+            <p>Pick a folder, a quality and a theme. Dark, light or follow the system. The download engine keeps itself current, and the app updates with one click.</p>
+          </div>
+          <figure class="window window-light">
+            <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
+            <img src="/shots/settings-light.webp" width="1120" height="840" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme and engine version" loading="lazy" />
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- Platforms + trust -->
+    <section class="section platforms">
+      <div class="wrap">
+        <h2>One app for the places your footage lives.</h2>
+        <div class="platform-groups">
+          <div>
+            <h3>Works out of the box</h3>
+            <ul class="platform-list"><li>YouTube</li><li>Vimeo</li><li>TikTok</li></ul>
+          </div>
+          <div>
+            <h3>With your browser login</h3>
+            <ul class="platform-list"><li>Instagram</li><li>Facebook</li><li>X</li><li>LinkedIn</li></ul>
+          </div>
+        </div>
+        <ul class="facts">
+          <li><strong>Runs on your Mac.</strong> Nothing is uploaded, and no download passes through our servers.</li>
+          <li><strong>Never sees your passwords.</strong> Signed-in platforms use the session already in your browser.</li>
+          <li><strong>Honest about DRM.</strong> Protected videos get a clear message. The app never tries to break protection.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Download -->
+    <section id="download" class="download">
+      <div class="wrap download-inner">
+        <img src="/icon.svg" alt="" width="72" height="72" class="download-icon" />
+        <h2>Download Super Downloads</h2>
+        <p class="download-sub">Free for a limited time, with unlimited downloads. Activate once with your email in the app.</p>
+        <div class="download-buttons">
+          <a href={DMG_ARM} class="btn btn-blue btn-dl">
+            <span>Apple Silicon</span><small>M1, M2, M3, M4 and later</small>
+          </a>
+          <a href={DMG_INTEL} class="btn btn-ghost btn-dl">
+            <span>Intel</span><small>2012–2020 Macs</small>
+          </a>
+        </div>
+        <p class="install-note">Open the .dmg and drag Super Downloads to Applications. The app isn’t notarized by Apple yet, so macOS may block the first launch — <a href="#faq-macos">here’s how to open it</a>. It takes ten seconds.</p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="section faq">
+      <div class="wrap faq-inner">
+        <h2>Questions</h2>
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details>
+              <summary>{f.q}</summary>
+              <p>{f.a}</p>
+            </details>
+          ))}
+          <details id="faq-macos">
+            <summary>macOS says the app can’t be opened or is damaged</summary>
+            <p>The app isn’t notarized by Apple yet (independent build), so Gatekeeper blocks the first launch. It’s safe to open. On macOS 15 or later: open System Settings, go to Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>. On older versions, right-click the app, choose Open, then click Open again.</p>
+            <p>If macOS says the app is “damaged”, open Terminal and run:<br /><code>xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"</code></p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <a class="brand" href="/"><img src="/icon.svg" alt="" width="20" height="20" /><span>Super Downloads</span></a>
+      <nav class="footer-links" aria-label="Legal">
         <a href="mailto:support@superdownloads.app">Support</a>
         <a href="/terms">Terms</a>
         <a href="/privacy">Privacy</a>
         <a href="/copyright">Copyright</a>
-      </div>
-      <p class="footer-disclaimer">Super Downloads does not host, store, or distribute any copyrighted content. Download only content you own or are authorized to download.</p>
-      <div class="footer-copy">&copy; 2026 Super Downloads. All rights reserved.</div>
+      </nav>
+      <p class="footer-fine">Super Downloads does not host, store, or distribute any copyrighted content. Download only content you own or are authorized to download.</p>
+      <p class="footer-fine">Screenshots show Blender Studio open movies (Spring, WING IT!, Coffee Run, CHARGE, Sprite Fright, Agent 327, HERO, Cosmos Laundromat), licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> by the Blender Foundation.</p>
+      <p class="footer-fine">© 2026 Super Downloads</p>
     </div>
   </footer>
+
   <script is:inline>
     // Open the macOS FAQ item when linked from the install note.
     function openFaqFromHash() {
@@ -298,501 +285,193 @@ const SHOW_PRO = false;
 </Layout>
 
 <style>
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
   /* Nav */
   .nav {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 100;
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--gray-200);
+    position: sticky; top: 0; z-index: 50;
+    background: rgba(10, 22, 63, 0.96);
+    backdrop-filter: saturate(1.4) blur(14px);
+    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    border-bottom: 1px solid rgba(213, 235, 255, 0.08);
   }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; color: inherit; }
+  .brand img { border-radius: 6px; }
+  .nav .brand { color: var(--white); }
+  .nav-links { display: flex; align-items: center; gap: 28px; font-size: 14px; }
+  .nav-links a:not(.btn) { color: var(--blue-50); opacity: 0.75; }
+  .nav-links a:not(.btn):hover { opacity: 1; }
 
-  .nav-inner {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 12px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  /* Buttons: navy text on bright blue keeps contrast high */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-weight: 600; border-radius: 10px; transition: background-color .15s ease, transform .15s ease;
   }
-
-  .nav-brand {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 700;
-    font-size: 14px;
-  }
-
-  .nav-icon {
-    border-radius: 6px;
-  }
-
-  .nav-links {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    font-size: 13px;
-    font-weight: 500;
-  }
-
-  .nav-links a {
-    color: var(--gray-600);
-  }
-
-  .nav-links a:hover {
-    color: var(--gray-900);
-    text-decoration: none;
-  }
-
-  .nav-cta {
-    background: var(--navy-mid);
-    color: var(--white) !important;
-    padding: 6px 14px;
-    border-radius: 6px;
-    font-weight: 600;
-    font-size: 12px;
-  }
-
-  .nav-cta:hover {
-    background: var(--navy-dark) !important;
-  }
+  .btn-blue { background: var(--blue); color: var(--navy-950); }
+  .btn-blue:hover { background: var(--blue-200); }
+  .btn-ghost { background: transparent; color: var(--white); box-shadow: inset 0 0 0 1px rgba(213, 235, 255, 0.28); }
+  .btn-ghost:hover { background: rgba(213, 235, 255, 0.08); }
+  .btn-sm { font-size: 13px; padding: 7px 14px; border-radius: 8px; }
+  .btn-lg { font-size: 16px; padding: 14px 26px; }
 
   /* Hero */
-  .hero {
-    padding: 120px 24px 60px;
-    text-align: center;
-    background: linear-gradient(180deg, var(--gray-100) 0%, var(--white) 100%);
+  .hero { background: var(--navy-950); color: var(--white); padding: 72px 0 0; overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 56px; align-items: center; }
+  .pill {
+    display: inline-block; font-size: 13px; font-weight: 500; color: var(--blue-200);
+    border: 1px solid rgba(140, 208, 255, 0.3); border-radius: 999px; padding: 4px 12px; margin-bottom: 24px;
   }
+  .hero h1 {
+    font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 700;
+    margin-bottom: 24px; text-wrap: balance;
+  }
+  .lede { font-size: 19px; line-height: 1.55; color: var(--blue-50); opacity: 0.82; max-width: 34em; margin-bottom: 36px; }
+  .hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+  .hero-meta { font-size: 13px; line-height: 1.45; color: var(--blue-50); opacity: 0.6; }
 
-  .hero-inner {
-    max-width: 680px;
-    margin: 0 auto;
-  }
+  /* macOS window frame around real screenshots */
+  .window { border-radius: 12px; overflow: hidden; margin: 0; }
+  .window img { display: block; width: 100%; height: auto; }
+  .titlebar { position: relative; height: 30px; display: flex; align-items: center; gap: 8px; padding: 0 12px; }
+  .titlebar i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
+  .titlebar i:nth-child(2) { background: #febc2e; }
+  .titlebar i:nth-child(3) { background: #28c840; }
+  .titlebar span { position: absolute; left: 0; right: 0; text-align: center; font-size: 12.5px; font-weight: 600; pointer-events: none; }
+  .window-dark { background: #1c1c1e; box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 30px 80px -20px rgba(0, 0, 0, .55); }
+  .window-dark .titlebar { background: #2a2a2c; border-bottom: 1px solid #000; }
+  .window-dark .titlebar span { color: #a1a1a6; }
+  .window-light { background: #fff; box-shadow: 0 0 0 1px rgba(15,23,42,.1), 0 30px 70px -24px rgba(10, 22, 63, .35); }
+  .window-light .titlebar { background: #ececec; border-bottom: 1px solid #d4d4d4; }
+  .window-light .titlebar span { color: #4b4b4f; }
+  .hero-window { box-shadow: 0 0 0 1px rgba(213,235,255,.14), 0 40px 120px -30px rgba(48, 167, 255, .35), 0 30px 60px -30px rgba(0,0,0,.8); }
 
-  .hero-badge {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--blue-bright);
-    background: rgba(48, 167, 255, 0.08);
-    border: 1px solid rgba(48, 167, 255, 0.2);
-    padding: 4px 12px;
-    border-radius: 20px;
-    margin-bottom: 20px;
+  /* Timeline: where downloaded clips end up */
+  .timeline {
+    position: relative; margin-top: 64px; padding: 0 0 28px;
+    font-size: 11px; color: rgba(213, 235, 255, 0.55); font-variant-numeric: tabular-nums;
   }
-
-  .hero-title {
-    font-size: clamp(28px, 5vw, 44px);
-    font-weight: 800;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    color: var(--gray-900);
-    margin-bottom: 16px;
+  .ruler {
+    display: flex; justify-content: space-between; margin-left: 40px; padding-bottom: 8px;
+    border-bottom: 1px solid rgba(213, 235, 255, 0.14);
+    background: repeating-linear-gradient(90deg, rgba(213,235,255,.18) 0 1px, transparent 1px 20px) bottom / 100% 6px no-repeat;
   }
-
-  .hero-accent {
-    color: var(--blue-bright);
+  .track { display: flex; align-items: stretch; gap: 8px; margin-top: 8px; }
+  .track-name { width: 32px; flex: none; display: grid; place-items: center; font-weight: 600; color: rgba(213,235,255,.5); border-radius: 6px; background: rgba(213,235,255,.05); }
+  .clips { display: flex; gap: 3px; flex: 1; min-width: 0; padding-right: 18%; }
+  .clip {
+    flex-basis: 0; min-width: 0; height: 52px; display: flex; align-items: center; gap: 8px;
+    background: #1f3a8a; border: 1px solid rgba(140, 208, 255, 0.35); border-radius: 6px; overflow: hidden;
+    color: var(--blue-50);
   }
-
-  .hero-subtitle {
-    font-size: 16px;
-    color: var(--gray-600);
-    line-height: 1.6;
-    margin-bottom: 28px;
+  .clip img { height: 100%; width: auto; aspect-ratio: 16 / 9; object-fit: cover; flex: none; }
+  .clip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+  .clip-audio {
+    height: 30px; background-color: #123a52; border-color: rgba(48, 167, 255, 0.3);
+    background-repeat: repeat-x;
   }
-
-  .hero-actions {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 12px;
+  .playhead {
+    position: absolute; top: 0; bottom: 10px; left: calc(40px + 0.62 * (100% - 40px));
+    width: 2px; background: var(--blue); box-shadow: 0 0 12px rgba(48,167,255,.7);
+    animation: scrub 1.6s cubic-bezier(.2,.7,.2,1) .3s both;
   }
-
-  .hero-note {
-    font-size: 12px;
-    color: var(--gray-400);
+  .playhead span {
+    position: absolute; top: -4px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+    background: var(--blue); color: var(--navy-950); font-weight: 600; padding: 2px 6px; border-radius: 4px;
   }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    text-decoration: none;
-    transition: all 0.15s ease;
-    cursor: pointer;
-    border: none;
-  }
-
-  .btn:hover {
-    text-decoration: none;
-  }
-
-  .btn-primary {
-    background: var(--blue-bright);
-    color: var(--white);
-  }
-
-  .btn-primary:hover {
-    background: #1a96f0;
-    color: var(--white);
-  }
-
-  .btn-secondary {
-    background: var(--white);
-    color: var(--gray-900);
-    border: 1px solid var(--gray-200);
-  }
-
-  .btn-secondary:hover {
-    background: var(--gray-100);
-    border-color: var(--gray-400);
-    color: var(--gray-900);
-  }
+  @keyframes scrub { from { left: 40px; opacity: 0; } 20% { opacity: 1; } }
+  @media (prefers-reduced-motion: reduce) { .playhead { animation: none; } }
 
   /* Sections */
-  .section-inner {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 0 24px;
+  .section { padding: 112px 0; }
+  .section h2 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 700; text-wrap: balance; }
+  .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 64px; align-items: center; }
+
+  .steps { list-style: none; counter-reset: step; margin-top: 36px; display: grid; gap: 22px; }
+  .steps li { counter-increment: step; position: relative; padding-left: 52px; font-size: 17px; line-height: 1.55; color: var(--slate); max-width: 30em; }
+  .steps li::before {
+    content: counter(step); position: absolute; left: 0; top: -2px; width: 34px; height: 34px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 600; font-size: 15px; color: var(--navy-800); background: var(--blue-50);
+  }
+  .steps strong { color: var(--ink); font-weight: 600; }
+
+  .features { background: var(--mist); }
+  .row { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 64px; align-items: center; }
+  .row + .row { margin-top: 120px; }
+  .row-flip .row-copy { order: 2; }
+  .row-copy p { font-size: 17px; line-height: 1.6; color: var(--slate); margin-top: 18px; max-width: 30em; }
+  .specs { margin-top: 28px; border-top: 1px solid var(--line); max-width: 30em; }
+  .specs div { display: grid; grid-template-columns: 96px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .specs dt { font-weight: 600; color: var(--ink); }
+  .specs dd { color: var(--slate); }
+  kbd {
+    font-family: inherit; font-size: 14px; font-weight: 600; color: var(--ink);
+    background: var(--white); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; margin: 0 2px;
   }
 
-  .section-title {
-    text-align: center;
-    font-size: clamp(22px, 3.5vw, 32px);
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    margin-bottom: 40px;
-    color: var(--gray-900);
-  }
-
-  /* Features */
-  .features {
-    padding: 80px 24px;
-  }
-
-  .features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 20px;
-  }
-
-  .feature-card {
-    background: var(--gray-100);
-    border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    padding: 24px;
-  }
-
-  .feature-icon {
-    font-size: 12px;
-    font-weight: 800;
-    color: var(--blue-bright);
-    background: rgba(48, 167, 255, 0.08);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-  }
-
-  .feature-card h3 {
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-
-  .feature-card p {
-    font-size: 13px;
-    color: var(--gray-600);
-    line-height: 1.5;
-  }
-
-  /* Pricing */
-  .pricing {
-    padding: 80px 24px;
-    background: var(--gray-100);
-  }
-
-  .pricing-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    max-width: 640px;
-    margin: 0 auto;
-  }
-
-  .pricing-card {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 14px;
-    padding: 28px 24px;
-    position: relative;
-  }
-
-  .pricing-card.featured {
-    border-color: var(--blue-bright);
-    box-shadow: 0 4px 24px rgba(48, 167, 255, 0.12);
-  }
-
-  .pricing-badge {
-    position: absolute;
-    top: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--blue-bright);
-    color: var(--white);
-    font-size: 11px;
-    font-weight: 700;
-    padding: 3px 12px;
-    border-radius: 12px;
-  }
-
-  .pricing-tier {
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--gray-600);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 8px;
-  }
-
-  .pricing-price {
-    font-size: 40px;
-    font-weight: 800;
-    color: var(--gray-900);
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-
-  .pricing-period {
-    font-size: 13px;
-    color: var(--gray-400);
-    margin-bottom: 20px;
-  }
-
-  .pricing-features {
-    list-style: none;
-    margin-bottom: 20px;
-  }
-
-  .pricing-features li {
-    font-size: 13px;
-    color: var(--gray-600);
-    padding: 6px 0;
-    border-bottom: 1px solid var(--gray-100);
-  }
-
-  .pricing-features li:last-child {
-    border-bottom: none;
-  }
-
-  .pricing-promo {
-    font-size: 11px;
-    color: var(--blue-bright);
-    text-align: center;
-    margin-top: 10px;
-  }
+  .platform-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 48px; padding-bottom: 56px; border-bottom: 1px solid var(--line); }
+  .platform-groups h3 { font-size: 14px; font-weight: 500; color: var(--slate); margin-bottom: 14px; }
+  .platform-list { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 28px; }
+  .platform-list li { font-size: clamp(24px, 2.6vw, 32px); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
+  .facts { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 48px; }
+  .facts li { font-size: 15px; line-height: 1.6; color: var(--slate); }
+  .facts strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 4px; font-size: 16px; }
 
   /* Download */
-  .download {
-    padding: 80px 24px;
-  }
-
-  .download-subtitle {
-    text-align: center;
-    font-size: 14px;
-    color: var(--gray-600);
-    margin-top: -28px;
-    margin-bottom: 32px;
-  }
-
-  .download-buttons {
-    display: flex;
-    gap: 16px;
-    justify-content: center;
-    flex-wrap: wrap;
-    margin-bottom: 40px;
-  }
-
-  .btn-download {
-    flex-direction: column;
-    padding: 16px 32px;
-    min-width: 200px;
-  }
-
-  .btn-arch {
-    font-size: 15px;
-    font-weight: 700;
-  }
-
-  .btn-chip {
-    font-size: 11px;
-    font-weight: 400;
-    opacity: 0.7;
-    margin-top: 2px;
-  }
-
-  .download-install-note {
-    max-width: 520px;
-    margin: 0 auto;
-    background: var(--gray-100);
-    border: 1px solid var(--gray-200);
-    border-radius: 12px;
-    padding: 20px;
-    font-size: 13px;
-    color: var(--gray-600);
-    line-height: 1.6;
-  }
-
-  .download-install-note h4 {
-    font-size: 13px;
-    font-weight: 700;
-    color: var(--gray-900);
-    margin-bottom: 8px;
-  }
-
-  .download-install-note ol {
-    padding-left: 20px;
-    margin-bottom: 10px;
-  }
-
-  .download-install-note code {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 11px;
-    word-break: break-all;
-  }
+  .download { background: var(--navy-950); color: var(--white); padding: 112px 0; text-align: center; }
+  .download-inner { display: flex; flex-direction: column; align-items: center; }
+  .download-icon { border-radius: 16px; margin-bottom: 28px; filter: drop-shadow(0 18px 40px rgba(48,167,255,.35)); }
+  .download h2 { font-size: clamp(30px, 3.6vw, 44px); letter-spacing: -0.03em; font-weight: 700; line-height: 1.1; }
+  .download-sub { margin-top: 14px; font-size: 17px; color: var(--blue-50); opacity: .8; max-width: 32em; }
+  .download-buttons { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 36px; }
+  .btn-dl { flex-direction: column; gap: 2px; min-width: 220px; padding: 16px 28px; font-size: 16px; }
+  .btn-dl small { font-size: 12.5px; font-weight: 500; opacity: .7; }
+  .install-note { margin-top: 28px; font-size: 14px; line-height: 1.6; color: var(--blue-50); opacity: .7; max-width: 36em; }
+  .install-note a { color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
 
   /* FAQ */
-  .faq {
-    padding: 80px 24px;
-    background: var(--gray-100);
+  .faq-inner { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 64px; align-items: start; }
+  .faq-list details { border-bottom: 1px solid var(--line); }
+  .faq-list details:first-child { border-top: 1px solid var(--line); }
+  .faq-list summary {
+    list-style: none; cursor: pointer; padding: 20px 36px 20px 0; position: relative;
+    font-size: 17px; font-weight: 600; color: var(--ink);
   }
-
-  .faq-list {
-    max-width: 640px;
-    margin: 0 auto;
+  .faq-list summary::-webkit-details-marker { display: none; }
+  .faq-list summary::after {
+    content: ''; position: absolute; right: 6px; top: 50%; width: 9px; height: 9px; margin-top: -7px;
+    border-right: 2px solid var(--slate); border-bottom: 2px solid var(--slate); transform: rotate(45deg); transition: transform .2s ease;
   }
-
-  .faq-item {
-    background: var(--white);
-    border: 1px solid var(--gray-200);
-    border-radius: 10px;
-    margin-bottom: 10px;
-    overflow: hidden;
-  }
-
-  .faq-item summary {
-    padding: 14px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
-  }
-
-  .faq-item summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .faq-item[open] summary {
-    border-bottom: 1px solid var(--gray-200);
-  }
-
-  .faq-item p {
-    padding: 14px 18px;
-    font-size: 13px;
-    color: var(--gray-600);
-    line-height: 1.6;
-  }
+  .faq-list details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
+  .faq-list details p { padding: 0 0 20px; font-size: 15.5px; line-height: 1.65; color: var(--slate); max-width: 40em; }
+  .faq-list code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: var(--mist); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; word-break: break-all; }
 
   /* Footer */
-  .footer {
-    padding: 32px 24px;
-    border-top: 1px solid var(--gray-200);
-  }
-
-  .footer-inner {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-
-  .footer-brand {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 13px;
-    font-weight: 600;
-  }
-
-  .footer-brand img {
-    border-radius: 4px;
-  }
-
-  .footer-links {
-    display: flex;
-    gap: 20px;
-    font-size: 12px;
-  }
-
-  .footer-links a {
-    color: var(--gray-400);
-  }
-
-  .footer-disclaimer {
-    width: 100%;
-    font-size: 11px;
-    color: var(--gray-400);
-    line-height: 1.6;
-    text-align: center;
-  }
-
-  .footer-copy {
-    font-size: 11px;
-    color: var(--gray-400);
-  }
+  .footer { border-top: 1px solid var(--line); padding: 40px 0 48px; }
+  .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
+  .footer-links { display: flex; gap: 24px; font-size: 14px; }
+  .footer-links a { color: var(--slate); }
+  .footer-fine { width: 100%; font-size: 12.5px; line-height: 1.6; color: #64748b; }
+  .footer-fine a { color: inherit; text-decoration: underline; }
 
   /* Responsive */
+  @media (max-width: 900px) {
+    .hero { padding-top: 48px; }
+    .hero-grid, .split, .row, .faq-inner { grid-template-columns: 1fr; gap: 40px; }
+    .row-flip .row-copy { order: 0; }
+    .row + .row { margin-top: 88px; }
+    .section { padding: 80px 0; }
+    .facts { grid-template-columns: 1fr; gap: 24px; }
+    .timeline { margin-top: 48px; }
+    .clips { padding-right: 0; }
+    .clip span { display: none; }
+  }
   @media (max-width: 640px) {
-    .nav-links a:not(.nav-cta) {
-      display: none;
-    }
-
-    .hero {
-      padding-top: 100px;
-    }
-
-    .hero-subtitle br {
-      display: none;
-    }
-
-    .features-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .pricing-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .footer-inner {
-      flex-direction: column;
-      text-align: center;
-    }
+    .wrap { padding: 0 16px; }
+    .nav-links a:not(.btn) { display: none; }
+    .platform-groups { grid-template-columns: 1fr; gap: 28px; }
+    .ruler span:not(:first-child):not(:last-child) { visibility: hidden; }
+    .lede { font-size: 17px; }
+    .btn-dl { width: 100%; }
   }
 </style>

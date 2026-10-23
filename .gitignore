@@ -58,3 +58,6 @@ web/.astro/
 *.njsproj
 *.sln
 *.sw?
+
+# Screenshot generator cache (downloaded thumbnails)
+scripts/screenshots/.cache/
