@@ -24,28 +24,6 @@ try {
   }
 } catch {}
 
-// Hero timeline: finished downloads sit on V1; the one still downloading in
-// the window (CHARGE, 64%) arrives as a clip that is still filling.
-const clips = [
-  { name: 'Spring.mp4', thumb: 'WhWc3b3KhnY', secs: 464 },
-  { name: 'WING IT!.mp4', thumb: 'u9lj-c29dxI', secs: 238 },
-  { name: 'Coffee Run.mp4', thumb: 'PVGeM40dABA', secs: 185 },
-];
-const arriving = { name: 'CHARGE.mp4', thumb: 'UXqq0ZvbOnk', secs: 263, pct: 64 };
-
-// Audio waveform for the A1 track: deterministic bar heights, tiled as an SVG.
-const wave = (() => {
-  let seed = 7;
-  const rnd = () => ((seed = (seed * 9301 + 49297) % 233280) / 233280);
-  let bars = '';
-  for (let i = 0; i < 64; i++) {
-    const h = Math.round(4 + rnd() * 18 * (0.55 + 0.45 * Math.abs(Math.sin(i / 5))));
-    bars += `<rect x='${i * 4}' y='${(26 - h) / 2}' width='2' height='${h}' rx='1'/>`;
-  }
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='256' height='26' fill='%238cd0ff' fill-opacity='.6'>${bars}</svg>`;
-  return `url("data:image/svg+xml;utf8,${svg}")`;
-})();
-
 const XATTR = 'xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"';
 
 // One source for the visible FAQ and its JSON-LD. `html` is the visible
@@ -128,7 +106,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   </header>
 
   <main id="main">
-    <!-- Hero: the app window, with its downloads landing on an editing timeline -->
+    <!-- Hero: the app window with real downloads; the demo film below shows the whole flow -->
     <section class="hero">
       <div class="wrap hero-grid">
         <div class="hero-copy">
@@ -150,38 +128,6 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         </figure>
       </div>
 
-      <div class="timeline-panel" aria-hidden="true">
-        <div class="wrap">
-          <div class="timeline">
-            <div class="ruler">
-              <span>00:00:00:00</span><span>00:05:00:00</span><span>00:10:00:00</span><span>00:15:00:00</span><span>00:20:00:00</span>
-            </div>
-            <div class="track">
-              <b class="track-name">V1</b>
-              <div class="clips">
-                {clips.map((c) => (
-                  <div class="clip" style={`flex-grow:${c.secs}`}>
-                    <img src={`/shots/thumbs/${c.thumb}.webp`} alt="" loading="lazy" width="240" height="135" />
-                    <span>{c.name}</span>
-                  </div>
-                ))}
-                <div class="clip clip-arriving" style={`flex-grow:${arriving.secs};--pct:${arriving.pct}%`}>
-                  <img src={`/shots/thumbs/${arriving.thumb}.webp`} alt="" loading="lazy" width="240" height="135" />
-                  <span>{arriving.name} · {arriving.pct}%</span>
-                </div>
-              </div>
-            </div>
-            <div class="track">
-              <b class="track-name">A1</b>
-              <div class="clips">
-                {clips.map((c, i) => <div class="clip clip-audio" style={`flex-grow:${c.secs};background-image:${wave};background-position:${-i * 37}px center`}></div>)}
-                <div class="clip clip-audio clip-audio-arriving" style={`flex-grow:${arriving.secs};--pct:${arriving.pct}%`}></div>
-              </div>
-            </div>
-            <div class="playhead"><span>00:09:12:08</span></div>
-          </div>
-        </div>
-      </div>
     </section>
 
     <!-- Demo: 24 s film (marketing/demo, HyperFrames), the whole flow in the real UI -->
@@ -476,37 +422,84 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
 <style>
   .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
 
-  /* Nav */
+  /* Nav: dark glass with one LED hairline along its bottom edge (bright in the middle, gone at the ends) */
   .nav {
     position: sticky; top: 0; z-index: 50;
-    background: rgba(10, 22, 63, 0.84);
-    backdrop-filter: saturate(1.5) blur(20px);
-    -webkit-backdrop-filter: saturate(1.5) blur(20px);
-    border-bottom: 1px solid rgba(213, 235, 255, 0.08);
+    background: rgba(10, 22, 63, 0.96);
+    backdrop-filter: saturate(1.6) blur(22px);
+    -webkit-backdrop-filter: saturate(1.6) blur(22px);
+  }
+  .nav::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(140, 208, 255, 0.55) 30%, rgba(213, 235, 255, 0.85) 50%, rgba(140, 208, 255, 0.55) 70%, transparent);
+    box-shadow: 0 0 10px rgba(48, 167, 255, 0.45);
+    opacity: 0.7;
   }
   .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; color: inherit; }
-  .brand img { border-radius: 6px; }
+  .brand img { border-radius: 6px; box-shadow: 0 0 0 1px rgba(140, 208, 255, 0.28), 0 0 14px rgba(48, 167, 255, 0.35); }
   .nav .brand { color: var(--white); }
   .nav-links { display: flex; align-items: center; gap: 28px; font-size: 15px; }
-  .nav-links a:not(.btn) { color: var(--blue-50); opacity: 0.78; }
+  .nav-links a:not(.btn) { position: relative; color: var(--blue-50); opacity: 0.78; transition: opacity .2s ease; }
+  .nav-links a:not(.btn)::after {
+    content: ''; position: absolute; left: 50%; right: 50%; bottom: -6px; height: 1px;
+    background: var(--blue-200); box-shadow: 0 0 8px rgba(48, 167, 255, 0.9);
+    transition: left .25s ease, right .25s ease;
+  }
   .nav-links a:not(.btn):hover { opacity: 1; text-decoration: none; }
+  .nav-links a:not(.btn):hover::after { left: 0; right: 0; }
 
-  /* Buttons: navy text on bright blue keeps contrast high */
+  /* Buttons: navy type on lit blue keeps contrast high; a 1 px LED edge and a soft glow that rises on hover */
   .btn {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    font-weight: 600; border-radius: 10px; transition: background-color .15s ease;
+    position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    font-weight: 600; border-radius: 10px;
+    transition: box-shadow .25s ease, transform .25s ease, background-color .25s ease, filter .25s ease;
   }
   .btn:hover { text-decoration: none; }
-  .btn-blue { background: var(--blue); color: var(--navy-950); }
-  .btn-blue:hover { background: var(--blue-200); }
-  .btn-ghost { background: transparent; color: var(--white); box-shadow: inset 0 0 0 1px rgba(213, 235, 255, 0.32); }
-  .btn-ghost:hover { background: rgba(213, 235, 255, 0.08); }
+  .btn-blue {
+    color: var(--navy-950);
+    background: linear-gradient(180deg, #7cc8ff 0%, var(--blue) 55%, #1f93ef 100%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      inset 0 -1px 0 rgba(10, 22, 63, 0.18),
+      0 0 0 1px rgba(140, 208, 255, 0.9),
+      0 0 18px rgba(48, 167, 255, 0.35),
+      0 10px 28px -10px rgba(48, 167, 255, 0.6);
+  }
+  .btn-blue:hover {
+    transform: translateY(-1px); filter: brightness(1.06);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      inset 0 -1px 0 rgba(10, 22, 63, 0.18),
+      0 0 0 1px rgba(213, 235, 255, 0.95),
+      0 0 28px rgba(48, 167, 255, 0.55),
+      0 14px 34px -10px rgba(48, 167, 255, 0.7);
+  }
+  .btn-ghost {
+    color: var(--white);
+    border: 1px solid transparent;
+    background:
+      linear-gradient(rgba(10, 22, 63, 0.92), rgba(10, 22, 63, 0.92)) padding-box,
+      linear-gradient(135deg, rgba(213, 235, 255, 0.75), rgba(48, 167, 255, 0.35) 45%, rgba(140, 208, 255, 0.7)) border-box;
+    box-shadow: 0 0 14px rgba(48, 167, 255, 0.12);
+  }
+  .btn-ghost:hover {
+    transform: translateY(-1px);
+    background:
+      linear-gradient(rgba(22, 43, 115, 0.92), rgba(22, 43, 115, 0.92)) padding-box,
+      linear-gradient(135deg, rgba(213, 235, 255, 0.95), rgba(48, 167, 255, 0.6) 45%, rgba(140, 208, 255, 0.95)) border-box;
+    box-shadow: 0 0 22px rgba(48, 167, 255, 0.3);
+  }
   .btn-sm { font-size: 13px; padding: 8px 14px; border-radius: 8px; }
+  .btn-sm.btn-blue { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 0 0 1px rgba(140, 208, 255, 0.85), 0 0 14px rgba(48, 167, 255, 0.35); }
   .btn-lg { font-size: 17px; padding: 15px 28px; }
+  @media (prefers-reduced-motion: reduce) {
+    .btn, .nav-links a:not(.btn)::after { transition: none; }
+    .btn-blue:hover, .btn-ghost:hover { transform: none; }
+  }
 
   /* Hero */
-  .hero { background: var(--navy-950); color: var(--white); padding-top: 80px; overflow: hidden; }
+  .hero { background: var(--navy-950); color: var(--white); padding: 80px 0 24px; overflow: hidden; }
   .hero-grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 56px; align-items: center; }
   .hero h1 {
     font-size: clamp(40px, 5.2vw, 64px); line-height: 1.02; letter-spacing: -0.04em; font-weight: 600;
@@ -542,62 +535,11 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   }
   .hero-window { box-shadow: 0 0 0 1px rgba(213,235,255,.14), 0 40px 120px -30px rgba(48, 167, 255, .35), 0 30px 60px -30px rgba(0,0,0,.8); }
 
-  /* Timeline: an editor's panel under the window, where the downloads land */
-  .timeline-panel { margin-top: 64px; background: #0d1b4f; border-top: 1px solid rgba(213, 235, 255, 0.1); }
-  .timeline {
-    position: relative; padding: 22px 0 40px;
-    font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px; color: rgba(213, 235, 255, 0.62); font-variant-numeric: tabular-nums;
-  }
-  .ruler {
-    display: flex; justify-content: space-between; margin-left: 40px; padding-bottom: 8px;
-    border-bottom: 1px solid rgba(213, 235, 255, 0.14);
-    background: repeating-linear-gradient(90deg, rgba(213,235,255,.2) 0 1px, transparent 1px 20px) bottom / 100% 6px no-repeat;
-  }
-  .track { display: flex; align-items: stretch; gap: 8px; margin-top: 8px; }
-  .track-name { width: 32px; flex: none; display: grid; place-items: center; font-weight: 500; color: rgba(213,235,255,.7); border-radius: 6px; background: rgba(213,235,255,.06); }
-  .clips { display: flex; gap: 3px; flex: 1; min-width: 0; padding-right: 14%; }
-  .clip {
-    flex-basis: 0; min-width: 0; height: 52px; display: flex; align-items: center; gap: 8px;
-    background: var(--navy-800); border: 1px solid rgba(140, 208, 255, 0.55); border-radius: 6px; overflow: hidden;
-    color: var(--blue-50); font-size: 11.5px;
-  }
-  .clip img { height: 100%; width: 64px; object-fit: cover; flex: none; }
-  .clip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; font-family: "Geist Variable", sans-serif; font-size: 12px; }
-  /* Still downloading: dashed, filled to its progress */
-  .clip-arriving {
-    border-style: dashed; border-color: rgba(140, 208, 255, 0.6);
-    background: linear-gradient(90deg, rgba(48,167,255,.32) var(--pct), rgba(22,43,115,.35) var(--pct));
-  }
-  .clip-arriving img { opacity: .55; }
-  .clip-audio {
-    height: 30px; background-color: rgba(48, 167, 255, 0.12); border-color: rgba(48, 167, 255, 0.35);
-    background-repeat: repeat-x;
-  }
-  .clip-audio-arriving {
-    border-style: dashed; background: linear-gradient(90deg, rgba(48,167,255,.18) var(--pct), transparent var(--pct));
-  }
-  /* Full track width, so translateX(%) is relative to the track */
-  .playhead {
-    position: absolute; top: 22px; bottom: 30px; left: 40px; right: 0; pointer-events: none;
-    animation: scrub 1.6s cubic-bezier(.2,.7,.2,1) .3s both;
-  }
-  .playhead::before {
-    content: ''; position: absolute; top: 0; bottom: 0; left: 40%; width: 2px;
-    background: var(--blue); box-shadow: 0 0 12px rgba(48,167,255,.7);
-  }
-  .playhead span {
-    left: 40%;
-    position: absolute; top: -4px; transform: translateX(-50%); white-space: nowrap;
-    background: var(--blue); color: var(--navy-950); font-weight: 500; padding: 2px 6px; border-radius: 4px;
-  }
-  @keyframes scrub { from { transform: translateX(-40%); opacity: 0; } 20% { opacity: 1; } }
-  @media (prefers-reduced-motion: reduce) { .playhead { animation: none; } }
 
   /* Sections */
   .section { padding: 120px 0; }
-  /* Demo film, on the hero's navy so the timeline panel flows into it */
-  .demo { background: #0d1b4f; padding: 8px 0 96px; }
+  /* Demo film, on the hero's navy: one continuous ground from the headline to the film */
+  .demo { background: var(--navy-950); padding: 88px 0 104px; }
   .demo-frame { position: relative; margin: 0 auto; max-width: 1120px; border-radius: 16px; overflow: hidden;
     box-shadow: 0 0 0 1px rgba(213,235,255,.16), 0 40px 120px -30px rgba(48,167,255,.35), 0 30px 60px -30px rgba(0,0,0,.8); background: #070f30; }
   .demo-frame video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
@@ -713,8 +655,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     .row-flip .row-copy { order: 0; }
     .row + .row { margin-top: 96px; }
     .section, .download { padding: 88px 0; }
-    .timeline-panel { margin-top: 48px; }
-    .clips { padding-right: 0; }
+    .demo { padding: 56px 0 72px; }
     .hero-window, .split .window, .row .window { max-width: 600px; width: 100%; justify-self: center; }
     .platform-groups { grid-template-columns: 1fr; gap: 28px; }
   }
