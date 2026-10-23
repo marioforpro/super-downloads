@@ -3,10 +3,10 @@
 ---
 scope: project:SUPER-DOWNLOADS
 prefix: SD
-lifecycle: pre-launch
-current_phase: Relaunch hardening (reliability + legal + payments) — reopened 2026-07-16 on founder recommit
-next_milestone: v1.2.0 reliability release + legal repositioning live
-updated: 2026-08-03
+lifecycle: active
+current_phase: Free app, private use + friends testing (v1.5.1 live) — work plan 2026-10-23 below
+next_milestone: Landing refresh deployed + v1.5.2 maintenance release (fresh engine + small fixes)
+updated: 2026-10-23
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -14,6 +14,37 @@ updated: 2026-08-03
 > Phase 0–3 history preserved below and in git. Day-to-day code-level detail (per-phase checkbox lists) is NOT tracked here any more — that was task-manager territory. This file tracks launch-level forward motion only.
 
 ## Roadmap
+
+> **Work plan (2026-10-23).** Order = what moves the product most for the least founder time. Now → Next → Later.
+> References behind each call are cited inline (yt-dlp release cadence, Apple notarization, competitor apps).
+
+- **R-SD-005** · P0 · active · Landing refresh — real app screenshots, OG image, editor-first design
+  - added: 2026-10-23
+  - moved: 2026-10-23
+  - progress: 2026-10-23 · built locally, not deployed. New `web/src/pages/index.astro`: hero = real app window over an editing timeline, «Copy. Switch. Enter.» sequence, three feature rows with real screenshots (dark + light), platforms + trust facts, download, FAQ. `og.png` now exists (it was referenced but missing → every shared link had no preview). Geist as web typeface (BRAND.md had typography «pending»). JSON-LD `softwareVersion` 1.1 → 1.5.1. Screenshots come from the real frontend rendered in WebKit with staged data (`scripts/screenshots/`), thumbnails = Blender Studio open movies, CC BY 4.0, credited in the footer.
+  - next: founder OK → commit + push (Vercel auto-deploys) → check superdownloads.app + share preview (opengraph.xyz or a WhatsApp/X paste).
+  - later: 15-s hero loop (screen recording or HyperFrames) · `/changelog` page fed from GitHub Releases · version + size on the download buttons, read at build time.
+- **R-SD-006** · P0 · backlog · v1.5.2 maintenance release — fresh engine + small fixes
+  - added: 2026-10-23
+  - moved: 2026-10-23
+  - why: the daily health check went **DEGRADED (stale engine)** on 2026-10-22 — bundled yt-dlp `2026.08.19` is 64 days old (gate 28 d); upstream is `2026.10.21`. All 7 platforms still PASS, but yt-dlp ships fixes every 2–4 weeks because sites change (yt-dlp releases page), and users only get a newer engine if they press Update in Settings.
+  - scope: bump bundled yt-dlp → latest stable · fix `url.contains("x.com")` also matching dropbox.com (known bug #6) · remove the dead `copy_to_clipboard` fallback · empty-state copy «Copy a video link and come back» (IDEA-0036) · live E2E before publishing · verify the real minimum macOS (Tauri 2 targets 10.15; `tauri.conf.json` and the JSON-LD still claim 10.13) and align the landing.
+  - next: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture` → `load-secrets && ./scripts/make-release.sh` → publish.
+- **R-SD-007** · P1 · backlog · Engine keeps itself fresh — background yt-dlp refresh with checksum
+  - added: 2026-10-23
+  - moved: 2026-10-23
+  - why: R-SD-006 fixes today; this removes the whole class. 4K Video Downloader and Downie both update their extractor silently; our manual «Update» button is invisible to friends testing the app.
+  - scope: on launch, at most once a week, check the latest yt-dlp release in the background; download, verify against the release's `SHA2-256SUMS` (known bug #7: no checksum today), swap atomically, keep the bundled one as fallback. No UI unless it fails twice. Note: our Vimeo plugin (`ytdlp-plugins/`) must keep loading with the refreshed engine — cover with the existing E2E case.
+- **R-SD-008** · P1 · backlog · Tester feedback loop — «Report a problem» inside the app
+  - added: 2026-10-23
+  - moved: 2026-10-23
+  - why: the active phase is friends testing, but the only channel is a support email nobody sees in the app. A bug report that already carries app version, engine version, macOS version and the failing URL + error saves a back-and-forth per bug.
+  - scope: menu item on a failed row («Report this problem») + Settings link → prefilled `mailto:support@superdownloads.app` (no backend). Then work the known-bugs list in `NEXT.md` as reports arrive.
+- **R-SD-009** · P2 · backlog · Signing + notarization decision (SD-F-009 trigger reached)
+  - added: 2026-10-23
+  - moved: 2026-10-23
+  - why: SD-F-009 (2026-08-16) said «revisit at >100 downloads or install complaints». DMG downloads across releases are now **113** (GitHub API, 2026-10-23). Unsigned builds make macOS 15 hide «Open Anyway» deep in System Settings, the single biggest drop-off for non-technical friends. Apple Developer Program = 99 USD/year; notarization is free with it (Apple: «Notarizing macOS software before distribution»).
+  - next: founder decides yes/no. If yes: enroll → Developer ID cert → `tauri.conf.json` signing identity + `notarytool` in `make-release.sh` → drop the xattr FAQ.
 
 - **R-SD-001** · P1 · dropped · Submit Super Downloads to LemonSqueezy for approval
   - dropped: 2026-07-21
@@ -65,14 +96,14 @@ updated: 2026-08-03
 
 ## Backlog (unranked)
 
-- OG image asset (screenshot or custom design)
-- Screenshots / assets / demo GIF for launch day polish (distinct from the demo video under R-SD-001)
-- Batch URL paste feature
+- ~~OG image asset~~ — done 2026-10-23 (R-SD-005)
+- ~~Screenshots / assets~~ — done 2026-10-23 (R-SD-005); demo GIF/loop still open there
+- ~~Batch URL paste feature~~ — shipped v1.5.0 (paste several links + Batch mode)
 - Analytics telemetry opt-in (from Phase 2 deferred list)
 - Windows/Linux expansion
 - Browser extension (was Phase 8 in prior roadmap — legitimately future work)
-- MacUpdate / AlternativeTo directory submissions
-- Product Hunt launch (timing TBD)
+- MacUpdate / AlternativeTo directory submissions — bundle with R-SD-002 when promotion is decided
+- Product Hunt launch (timing TBD) — needs R-SD-009 first: an unsigned app on launch day turns the comment thread into install support
 - **Founder comp license via LemonSqueezy** — **void 2026-10-03** (no LemonSqueezy account; app is free). ~~— issue real comp license through Lemon dashboard (Product → Licenses → Issue License Key, comp/free) for `supermariomonteiro@gmail.com`, replace local `FOUNDER-MARIO-001` stop-gap (Session 201 inject, see `docs/SECURITY-NOTES.md`). Validates the full activation flow end-to-end with a real Lemon-tracked record. Depends on: Lemon product live (linked to R-SD-001 Phase 4 LS-verify). **Sequencing constraint** (surfaced 2026-08-03 from `docs/SECURITY-NOTES.md` prose, SD-F-014): replace the FOUNDER-MARIO-001 stop-gap before/with the license-hardening review below, so any revalidation layer doesn't lock the founder's injected keys out.~~
 - **LinkedIn health-probe URL** — the `PROBES` entry in `scripts/platform-health-check.sh` is a self-admitted dead placeholder (`docs/PLATFORM-HEALTH.md` "Open item"); swap in any public LinkedIn post with native video. Only probed on `--cookies` runs. (Surfaced 2026-08-03 from PLATFORM-HEALTH prose, SD-F-014.)
 - **`copy_to_clipboard` dead fallback** — `src/main.js` copy-link fallback invokes a Tauri command that doesn't exist in `lib.rs` (primary `navigator.clipboard.writeText` path works; the fallback would toast "Failed to copy link"). Remove the fallback or implement the command; then drop it from `KNOWN_MISSING` in `scripts/check-invoke-bindings.mjs`. (Discovered 2026-08-03 by the SD-F-007 regression checker.)

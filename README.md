@@ -4,6 +4,10 @@ macOS video download app built with Tauri 2.x, made for editors. Downloads from 
 
 Super Downloads is intended for downloading content you own, have licensed, or are otherwise authorized to download.
 
+**Download:** [superdownloads.app](https://superdownloads.app) — free, Apple Silicon and Intel.
+
+![Super Downloads — downloads in progress, converting to H.264, completed](web/public/shots/list-dark.webp)
+
 ## Features
 
 - Paste any supported video URL and download

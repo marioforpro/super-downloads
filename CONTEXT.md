@@ -1,7 +1,7 @@
 # SUPER-DOWNLOADS — Context
 
 ## Purpose
-macOS desktop app for media downloads. REOPENED 2026-07-16 (founder recommit) — relaunch hardening (R-SD-004) active; v1.2.0 published 2026-07-16. FREE app since v1.3.0 (2026-10-03); no payments provider — Track C closed 2026-10-03 (`docs/DECISIONS.md`). [Superseded: Track C2 (six Lemon Squeezy E2E gates) was the next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03). *(Status line said "Paused pre-launch" until 2026-08-03 — stale through the 2026-06-15 park and the 2026-07-16 reopen; corrected per SD-F-003/PROJ-F-014.)*]
+macOS video downloader for editors (H.264/MP4 ready for Premiere/Resolve/Final Cut). FREE app, live — v1.5.1 (2026-10-20); private use + friends testing, no public announcement yet. No payments provider (Track C closed 2026-10-03, `docs/DECISIONS.md`). Work plan 2026-10-23 in `ROADMAP.md` (R-SD-005…009). [Superseded: Track C2 (six Lemon Squeezy E2E gates) was the next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03). *(Status line said "Paused pre-launch" until 2026-08-03 — stale through the 2026-06-15 park and the 2026-07-16 reopen; corrected per SD-F-003/PROJ-F-014.)*]
 
 ## Belongs here
 - Tauri app code (`src/` frontend, `src-tauri/` Rust backend)
@@ -35,7 +35,8 @@ macOS desktop app for media downloads. REOPENED 2026-07-16 (founder recommit) �
 - Primary signal: status (paused/blocked) + days since last commit
 
 ## Common workflows
-- Work proceeds under R-SD-004 (reopened 2026-07-16; the old "resume only on explicit founder request" rule ended with the founder recommit)
+- Work follows the ROADMAP plan (2026-10-23): landing refresh → v1.5.2 maintenance → engine self-refresh → tester feedback → signing decision
+- Landing screenshots: regenerate with `node scripts/screenshots/capture.cjs` after any app UI change (`scripts/screenshots/README.md`)
 - Build: `./create-dmg.sh` from project root — hold released 2026-08-16: SD-F-009 resolved (a) deferral — the FREE build ships unsigned (xattr / «Open Anyway» instructions on landing+FAQ); revisit signing at >100 downloads or install complaints
 
 ## Known risks / staleness

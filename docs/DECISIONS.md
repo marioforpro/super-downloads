@@ -4,6 +4,11 @@
 
 ---
 
+## 2026-10-23 — Landing shows the real app; screenshots generated from the frontend
+**Context:** Founder: the web needed to be more complete — «faltan screenshots de la aplicación». The landing had no image at all; `og.png` was referenced in the meta tags but did not exist, so every shared link showed no preview.
+**Decision:** Redesign the landing around real app screenshots. They are produced by rendering the app's own frontend in WebKit with a fake Tauri API and staged downloads (`scripts/screenshots/`), so they always match the shipped UI and can be regenerated in one command. Demo content = Blender Studio open movies (CC BY 4.0, credited in the footer), consistent with the "content you have rights to" positioning. One signature element: the hero shows the app window over an editing timeline (the editor's world). Geist becomes the web typeface. The Pricing section goes (a single €0 card added nothing); «Free for a limited time» lives in the hero and the download section.
+**Consequence:** After any app UI change, re-run `capture.cjs` before deploying. Deploy waits for founder OK.
+
 ## 2026-10-20 — Vimeo restricted embeds: our own yt-dlp plugin, shipped as v1.5.1
 **Context:** Founder: a Vimeo video (`vimeo.com/1229184576`) failed in Super Downloads but worked in 4K Video Downloader+ — «arregla nuestra app para que también lo pueda hacer». Stock yt-dlp (latest 2026.08.19) needs a logged-in session for public videos whose embeds are restricted to other domains; vimeo.com plays them anonymously with a per-clip page signature.
 **Decision:** Ship a small yt-dlp plugin with the app that replays vimeo.com's anonymous path, only when the stock extractor asks for login; any failure falls back to the old behaviour. Founder: «publicamos ahora» → v1.5.1 the same day.

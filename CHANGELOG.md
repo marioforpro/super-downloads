@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [Unreleased] — landing
+
+### Changed (superdownloads.app)
+- **Redesigned landing with real app screenshots** (2026-10-23): hero with the app window over an editing timeline, «Copy. Switch. Enter.» walkthrough, feature rows (edit-ready H.264/AAC, Batch mode, Settings) in dark and light, platforms + trust facts, download, FAQ. Geist typeface; higher-contrast buttons.
+- **Share preview fixed:** `og.png` (1200×630) now exists — it was referenced but missing.
+- JSON-LD `softwareVersion` 1.1 → 1.5.1; per-page canonical URLs (legal pages pointed to the home page).
+- New `scripts/screenshots/` regenerates the screenshots from the real frontend (WebKit + staged data; Blender open movies, CC BY 4.0).
+
 ## [1.5.1] — 2026-10-20 (released)
 
 GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.5.1 — anonymous DMG URLs 200; updater `latest.json` serves 1.5.1 (aarch64 + x86_64).

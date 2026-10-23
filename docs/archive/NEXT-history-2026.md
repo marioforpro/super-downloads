@@ -1,0 +1,188 @@
+# NEXT.md — history (archived 2026-10-23)
+
+> Verbatim copy of `NEXT.md` as of 2026-10-23, before it was rewritten as a short resume guide. Historical only: the LemonSqueezy / payments steps here are void since 2026-10-03 (`docs/DECISIONS.md`).
+
+---
+
+# Siguiente Sesion — Guia de Acciones para el Founder
+
+> **NEXT breadcrumb** (rol declarado M4, 2026-08-10 · `docs/protocols/DOC-CONTRACT.md`): guía de reanudación humana. NO es un TASKS.md — SUPER-DOWNLOADS no tiene superficie de tasks local; ejecución trackeable vive en ROADMAP.md.
+
+> **REOPENED 2026-07-16** — recommit explícito del founder. Plan activo: relaunch hardening (reliability + legal + payments), spec en `superpowers/specs/2026-07-16-relaunch-hardening-design.md`, orden de ejecución B → A → C. Estuvo PARKED 2026-06-15 (producto enviado v1.1.1, sin lanzar comercialmente). ~~La verificación E2E de LemonSqueezy sigue vigente como Track C2~~ — **anulado 2026-10-03: no hay cuenta de LemonSqueezy, la app es gratis; Track C cerrado** (`docs/DECISIONS.md`).
+
+
+> **NEXT (2026-10-20) — ✅ v1.5.1 PUBLICADA** (https://github.com/marioforpro/super-downloads/releases/tag/v1.5.1 — DMGs + updater 200 anónimo, `latest.json` 1.5.1 ambas arches). Arreglo: vídeos de Vimeo con embed restringido a otros dominios (p. ej. `vimeo.com/1229184576`, que 4K Downloader+ sí bajaba) se descargan sin login gracias a un plugin propio de yt-dlp (`src-tauri/ytdlp-plugins/`). E2E de los 2 casos Vimeo OK antes de publicar; motor empaquetado verificado a 1080p H.264. **Primer paso pendiente (founder, 2 min):** actualizar la app instalada con el banner «Update» y descargar `https://vimeo.com/1229184576`. Ese truco de Vimeo no está documentado: si el caso E2E `vimeo-embed-restricted` falla antes de una release, ver `docs/PLATFORM-HEALTH.md` 2026-10-20.
+
+> **NEXT (2026-10-04) — ✅ v1.5.0 PUBLICADA** (https://github.com/marioforpro/super-downloads/releases/tag/v1.5.0 — DMGs + updater 200 anónimo, `latest.json` 1.5.0 ambas arches). Menos fricción: **copiar y volver** (el link aparece en el campo, Enter descarga), **pegar = descargar** (campo vacío o Cmd+V en cualquier parte), **Batch mode** (botón en la barra, ⌘B: cada link copiado se descarga solo; sustituye a "Auto add" de Settings). Decisión en `docs/DECISIONS.md` 2026-10-04. E2E en vivo 8/8 antes de publicar (el caso Vimeo por defecto pasa a un vídeo sin DRM). **Verificado en la app real instalada (2026-10-04, portapapeles real):** copiar y abrir → link en el campo + Download ↵ · Enter descarga · Cmd+V descarga al momento · Batch (⌘B) con la app en segundo plano: 2 links añadidos, duplicado ignorado, texto ignorado, contador «2 added» · ⌘B lo apaga.
+
+> **NEXT (2026-10-03, cierre) — ✅ v1.4.0 PUBLICADA** (https://github.com/marioforpro/super-downloads/releases/tag/v1.4.0 — DMGs 200 anónimo, `latest.json` 1.4.0 ambas arches, Terms/Privacy desplegados). Verificado en la build: motor onedir en `Contents/Resources/yt-dlp-engine` (0,3 s/llamada), arranque sin congelamiento (responde desde 0,1 s), limpieza del motor de v1.3. **Siguiente: uso propio + amigos** — sin anuncio público por ahora (decisión 2026-10-03; R-SD-002 en pausa, borrador al día en `docs/ANNOUNCEMENT-DRAFT.md`). Recoger bugs de los testers; cada fix → release con E2E previo. Antes de cada release: E2E en vivo (`cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`).
+
+> **Bugs menores conocidos, sin arreglar (QA 2026-10-03, ninguno bloquea):** (1) un cambio de estado re-renderiza toda la lista → cierra un menú ⋯ abierto en otra fila; (2) sin watchdog si la red se cuelga sin error (yt-dlp puede esperar ~8 min con `--retries 15`); (3) un prompt del Llavero oculto (cookies) puede dejar el reintento esperando — ahora es cancelable, pero no tiene timeout; (4) al abrir Settings el foco no entra en el panel; (5) las filas nuevas no tienen animación de entrada (el re-render completo la repetiría); (6) `url.contains("x.com")` también casa con dropbox.com; (7) sin verificación SHA256 del motor auto-actualizado (yt-dlp publica SHA2-256SUMS); (8) las URLs de prueba del fallback de Instagram están muertas (`--ig-fallback` da WARN); (9) Intel: la primera ejecución del motor tras instalar tarda ~10 s (Rosetta + escaneo; el calentamiento en segundo plano lo absorbe).
+
+> **NEXT (2026-10-03, noche) — v1.4.0 lista para construir (superado):** commits `276bb4a`…`c9428af` en `main`, sin push. Incluye: fix del congelamiento al abrir (~7s), motor yt-dlp *onedir* (~7s → 0,2s por llamada), opt-in de emails marcado por defecto, Settings rediseñado, pasada QA completa (E2E real: 7 plataformas, cancelación, playlist, conversión H.264 con progreso real), Vimeo en 3 pasos (DRM de autor = mensaje claro, nunca se salta). **Pasos:** (decidido: «Best» = siempre máxima calidad, 4K incluido — `docs/DECISIONS.md`) `! source ~/.secrets && ./scripts/make-release.sh` → verificar build (arranque, motor en `Contents/Resources/yt-dlp-engine`, Settings en WebKit real) → `./scripts/make-release.sh --no-build --publish` + `git push` (despliega Terms/Privacy actualizados). Luego el anuncio (R-SD-002).
+
+> **NEXT (2026-10-03):** **v1.3.0 FREE publicada** (release GitHub, updater 1.3.0, landing «Free for a limited time», activaciones → Airtable `SD · Users` verificadas). Siguiente: **publicar el anuncio** (R-SD-002, `docs/ANNOUNCEMENT-DRAFT.md`: r/macapps + Show HN) — lo postea Mario. Contraseña del updater: `load-secrets` (ver `docs/DEVELOPMENT.md`).
+
+> **NEXT (2026-09-27, superado por la v1.3.0):** fix de LinkedIn en `main` (`99768b6` — sin cookies primero, cookies sólo como reintento; con sesión abierta en el navegador la descarga fallaba) **sin publicar**: llega a los usuarios sólo con una release (v1.2.1). Primer paso: decidir si se publica → `npm run tauri build` + `scripts/check-release-artifacts.sh` (OPS.md). Health check 7/7 CERTIFIED; `cargo fmt --check` marca una línea heredada de `c587dbb` (Vimeo) — `npm run check` no estará verde hasta formatearla.
+---
+
+## ✅ v1.2.0 PUBLISHED — 2026-07-16 23:05 (founder instruction, smoke test skipped)
+
+Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.2.0 — DMGs verificados HTTP 200 anónimo; updater endpoint sirve `latest.json` v1.2.0 (ambas arches). Los usuarios de v1.1.1 recibirán el banner de auto-update; los botones de la landing ya sirven la versión nueva.
+
+**Siguiente sesión — retomar aquí:**
+
+**Paso 1 — Smoke test post-release (5 min, founder):** instala la versión pública (o la de `dist/`) y verifica en real:
+- [ ] Onboarding muestra la línea de Terms/Privacy bajo "Get Started"
+- [ ] Descarga de un vídeo de YouTube OK
+- [ ] Settings → Downloader engine muestra `2026.07.04 · bundled` + botón "Update engine" (pulsarlo prueba el camino de red del self-update — único punto sin E2E runtime)
+- [ ] En una instalación v1.1.1: el banner de auto-update aparece y actualiza a 1.2.0
+- [ ] Opcional: Facebook debería funcionar ya; Instagram puede fallar (roto upstream) pero con el mensaje honesto nuevo
+- Si algo grave apareciera: se puede despublicar el release en GitHub (`gh release delete v1.2.0`) — los updaters vuelven a ver v1.1.1 como latest.
+
+**Paso 2 — Track C1:** enviar el email de compliance a LemonSqueezy (borrador abajo) + pasar una URL de post de LinkedIn con vídeo para el monitor (placeholder muerto en PROBES).
+
+**Pendientes v1.2.x:** cache local de activación de licencia (C1-d) · E2E LemonSqueezy (Track C2, paso 4 abajo) · format-fallback/concurrencia/timeouts (spec Track A2, excluidos de v1.2.0 a propósito).
+
+---
+
+## ~~🟠 Track C1 — Acciones founder (payments resilience, añadido 2026-07-16)~~ — ANULADO 2026-10-03 (sin proveedor de pagos; app gratis)
+
+- [ ] **C1-a · Email a soporte de LemonSqueezy** — pedir OK por escrito sobre el producto (tu mejor seguro ante una suspensión discrecional). Enviar desde el dashboard de LS o a su email de soporte. Borrador listo:
+
+  > **Subject:** Product compliance check — Super Downloads (macOS video downloader for editors)
+  >
+  > Hi — before scaling up sales I'd like to confirm my product complies with your acceptable use policy.
+  >
+  > **Product:** Super Downloads (superdownloads.app), a native macOS desktop app for video editors. It saves online videos to the user's own computer so they can edit them offline in Premiere Pro / DaVinci / Final Cut (H.264/MP4 output). One-time €29 license, freemium (5 downloads/day free).
+  >
+  > **What it is / isn't:** The app runs entirely on the user's machine (it embeds the open-source yt-dlp engine). We host no content and no downloads pass through our servers. It does not and cannot circumvent DRM. Our Terms/EULA require users to download only content they own, have licensed, or are authorized to download (see superdownloads.app/terms and /copyright — we also operate a rights-holder abuse contact).
+  >
+  > Comparable tools (4K Video Downloader, Downie, PullTube) are sold via Stripe/FastSpring today. Could you confirm whether Super Downloads is acceptable to sell via Lemon Squeezy, so I have it on record?
+  >
+  > Thanks! — Mario Monteiro, supermariomonteiro@gmail.com
+
+- [ ] **C1-b · Export periódico de licencias** — LS Dashboard → Store → Licenses → export CSV (o vía API). Guardar fuera de LS (carpeta local + backup). Repetir tras cada venta significativa; añadir a la rutina mensual.
+- [ ] **C1-c · Vigilar chargebacks** — el detonante típico de un review no es el tipo de producto sino descargas rotas → refunds/chargebacks. El health-check v2 + v1.2.0 son la mitigación real; revisar el dashboard de LS semanalmente tras el relanzamiento.
+- [ ] **C1-d · Cache local de activación en la app** — (código, va con Track A/v1.2.x) la app no debe "des-activar" a un usuario Pro si la API de licencias de LS no responde; validación offline con gracia larga.
+
+## ✅ v1.1.0 SHIPPED — 2026-05-06 (Session 161) — histórico; los pasos de pago/LemonSqueezy de esta sección están anulados (2026-10-03)
+
+GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.1.0
+Anonymous download URLs verified HTTP 200 (`releases/latest/download/Super-Downloads_<arch>.dmg`).
+Repo flipped private → public 2026-05-06; landing-page download buttons now reach end users.
+
+### Resume entry point
+Open this file. The checklist below is the resume plan — pick up at step 4.
+
+### Checklist progress
+
+- [x] **1 · DNS verified for `superdownloads.app`** — `dig` returns `216.198.79.1`.
+- [x] **2 · DMGs present locally** — original 2026-04-28 check verified file presence only; the DMGs in `dist/` predated the LS-URL fix `cba5d29` by 7 weeks (build mtime 2026-03-05 vs fix 2026-04-27). False invariant caught Session 161 pre-publish; stale DMGs quarantined to `dist/_stale/`. Now enforced via `scripts/check-release-artifacts.sh` (build-provenance gate, see `docs/OPS.md` §Release verification).
+- [x] **3 · GitHub Release v1.1.0** — published 2026-05-06 from HEAD `cfbc320` (post `cba5d29`). Both assets uploaded:
+  - `Super-Downloads_aarch64.dmg` — sha256 `ea0df1b2edee5161e8bb177ed93d4a29edeeaa6e2430974f06a374c8f86d4419`
+  - `Super-Downloads_x64.dmg`     — sha256 `768beac78921be8a6e75d6ebab2534d6c31a64ea3a67ab56c2a589ef839e4216`
+- [ ] **4 · LemonSqueezy E2E verification** — strict end-to-end. Product UUID `21db1cfb-37f8-4371-8085-b5e30f89645f` (wired in `src/main.js:99` + `web/src/pages/index.astro:184`). All six gates must pass before R-SD-001 closes:
+  1. Checkout URL loads in browser (test mode active)
+  2. Test-mode payment succeeds with a Stripe test card (€29)
+  3. License key generated and emailed by LemonSqueezy
+  4. App accepts the license key in Settings → Activate (RPC round-trip succeeds against `api.lemonsqueezy.com/v1/licenses/activate`)
+  5. Free-tier limit (5 downloads/day) enforced before activation; unlimited downloads after activation
+  6. `LAUNCH30` promo code applies a 30% discount at checkout
+  At step-4 close: product is **commercially operational**, even before the demo/video layer.
+- [ ] **5 · Record demo + reply to Vishnu** — per shot list below. Do not start until step 4 is fully green.
+
+### State changes already shipped (do NOT redo on resume)
+
+- ✅ `src/main.js:99` — in-app `LEMONSQUEEZY_CHECKOUT_URL` wired to real product UUID (commit `cba5d29` in SUPER-DOWNLOADS repo, 2026-04-27). Was placeholder `/checkout/buy/TODO` before.
+- ✅ Demo execution plan persisted (this file) — script intact below.
+- ✅ Vishnu reply template ready (below).
+
+### What's NOT pending (verified 2026-04-28)
+
+- `superdownloads.app` DNS — resolves to Vercel (`216.198.79.1`).
+- `www.superdownloads.app` DNS — resolves correctly through Vercel CNAME.
+- DMGs — present locally in `dist/`.
+- LemonSqueezy URL on landing page — already wired to real product UUID.
+
+---
+
+## 🎬 EXECUTE — R-SD-001 demo video (target 2026-04-30)
+
+### Prerequisite (do first)
+
+- [ ] Confirm LemonSqueezy product is in **test mode** (checkout functional, no real charge). If live-only, flip to test mode before recording.
+
+### Shot list — 60–75s total
+
+**Scene 1 · App UX (0:00–0:20) — 20s**
+- `0:00` Open Super Downloads (clean empty state)
+- `0:04` Paste YouTube URL into input
+- `0:08` Click Download → progress bar fills
+- `0:15` File appears in Finder → drag into Premiere Pro timeline
+
+**Scene 2 · Fulfillment (0:20–1:00) — 40s** ← what LS actually cares about
+- `0:20` In-app: click "Get Pro" (€29)
+- `0:23` LemonSqueezy checkout opens (test mode) → fill card → confirm
+- `0:32` Purchase success screen
+- `0:35` Switch to Mail → LemonSqueezy license-key email (show key)
+- `0:42` Back to Super Downloads → Settings → paste license key → Activate
+- `0:52` "Pro · unlimited downloads" state visible
+- `0:58` Quick close
+
+**Scene 3 · Outro (1:00–1:10) — 10s**
+- `1:00` Logo + superdownloads.app
+- `1:05` End
+
+### Upload
+
+- [ ] Export MP4 → upload to YouTube (unlisted) or Loom
+- [ ] Copy share URL
+
+### Reply to Vishnu — thread `{#HS:3271250731-516790#}`
+
+```
+Hola Vishnu,
+
+Adjunto los dos items que pediste:
+
+1) Demo video (60-75s): [PASTE YOUTUBE URL]
+   Muestra: descarga de un vídeo, integración con Premiere,
+   checkout en LemonSqueezy y flow de activación de licencia.
+
+2) Perfiles para verificación:
+   - LinkedIn:  https://linkedin.com/in/mariomonteirotv
+   - X:         https://x.com/mariomonteiro
+   - Portfolio: https://mariomonteiro.tv
+
+Quedamos a la espera del approval para activar la store en producción.
+
+Gracias,
+Mario
+```
+
+- [ ] Send reply
+- [ ] Mark R-SD-001 as unblocked in `ROADMAP.md` once LS confirms approval *(historical box — R-SD-001 was dropped 2026-07-21 and merged into R-SD-004 Track C2; track any LS-approval follow-up there. Noted 2026-08-03, SD-F-004.)*
+
+### Launch-order reminder
+
+DMGs + GitHub Release can proceed in parallel — they don't depend on LS approval. Do NOT publicly announce launch until: (1) LS approved, (2) real €29 purchase verified end-to-end.
+
+---
+
+## ARCHIVOS IMPORTANTES
+
+| Archivo | Para que |
+|---------|----------|
+| `ROADMAP.md` | Estado de cada fase |
+| `PROGRESS.md` | Log detallado de lo hecho |
+| `docs/DECISIONS.md` | Todas las decisiones tomadas |
+| `docs/LAUNCH.md` | Checklist de lanzamiento |
+
+## CLAVES Y SECRETOS
+
+| Archivo | Que es | En git? |
+|---------|--------|---------|
+| `src-tauri/.tauri-update-key` | Clave privada del updater | NO (.gitignore) |
+| `src-tauri/.tauri-update-key.pub` | Clave publica del updater | SI (committed) |
+| `.env` (futuro) | API keys de LemonSqueezy | NO |

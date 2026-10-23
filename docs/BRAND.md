@@ -121,8 +121,19 @@ The Super Downloads icon is a download arrow on a dark navy background. Confirme
 - Blue-dominant palette extending from the app icon
 - No playful or casual elements — this is a tool for professionals
 
+### Typography (web/marketing) — decided 2026-10-23
+
+- **Geist** (Google Fonts, 400/500/600/700) for the landing — headlines tight (-0.03em), body in the same family. System font stack as fallback.
+- The app itself keeps the macOS system font (SF): screenshots must look like the real app.
+- Buttons: navy text (`#0a163f`) on bright blue (`#30a7ff`) — white on bright blue fails contrast (2.6:1).
+- Body links on white: `#0b6bcb` (bright blue is for fills, not text on white).
+
+### Screenshots
+
+- Always the real app UI (`scripts/screenshots/`), framed in a macOS window. Never mock-ups that differ from the shipped app.
+- Demo footage: Blender Studio open movies (CC BY 4.0, credited) — never copyrighted third-party content.
+
 ### Pending
-- [ ] Typography for web/marketing
 - [ ] Logo wordmark (if needed beyond icon)
 
 ---

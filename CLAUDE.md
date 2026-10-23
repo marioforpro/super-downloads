@@ -13,7 +13,7 @@ Stack: Tauri 2.x (Rust backend + Vanilla JS frontend). Bundled yt-dlp + ffmpeg +
 Landing: Astro v6 in `web/` subfolder. Deploy on Vercel.
 Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 
-## Current State (updated 2026-10-20)
+## Current State (updated 2026-10-23)
 
 - **State:** FREE app, live — **v1.5.1 published 2026-10-20** (GitHub Release + updater; DMGs 97/109 MB).
 - **Active plan:** private use + friends testing (no public launch for now — `docs/DECISIONS.md` 2026-10-03). Fix what testers find; run the live E2E before each release. Payments track closed.
@@ -25,7 +25,9 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 - **Domain:** `superdownloads.app` + `www.superdownloads.app` working
 - **Analytics:** PostHog integrated in landing
 - **Billing:** none. License/checkout code is dormant behind `FREE_MODE` in `src/main.js`
-- **Founder actions pending:** use the app and share it with friends; report bugs. See `NEXT.md`
+- **Landing:** redesigned 2026-10-23 (real app screenshots, editing-timeline hero, `og.png`, Geist) — built locally, deploy pending founder OK. Screenshots regenerate via `scripts/screenshots/capture.cjs`.
+- **Health:** 7/7 platforms PASS; engine stale (bundled yt-dlp 2026.08.19) → v1.5.2 planned (R-SD-006).
+- **Founder actions pending:** deploy the landing; decide signing/notarization (R-SD-009). See `NEXT.md`
 
 ## Critical Context
 
