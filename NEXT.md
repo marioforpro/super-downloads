@@ -2,7 +2,7 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
-> **NEXT (2026-10-23):** v1.5.4 publicada. **Demo v8 en la landing** (R-SD-011): música original de Suno, desenfoque real, cambios del founder; ficheros versionados `web/public/demo/*-v8.*` (la caché servía la v5). Landing: sin la timeline del hero, barra y botones con filo LED + glow, ventana del hero con borde de luz. **Redes: no publicar todavía** (founder). Taller de la demo en STUDIO `clients/super-downloads/demo-film/` (másters 16:9 y 9:16 en `motion/*/renders/`). Siguiente paso: que el founder vea la landing en vivo; «Watch demo» en Settings sale con la próxima versión de la app. Firma Apple: diciembre (R-SD-009).
+> **NEXT (2026-10-23):** v1.5.4 publicada. **Demo v8 en la landing** (R-SD-011): música original de Suno, desenfoque real, cambios del founder; ficheros versionados `web/public/demo/*-v8.*` (la caché servía la v5). Landing: sin la timeline del hero, barra y botones con filo LED + glow, ventana del hero con borde de luz fino azul (sin blanco, aprobado por el founder). **Redes: no publicar todavía** (founder). Taller de la demo en STUDIO `clients/super-downloads/demo-film/` (másters 16:9 y 9:16 en `motion/*/renders/`). Siguiente paso: que el founder vea la landing en vivo; «Watch demo» en Settings sale con la próxima versión de la app. Firma Apple: diciembre (R-SD-009).
 
 ## Dónde estamos (2026-10-23)
 

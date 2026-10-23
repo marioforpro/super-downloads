@@ -7,7 +7,7 @@
 ## 2026-10-23 — Landing: no timeline strip under the hero; demo not posted on social yet
 **Context:** Founder review of the live landing: «elimina esto de la web… creo que confunde un timeline ahí».
 **Decision (founder):** the hero shows the app window only (the editing-timeline strip is gone; the demo film right below
-shows the timeline in context). Nav and buttons get a subtle LED edge + glow («tech future, sin pasarse»), the hero window too.
+shows the timeline in context). Nav and buttons get a subtle LED edge + glow («tech future, sin pasarse»), the hero window too — its edge kept to a fine blue hairline, no white corners (founder, same day: «demasiado brillante blanco, debe ser más fino, elegante»).
 The v8 demo goes on the landing; **nothing is posted on Instagram/X for now**. Demo music = the founder's original Suno track.
 
 ## 2026-10-23 — The demo film carries no «Made by Mario Monteiro»
