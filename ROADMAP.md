@@ -23,6 +23,7 @@ updated: 2026-10-23
   - moved: 2026-10-23
   - progress: 2026-10-23 · built locally, not deployed. New `web/src/pages/index.astro`: hero = real app window over an editing timeline, «Copy. Switch. Enter.» sequence, three feature rows with real screenshots (dark + light), platforms + trust facts, download, FAQ. `og.png` now exists (it was referenced but missing → every shared link had no preview). Geist as web typeface (BRAND.md had typography «pending»). JSON-LD `softwareVersion` 1.1 → 1.5.1. Screenshots come from the real frontend rendered in WebKit with staged data (`scripts/screenshots/`), thumbnails = Blender Studio open movies, CC BY 4.0, credited in the footer.
   - shipped: 2026-10-23 — live on superdownloads.app (home, og.png, shots 200). Founder check pending: share preview in WhatsApp/X.
+  - progress: 2026-10-23 · polish pass from a 4-reviewer design review (visual, UX/conversion, copy, a11y/perf): one-story hero, chip-detected direct download, install guide after the click, mobile «send to your Mac», copy rewrite, expanded FAQ (JSON-LD = visible), WCAG AA fixes, self-hosted Geist. Open founder questions: what happens after the free period (FAQ deliberately silent), maker line wording.
   - later: 15-s hero loop (screen recording or HyperFrames) · `/changelog` page fed from GitHub Releases · version + size on the download buttons, read at build time.
 - **R-SD-006** · P0 · shipped · v1.5.2 maintenance release — fresh engine + small fixes
   - added: 2026-10-23

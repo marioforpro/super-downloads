@@ -23,6 +23,14 @@ Maintenance release.
 
 ## Landing — 2026-10-23
 
+### Polish pass after a 4-reviewer design review (visual, UX/conversion, copy, a11y/perf)
+- Hero tells one story: the clip still downloading in the window (CHARGE, 64%) arrives on the timeline as a dashed clip filling up; the timeline is now a full-width editor panel. H1 in three lines, Geist 600.
+- Download flow: the hero button downloads the right DMG directly (chip detection; Apple Silicon by default), shows version and size; after any DMG click the page jumps to a new **Install in three steps** guide (Gatekeeper «Open Anyway», copy button for the `xattr` command). Phones get «Send this page to your Mac» instead of a 100 MB DMG.
+- Copy rewritten: video spec no longer implies every file is re-encoded; «No account» contradiction removed; new rows «Keeps working when sites change» (weekly engine updates), Batch details; platforms note best-effort for login sites; FAQ expanded (what you can download, how it differs from other downloaders, email use, a site stopped working, is it safe) and the JSON-LD now matches the visible FAQ.
+- Trust: yt-dlp / FFmpeg credited, GitHub + release notes links, version and DMG sizes read from the latest release at build time, maker credit.
+- Accessibility: focus ring and button sub-label now pass WCAG AA; skip link; keycaps read correctly by screen readers. Performance: Geist self-hosted (no render-blocking Google Fonts), PostHog trimmed to pageviews + download events, 1× image variants via `srcset`, cache headers for screenshots, playhead animates `transform`.
+- New screenshots: rows end cleanly, a «converting to H.264» proof shot, cropped empty state.
+
 ### Changed (superdownloads.app)
 - **Redesigned landing with real app screenshots** (2026-10-23): hero with the app window over an editing timeline, «Copy. Switch. Enter.» walkthrough, feature rows (edit-ready H.264/AAC, Batch mode, Settings) in dark and light, platforms + trust facts, download, FAQ. Geist typeface; higher-contrast buttons.
 - **Share preview fixed:** `og.png` (1200×630) now exists — it was referenced but missing.

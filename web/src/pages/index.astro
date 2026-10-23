@@ -1,16 +1,37 @@
 ---
 import Layout from '../layouts/Layout.astro';
 
-const DMG_ARM = 'https://github.com/marioforpro/super-downloads/releases/latest/download/Super-Downloads_aarch64.dmg';
-const DMG_INTEL = 'https://github.com/marioforpro/super-downloads/releases/latest/download/Super-Downloads_x64.dmg';
+const REPO = 'https://github.com/marioforpro/super-downloads';
+const DMG_ARM = `${REPO}/releases/latest/download/Super-Downloads_aarch64.dmg`;
+const DMG_INTEL = `${REPO}/releases/latest/download/Super-Downloads_x64.dmg`;
 
-// Clips on the hero timeline: width follows real duration (seconds).
+// Version and DMG sizes, read from the latest GitHub release at build time.
+// Fallbacks keep the build working offline or when the API rate-limits.
+const release = { version: '1.5.2', arm: 97, intel: 109 };
+try {
+  const res = await fetch('https://api.github.com/repos/marioforpro/super-downloads/releases/latest', {
+    headers: { 'User-Agent': 'superdownloads-web', Accept: 'application/vnd.github+json' },
+  });
+  if (res.ok) {
+    const data = await res.json();
+    const mb = (name: string) => {
+      const asset = data.assets?.find((a: { name: string }) => a.name === name);
+      return asset ? Math.round(asset.size / 1e6) : null;
+    };
+    release.version = String(data.tag_name || '').replace(/^v/, '') || release.version;
+    release.arm = mb('Super-Downloads_aarch64.dmg') ?? release.arm;
+    release.intel = mb('Super-Downloads_x64.dmg') ?? release.intel;
+  }
+} catch {}
+
+// Hero timeline: finished downloads sit on V1; the one still downloading in
+// the window (CHARGE, 64%) arrives as a clip that is still filling.
 const clips = [
-  { name: 'Spring — Blender Open Movie.mp4', thumb: 'WhWc3b3KhnY', secs: 464 },
-  { name: 'WING IT! — Blender Open Movie.mp4', thumb: 'u9lj-c29dxI', secs: 238 },
-  { name: 'Coffee Run — Blender Open Movie.mp4', thumb: 'PVGeM40dABA', secs: 185 },
-  { name: 'CHARGE — Blender Open Movie.mp4', thumb: 'UXqq0ZvbOnk', secs: 263 },
+  { name: 'Spring.mp4', thumb: 'WhWc3b3KhnY', secs: 464 },
+  { name: 'WING IT!.mp4', thumb: 'u9lj-c29dxI', secs: 238 },
+  { name: 'Coffee Run.mp4', thumb: 'PVGeM40dABA', secs: 185 },
 ];
+const arriving = { name: 'CHARGE.mp4', thumb: 'UXqq0ZvbOnk', secs: 263, pct: 64 };
 
 // Audio waveform for the A1 track: deterministic bar heights, tiled as an SVG.
 const wave = (() => {
@@ -25,52 +46,70 @@ const wave = (() => {
   return `url("data:image/svg+xml;utf8,${svg}")`;
 })();
 
-const faqs = [
+const XATTR = 'xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"';
+
+// One source for the visible FAQ and its JSON-LD. `html` is the visible
+// answer when it needs markup; `a` is always the plain-text answer.
+const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   {
     q: 'What is Super Downloads?',
-    a: 'A native macOS app for saving video to your offline editing workflow — your own content, licensed, Creative Commons, or authorized content. It works out of the box with YouTube, TikTok and Vimeo, and also supports Instagram, Facebook, X and LinkedIn using your browser login. Every download is an H.264/MP4 file, ready for Premiere Pro, DaVinci Resolve or Final Cut Pro.',
+    a: 'A native Mac app that saves online video as edit-ready files. YouTube, Vimeo and TikTok work without a login; Instagram, Facebook, X and LinkedIn work through your browser login, on a best-effort basis. Every file is an H.264 MP4 that opens in Premiere Pro, DaVinci Resolve and Final Cut Pro.',
   },
   {
-    q: 'Is it really free?',
-    a: 'Yes. It is free for a limited time, with unlimited downloads and every feature included. You activate it once with your email inside the app. No card, no payment.',
+    q: 'What can I download?',
+    a: 'Video you own, video you have licensed, video shared under Creative Commons, and anything else you are authorized to use: your own uploads, client footage, approved references. The app does not get around DRM: if a video is copy-protected, it tells you and stops.',
+  },
+  {
+    q: 'How is it different from other downloaders?',
+    a: 'Most downloaders hand you whatever the site serves, often VP9 or AV1 in a WebM or MKV file that your editing app won’t import. Super Downloads always gives you H.264 in an MP4, picks up the link you just copied, and keeps its download engine up to date by itself. No Terminal, nothing to configure.',
+  },
+  {
+    q: 'Is it free?',
+    a: 'Yes, free for a limited time, with unlimited downloads and every feature. You activate it once with your email inside the app. No card required.',
+  },
+  {
+    q: 'What do you do with my email?',
+    a: 'It activates the app and lets us tell you about important changes, such as security fixes or the end of the free period. If you leave the “updates and new products” box ticked, we may also email you about updates and our other products; untick it and we won’t. Every email has a one-click unsubscribe.',
+    html: 'It activates the app and lets us tell you about important changes, such as security fixes or the end of the free period. If you leave the “updates and new products” box ticked, we may also email you about updates and our other products; untick it and we won’t. Every email has a one-click unsubscribe. Details in the <a href="/privacy">Privacy Policy</a>.',
   },
   {
     q: 'Why do some platforms need my browser login?',
-    a: 'Instagram, Facebook, X and LinkedIn only serve video to signed-in users. Super Downloads reads your existing local browser session to authenticate — it never asks for, sees, or stores your passwords. YouTube, TikTok and Vimeo work without login.',
+    a: 'Instagram, Facebook, X and LinkedIn usually serve video only to signed-in users. Super Downloads uses the session already in your default browser (Safari, Chrome, Firefox, Brave, Edge or Vivaldi). It never asks for, sees or stores your password.',
+  },
+  {
+    q: 'A site stopped working. What now?',
+    a: 'Sites change how they deliver video all the time. The app checks for a new download engine every week and installs it on its own, which usually fixes it. To check right away, open Settings and click Update next to Engine. Still failing? Write to support@superdownloads.app with the link.',
+    html: 'Sites change how they deliver video all the time. The app checks for a new download engine every week and installs it on its own, which usually fixes it. To check right away, open Settings and click <strong>Update</strong> next to Engine. Still failing? Write to <a href="mailto:support@superdownloads.app">support@superdownloads.app</a> with the link.',
   },
   {
     q: 'What quality can I download?',
-    a: 'Best (up to 4K), 1080p or 720p. 1080p and 720p are usually fastest, because the app takes an H.264 stream directly. When a source only offers 4K as VP9 or AV1, Best converts it to H.264 using your Mac’s hardware encoder.',
+    a: 'Best (up to 4K), 1080p or 720p, plus audio only as MP3. 1080p and 720p are usually fastest, because most sites already offer them as H.264. When a source only has 4K as VP9 or AV1, Best converts it to H.264 with your Mac’s hardware encoder.',
   },
   {
-    q: 'Do I need an internet connection?',
-    a: 'Only to download. The app runs entirely on your Mac — no cloud processing, and no download passes through our servers.',
+    q: 'Do my downloads go through your servers?',
+    a: 'No. Everything runs on your Mac. Video goes straight from the platform to your save folder.',
   },
   {
-    q: 'Can I use it on Windows or Linux?',
-    a: 'Not yet. Super Downloads is macOS only, for Apple Silicon and Intel Macs.',
+    id: 'faq-macos',
+    q: 'macOS won’t open the app. Is it safe?',
+    a: `Yes. Apple notarization is still in progress, so macOS blocks the first launch. On macOS 15 or later: open the app once, click Done, then go to System Settings › Privacy & Security, scroll down and click Open Anyway. On macOS 14 or earlier: right-click the app, choose Open, then click Open. If macOS says the app is damaged, run this in Terminal: ${XATTR}`,
+    html: `Yes. Apple notarization is still in progress, so macOS blocks the first launch. On macOS 15 or later: open the app once, click <strong>Done</strong>, then go to System Settings › Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>. On macOS 14 or earlier: right-click the app, choose Open, then click Open. If macOS says the app is “damaged”, run this in Terminal:<br /><code>${XATTR.replace(/"/g, '&quot;')}</code>`,
+  },
+  {
+    q: 'Is there a Windows or Linux version?',
+    a: 'Not yet. Super Downloads is Mac only, for Apple Silicon and Intel.',
   },
 ];
 ---
 
 <Layout
-  title="Super Downloads — The video downloader built for editors"
-  description="Save videos for your offline editing workflow — from YouTube, TikTok and Vimeo, plus Instagram, Facebook, X and LinkedIn with your browser login. Every download is Premiere Pro ready — H.264/MP4. Native macOS app, free."
+  title="Super Downloads: The video downloader built for editors"
+  description="Free Mac app for video editors. Paste a YouTube, Vimeo or TikTok link and get an H.264 MP4 that opens in Premiere Pro, Resolve or Final Cut."
 >
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": [
-      ...faqs.map(f => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
-      {
-        "@type": "Question",
-        "name": "macOS says the app can't be opened or is damaged. What do I do?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "The app is not notarized by Apple yet (independent build), and it is safe to open. On macOS 15 or later: open System Settings, Privacy & Security, scroll down and click Open Anyway. On older versions, right-click the app, choose Open, then click Open again. If macOS says the app is damaged, open Terminal and run: xattr -dr com.apple.quarantine \"/Applications/Super Downloads.app\""
-        }
-      }
-    ]
+    "mainEntity": faqs.map(f => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
   })} />
 
   <header class="nav">
@@ -88,67 +127,78 @@ const faqs = [
     </div>
   </header>
 
-  <main>
-    <!-- Hero: the app window, landing clips on an editing timeline -->
+  <main id="main">
+    <!-- Hero: the app window, with its downloads landing on an editing timeline -->
     <section class="hero">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <p class="pill">Free for a limited time</p>
           <h1>The video downloader built for editors.</h1>
-          <p class="lede">Paste a link from YouTube, Vimeo, TikTok, Instagram and more. Get an H.264 MP4 that drops straight into Premiere Pro, Resolve or Final Cut.</p>
+          <p class="lede">Paste a link from YouTube, Vimeo, TikTok and more. Get an H.264 MP4 that drops straight into Premiere Pro, Resolve or Final Cut. No transcoding.</p>
           <div class="hero-actions">
-            <a href="#download" class="btn btn-blue btn-lg">Download for Mac</a>
-            <span class="hero-meta">Apple Silicon and Intel.<br />No account, no card.</span>
+            <a href={DMG_ARM} class="btn btn-blue btn-lg js-dmg" id="hero-dl" data-arch="arm" data-place="hero">Download for Mac</a>
+            <p class="hero-meta">
+              <span>Free for a limited time. No card.</span>
+              <span><span id="hero-arch">Apple Silicon</span> · v{release.version} · <a href="#download" id="hero-other">Intel Mac?</a></span>
+            </p>
           </div>
+          <p class="mobile-note" id="mobile-note" hidden>Super Downloads is a Mac app. <button type="button" class="link-btn" id="share-link">Send this page to your Mac</button></p>
         </div>
 
         <figure class="window window-dark hero-window">
           <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-          <img src="/shots/list-dark.webp" width="1120" height="800" alt="Super Downloads window: one video downloading at 64%, one converting to H.264, three completed" fetchpriority="high" />
+          <img src="/shots/list-dark.webp" srcset="/shots/list-dark-560.webp 560w, /shots/list-dark.webp 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="722" alt="Super Downloads window: CHARGE downloading at 64%, Sprite Fright converting to H.264, Spring and WING IT! completed" fetchpriority="high" />
         </figure>
       </div>
 
-      <div class="wrap">
-        <div class="timeline" aria-hidden="true">
-          <div class="ruler">
-            <span>00:00:00:00</span><span>00:05:00:00</span><span>00:10:00:00</span><span>00:15:00:00</span><span>00:20:00:00</span>
-          </div>
-          <div class="track track-v">
-            <b class="track-name">V1</b>
-            <div class="clips">
-              {clips.map((c) => (
-                <div class="clip" style={`flex-grow:${c.secs}`}>
-                  <img src={`/shots/thumbs/${c.thumb}.webp`} alt="" loading="lazy" width="240" height="135" />
-                  <span>{c.name}</span>
+      <div class="timeline-panel" aria-hidden="true">
+        <div class="wrap">
+          <div class="timeline">
+            <div class="ruler">
+              <span>00:00:00:00</span><span>00:05:00:00</span><span>00:10:00:00</span><span>00:15:00:00</span><span>00:20:00:00</span>
+            </div>
+            <div class="track">
+              <b class="track-name">V1</b>
+              <div class="clips">
+                {clips.map((c) => (
+                  <div class="clip" style={`flex-grow:${c.secs}`}>
+                    <img src={`/shots/thumbs/${c.thumb}.webp`} alt="" loading="lazy" width="240" height="135" />
+                    <span>{c.name}</span>
+                  </div>
+                ))}
+                <div class="clip clip-arriving" style={`flex-grow:${arriving.secs};--pct:${arriving.pct}%`}>
+                  <img src={`/shots/thumbs/${arriving.thumb}.webp`} alt="" loading="lazy" width="240" height="135" />
+                  <span>{arriving.name} · {arriving.pct}%</span>
                 </div>
-              ))}
+              </div>
             </div>
-          </div>
-          <div class="track track-a">
-            <b class="track-name">A1</b>
-            <div class="clips">
-              {clips.map((c, i) => <div class="clip clip-audio" style={`flex-grow:${c.secs};background-image:${wave};background-position:${-i * 37}px center`}></div>)}
+            <div class="track">
+              <b class="track-name">A1</b>
+              <div class="clips">
+                {clips.map((c, i) => <div class="clip clip-audio" style={`flex-grow:${c.secs};background-image:${wave};background-position:${-i * 37}px center`}></div>)}
+                <div class="clip clip-audio clip-audio-arriving" style={`flex-grow:${arriving.secs};--pct:${arriving.pct}%`}></div>
+              </div>
             </div>
+            <div class="playhead"><span>00:09:12:08</span></div>
           </div>
-          <div class="playhead"><span>00:12:31:08</span></div>
         </div>
       </div>
     </section>
 
-    <!-- How it works: a real three-step sequence -->
+    <!-- How it works: a real three-step sequence, each step its shortcut -->
     <section id="how" class="section how">
       <div class="wrap split">
         <div>
           <h2>Copy. Switch. Enter.</h2>
           <ol class="steps">
-            <li><strong>Copy a link</strong> in your browser — a YouTube video, a Vimeo reference, a client’s Instagram reel.</li>
-            <li><strong>Switch to Super Downloads.</strong> The link is already in the field.</li>
-            <li><strong>Press Enter.</strong> The MP4 lands in your folder, ready to import. Pasting a link with ⌘V starts it right away.</li>
+            <li><kbd class="key"><span aria-hidden="true">⌘C</span><span class="sr-only">Command C</span></kbd><span><strong>Copy a link</strong> in your browser: a YouTube video, a Vimeo reference, a client’s Instagram reel.</span></li>
+            <li><kbd class="key"><span aria-hidden="true">⌘⇥</span><span class="sr-only">Command Tab</span></kbd><span><strong>Switch to Super Downloads.</strong> The link is already in the field.</span></li>
+            <li><kbd class="key"><span aria-hidden="true">↵</span><span class="sr-only">Return</span></kbd><span><strong>Press Enter.</strong> The MP4 lands in your save folder, ready to import.</span></li>
           </ol>
+          <p class="aside">Already in the app? <kbd><span aria-hidden="true">⌘</span><span class="sr-only">Command</span></kbd><kbd>V</kbd> pastes and starts the download in one step.</p>
         </div>
-        <figure class="window window-dark">
+        <figure class="window window-dark on-light">
           <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-          <img src="/shots/empty-dark.webp" width="1120" height="640" alt="A copied YouTube link waiting in the field, Download button highlighted" loading="lazy" />
+          <img src="/shots/empty-dark.webp" srcset="/shots/empty-dark-560.webp 560w, /shots/empty-dark.webp 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="500" alt="A copied YouTube link already in the field, with the Download button highlighted" loading="lazy" />
         </figure>
       </div>
     </section>
@@ -158,40 +208,51 @@ const faqs = [
       <div class="wrap">
         <div class="row">
           <div class="row-copy">
-            <h2>Files your editor opens without asking.</h2>
-            <p>Every download comes out as an MP4 your NLE already understands. No transcoding step, no “unsupported codec” dialog.</p>
+            <h2>Files your NLE opens on the first try.</h2>
+            <p>Every file is an MP4 that Premiere Pro, Resolve and Final Cut read natively. No transcoding step, no “unsupported codec” dialog.</p>
             <dl class="specs">
-              <div><dt>Video</dt><dd>H.264, hardware-encoded with VideoToolbox</dd></div>
-              <div><dt>Audio</dt><dd>AAC, or MP3-only when you just need the sound</dd></div>
+              <div><dt>Video</dt><dd>H.264. Kept as is when the source has it, converted on your Mac’s hardware encoder when it doesn’t.</dd></div>
+              <div><dt>Audio</dt><dd>AAC. Or audio only, as MP3.</dd></div>
               <div><dt>Quality</dt><dd>Best (up to 4K), 1080p or 720p</dd></div>
-              <div><dt>Works in</dt><dd>Premiere Pro, DaVinci Resolve, Final Cut Pro</dd></div>
+              <div><dt>Container</dt><dd>MP4</dd></div>
+              <div><dt>Opens in</dt><dd>Premiere Pro, DaVinci Resolve, Final Cut Pro</dd></div>
             </dl>
           </div>
           <figure class="window window-light">
             <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-            <img src="/shots/list-light.webp" width="1120" height="800" alt="Light theme: a download converting to H.264 for editing, with completed MP4s below" loading="lazy" />
+            <img src="/shots/convert-light.webp" srcset="/shots/convert-light-560.webp 560w, /shots/convert-light.webp 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="424" alt="Light theme: Sprite Fright converting to H.264 for editing at 41%, Spring completed as a 1080p MP4" loading="lazy" />
           </figure>
         </div>
 
         <div class="row row-flip">
           <div class="row-copy">
             <h2>Pulling a whole reference board? Turn on Batch.</h2>
-            <p>Press <kbd>⌘</kbd><kbd>B</kbd> and keep browsing. Every video link you copy downloads on its own, even with the app in the background. Duplicates and plain text are ignored.</p>
+            <p>Press <kbd><span aria-hidden="true">⌘</span><span class="sr-only">Command</span></kbd><kbd>B</kbd> and keep browsing. Every video link you copy downloads automatically, even with the app in the background.</p>
+            <dl class="specs">
+              <div><dt>Start, stop</dt><dd><kbd><span aria-hidden="true">⌘</span><span class="sr-only">Command</span></kbd><kbd>B</kbd>, or the Batch button</dd></div>
+              <div><dt>Duplicates</dt><dd>Skipped, along with anything that isn’t a video link</dd></div>
+              <div><dt>Each launch</dt><dd>Starts off, so nothing downloads by surprise</dd></div>
+            </dl>
           </div>
-          <figure class="window window-dark">
+          <figure class="window window-dark on-light">
             <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-            <img src="/shots/batch-dark.webp" width="1120" height="800" alt="Batch mode on: three videos downloading in parallel" loading="lazy" />
+            <img src="/shots/batch-dark.webp" srcset="/shots/batch-dark-560.webp 560w, /shots/batch-dark.webp 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="672" alt="Batch mode on: three videos downloading in parallel" loading="lazy" />
           </figure>
         </div>
 
         <div class="row">
           <div class="row-copy">
-            <h2>Set it once, then forget it.</h2>
-            <p>Pick a folder, a quality and a theme. Dark, light or follow the system. The download engine keeps itself current, and the app updates with one click.</p>
+            <h2>Keeps working when sites change.</h2>
+            <p>Video sites change how they deliver video all the time. Super Downloads keeps up on its own, so a link that worked last month still works today.</p>
+            <dl class="specs">
+              <div><dt>Engine</dt><dd>Checks for updates every week and installs them itself</dd></div>
+              <div><dt>App</dt><dd>New versions install with one click</dd></div>
+              <div><dt>Settings</dt><dd>Save folder, quality and theme. Set once.</dd></div>
+            </dl>
           </div>
           <figure class="window window-light">
             <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-            <img src="/shots/settings-light.webp" width="1120" height="840" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme and engine version" loading="lazy" />
+            <img src="/shots/settings-light.webp" srcset="/shots/settings-light-560.webp 560w, /shots/settings-light.webp 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="740" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme, and the engine version with an Update button" loading="lazy" />
           </figure>
         </div>
       </div>
@@ -200,59 +261,75 @@ const faqs = [
     <!-- Platforms + trust -->
     <section class="section platforms">
       <div class="wrap">
-        <h2>One app for the places your footage lives.</h2>
+        <h2>Seven platforms, one paste field.</h2>
+        <p class="section-lede">For footage you own, have licensed, or that’s shared under Creative Commons.</p>
         <div class="platform-groups">
           <div>
-            <h3>Works out of the box</h3>
+            <h3>No login needed</h3>
             <ul class="platform-list"><li>YouTube</li><li>Vimeo</li><li>TikTok</li></ul>
           </div>
           <div>
             <h3>With your browser login</h3>
             <ul class="platform-list"><li>Instagram</li><li>Facebook</li><li>X</li><li>LinkedIn</li></ul>
+            <p class="platform-note">These sites change often. When one stops working, the weekly engine update usually fixes it.</p>
           </div>
         </div>
         <ul class="facts">
           <li><strong>Runs on your Mac.</strong> Nothing is uploaded, and no download passes through our servers.</li>
           <li><strong>Never sees your passwords.</strong> Signed-in platforms use the session already in your browser.</li>
-          <li><strong>Honest about DRM.</strong> Protected videos get a clear message. The app never tries to break protection.</li>
+          <li><strong>Stops at DRM.</strong> If a video is copy-protected, the app tells you and stops. It never tries to get around it.</li>
+          <li><strong>Built on open source.</strong> <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a> and <a href="https://ffmpeg.org">FFmpeg</a> do the heavy lifting, with full credit in the app.</li>
         </ul>
       </div>
     </section>
 
-    <!-- Download -->
+    <!-- Download + install guide -->
     <section id="download" class="download">
       <div class="wrap download-inner">
-        <img src="/icon.svg" alt="" width="72" height="72" class="download-icon" />
-        <h2>Download Super Downloads</h2>
-        <p class="download-sub">Free for a limited time, with unlimited downloads. Activate once with your email in the app.</p>
+        <img src="/icon.svg" alt="" width="64" height="64" class="download-icon" />
+        <h2>Get Super Downloads for Mac</h2>
+        <p class="download-sub">Free for a limited time. Unlimited downloads, every feature. Enter your email once in the app to activate.</p>
         <div class="download-buttons">
-          <a href={DMG_ARM} class="btn btn-blue btn-dl">
-            <span>Apple Silicon</span><small>M1, M2, M3, M4 and later</small>
+          <a href={DMG_ARM} class="btn btn-blue btn-dl js-dmg" data-arch="arm" data-place="download">
+            <span>Apple Silicon</span><small>M1 or later · {release.arm} MB</small>
           </a>
-          <a href={DMG_INTEL} class="btn btn-ghost btn-dl">
-            <span>Intel</span><small>2012–2020 Macs</small>
+          <a href={DMG_INTEL} class="btn btn-ghost btn-dl js-dmg" data-arch="intel" data-place="download">
+            <span>Intel</span><small>Macs with an Intel chip · {release.intel} MB</small>
           </a>
         </div>
-        <p class="install-note">Open the .dmg and drag Super Downloads to Applications. The app isn’t notarized by Apple yet, so macOS may block the first launch — <a href="#faq-macos">here’s how to open it</a>. It takes ten seconds.</p>
+        <p class="download-help">Not sure which? Apple menu › About This Mac shows your chip.</p>
+        <p class="download-meta">Version {release.version} · <a href={`${REPO}/releases`}>Release notes</a> · <a href={REPO}>Source on GitHub</a></p>
+
+        <div class="install" id="install">
+          <p class="install-started" id="install-started" role="status" hidden>Your download has started. Three steps and you’re in.</p>
+          <h3>Install in three steps</h3>
+          <ol class="install-steps">
+            <li><strong>Open the .dmg</strong> and drag Super Downloads into Applications.</li>
+            <li><strong>Open the app.</strong> macOS says it can’t verify it, because Apple notarization is still in progress. Click <strong>Done</strong>.</li>
+            <li><strong>Open System Settings › Privacy &amp; Security</strong>, scroll down and click <strong>Open Anyway</strong>. From then on it opens like any other app.</li>
+          </ol>
+          <div class="install-fallback">
+            <p>On macOS 14 or earlier, right-click the app and choose <strong>Open</strong> instead. If macOS says the app is “damaged”, paste this into Terminal:</p>
+            <div class="codebox">
+              <code id="xattr-cmd">{XATTR}</code>
+              <button type="button" class="copy-btn" data-copy="xattr-cmd">Copy</button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 
     <!-- FAQ -->
     <section id="faq" class="section faq">
       <div class="wrap faq-inner">
-        <h2>Questions</h2>
+        <h2>Common questions</h2>
         <div class="faq-list">
           {faqs.map((f) => (
-            <details>
+            <details id={f.id}>
               <summary>{f.q}</summary>
-              <p>{f.a}</p>
+              <p set:html={f.html ?? f.a} />
             </details>
           ))}
-          <details id="faq-macos">
-            <summary>macOS says the app can’t be opened or is damaged</summary>
-            <p>The app isn’t notarized by Apple yet (independent build), so Gatekeeper blocks the first launch. It’s safe to open. On macOS 15 or later: open System Settings, go to Privacy &amp; Security, scroll down and click <strong>Open Anyway</strong>. On older versions, right-click the app, choose Open, then click Open again.</p>
-            <p>If macOS says the app is “damaged”, open Terminal and run:<br /><code>xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"</code></p>
-          </details>
         </div>
       </div>
     </section>
@@ -261,26 +338,102 @@ const faqs = [
   <footer class="footer">
     <div class="wrap footer-inner">
       <a class="brand" href="/"><img src="/icon.svg" alt="" width="20" height="20" /><span>Super Downloads</span></a>
-      <nav class="footer-links" aria-label="Legal">
+      <nav class="footer-links" aria-label="Footer">
+        <a href={`${REPO}/releases`}>Release notes</a>
+        <a href={REPO}>GitHub</a>
         <a href="mailto:support@superdownloads.app">Support</a>
         <a href="/terms">Terms</a>
         <a href="/privacy">Privacy</a>
         <a href="/copyright">Copyright</a>
       </nav>
-      <p class="footer-fine">Super Downloads does not host, store, or distribute any copyrighted content. Download only content you own or are authorized to download.</p>
+      <p class="footer-fine">Made by <a href="https://mariomonteiro.tv">Mario Monteiro</a>. Super Downloads does not host, store, or distribute any copyrighted content. Download only content you own, have licensed, that’s shared under Creative Commons, or that you’re otherwise authorized to use.</p>
       <p class="footer-fine">Screenshots show Blender Studio open movies (Spring, WING IT!, Coffee Run, CHARGE, Sprite Fright, Agent 327, HERO, Cosmos Laundromat), licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> by the Blender Foundation.</p>
       <p class="footer-fine">© 2026 Super Downloads</p>
     </div>
   </footer>
 
-  <script is:inline>
-    // Open the macOS FAQ item when linked from the install note.
-    function openFaqFromHash() {
-      var el = location.hash && document.querySelector(location.hash);
-      if (el && el.tagName === 'DETAILS') el.open = true;
-    }
-    window.addEventListener('hashchange', openFaqFromHash);
-    openFaqFromHash();
+  <script is:inline define:vars={{ DMG_ARM, DMG_INTEL }}>
+    (function () {
+      var track = function (event, props) {
+        try { window.posthog && window.posthog.capture(event, props); } catch (e) {}
+      };
+
+      // Open an FAQ item when linked by hash (e.g. #faq-macos).
+      function openFaqFromHash() {
+        var el = location.hash && document.querySelector(location.hash);
+        if (el && el.tagName === 'DETAILS') el.open = true;
+      }
+      window.addEventListener('hashchange', openFaqFromHash);
+      openFaqFromHash();
+      var macFaq = document.getElementById('faq-macos');
+      if (macFaq) macFaq.addEventListener('toggle', function () { if (macFaq.open) track('install_help_opened', { place: 'faq' }); });
+
+      // Mac or not: phones and PCs can't install a Mac app, so offer to send the page instead.
+      var ua = navigator.userAgent;
+      var isTouchMac = /Macintosh/.test(ua) && navigator.maxTouchPoints > 1; // iPadOS reports a Mac UA
+      var isMac = /Macintosh/.test(ua) && !isTouchMac; // iPhone UAs say "like Mac OS X"
+      var heroDl = document.getElementById('hero-dl');
+      if (!isMac) {
+        heroDl.hidden = true;
+        document.querySelector('.hero-meta').hidden = true;
+        document.getElementById('mobile-note').hidden = false;
+      }
+      document.getElementById('share-link').addEventListener('click', function () {
+        var url = 'https://superdownloads.app';
+        if (navigator.share) {
+          navigator.share({ title: 'Super Downloads', text: 'The video downloader built for editors (Mac).', url: url }).catch(function () {});
+        } else if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(function () {
+            document.getElementById('share-link').textContent = 'Link copied. Open it on your Mac.';
+          });
+        }
+      });
+
+      // Chip detection for the hero button. Chromium reports the architecture;
+      // elsewhere the WebGL renderer sometimes names it. Unknown → Apple Silicon.
+      function setIntel() {
+        heroDl.href = DMG_INTEL;
+        heroDl.dataset.arch = 'intel';
+        document.getElementById('hero-arch').textContent = 'Intel';
+        var other = document.getElementById('hero-other');
+        other.textContent = 'Apple Silicon?';
+      }
+      if (isMac) {
+        var uad = navigator.userAgentData;
+        if (uad && uad.getHighEntropyValues) {
+          uad.getHighEntropyValues(['architecture']).then(function (v) { if (v.architecture === 'x86') setIntel(); }).catch(function () {});
+        } else {
+          try {
+            var gl = document.createElement('canvas').getContext('webgl');
+            var ext = gl && gl.getExtension('WEBGL_debug_renderer_info');
+            var renderer = ext ? String(gl.getParameter(ext.UNMASKED_RENDERER_WEBGL)) : '';
+            if (/Intel|AMD|Radeon|NVIDIA/i.test(renderer)) setIntel();
+          } catch (e) {}
+        }
+      }
+
+      // After a DMG click the file downloads in place: point straight at the install steps.
+      document.querySelectorAll('.js-dmg').forEach(function (a) {
+        a.addEventListener('click', function () {
+          track('dmg_click', { arch: a.dataset.arch, place: a.dataset.place });
+          document.getElementById('install-started').hidden = false;
+          setTimeout(function () {
+            document.getElementById('install').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
+          }, 150);
+        });
+      });
+
+      document.querySelectorAll('.copy-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var text = document.getElementById(btn.dataset.copy).textContent;
+          navigator.clipboard && navigator.clipboard.writeText(text).then(function () {
+            btn.textContent = 'Copied';
+            track('install_help_opened', { place: 'xattr_copy' });
+            setTimeout(function () { btn.textContent = 'Copy'; }, 2000);
+          });
+        });
+      });
+    })();
   </script>
 </Layout>
 
@@ -290,45 +443,48 @@ const faqs = [
   /* Nav */
   .nav {
     position: sticky; top: 0; z-index: 50;
-    background: rgba(10, 22, 63, 0.96);
-    backdrop-filter: saturate(1.4) blur(14px);
-    -webkit-backdrop-filter: saturate(1.4) blur(14px);
+    background: rgba(10, 22, 63, 0.84);
+    backdrop-filter: saturate(1.5) blur(20px);
+    -webkit-backdrop-filter: saturate(1.5) blur(20px);
     border-bottom: 1px solid rgba(213, 235, 255, 0.08);
   }
   .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
   .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; font-size: 15px; letter-spacing: -0.01em; color: inherit; }
   .brand img { border-radius: 6px; }
   .nav .brand { color: var(--white); }
-  .nav-links { display: flex; align-items: center; gap: 28px; font-size: 14px; }
-  .nav-links a:not(.btn) { color: var(--blue-50); opacity: 0.75; }
-  .nav-links a:not(.btn):hover { opacity: 1; }
+  .nav-links { display: flex; align-items: center; gap: 28px; font-size: 15px; }
+  .nav-links a:not(.btn) { color: var(--blue-50); opacity: 0.78; }
+  .nav-links a:not(.btn):hover { opacity: 1; text-decoration: none; }
 
   /* Buttons: navy text on bright blue keeps contrast high */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    font-weight: 600; border-radius: 10px; transition: background-color .15s ease, transform .15s ease;
+    font-weight: 600; border-radius: 10px; transition: background-color .15s ease;
   }
+  .btn:hover { text-decoration: none; }
   .btn-blue { background: var(--blue); color: var(--navy-950); }
   .btn-blue:hover { background: var(--blue-200); }
-  .btn-ghost { background: transparent; color: var(--white); box-shadow: inset 0 0 0 1px rgba(213, 235, 255, 0.28); }
+  .btn-ghost { background: transparent; color: var(--white); box-shadow: inset 0 0 0 1px rgba(213, 235, 255, 0.32); }
   .btn-ghost:hover { background: rgba(213, 235, 255, 0.08); }
-  .btn-sm { font-size: 13px; padding: 7px 14px; border-radius: 8px; }
-  .btn-lg { font-size: 16px; padding: 14px 26px; }
+  .btn-sm { font-size: 13px; padding: 8px 14px; border-radius: 8px; }
+  .btn-lg { font-size: 17px; padding: 15px 28px; }
 
   /* Hero */
-  .hero { background: var(--navy-950); color: var(--white); padding: 72px 0 0; overflow: hidden; }
-  .hero-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 56px; align-items: center; }
-  .pill {
-    display: inline-block; font-size: 13px; font-weight: 500; color: var(--blue-200);
-    border: 1px solid rgba(140, 208, 255, 0.3); border-radius: 999px; padding: 4px 12px; margin-bottom: 24px;
-  }
+  .hero { background: var(--navy-950); color: var(--white); padding-top: 80px; overflow: hidden; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 56px; align-items: center; }
   .hero h1 {
-    font-size: clamp(40px, 6vw, 68px); line-height: 1.02; letter-spacing: -0.035em; font-weight: 700;
+    font-size: clamp(40px, 5.2vw, 64px); line-height: 1.02; letter-spacing: -0.04em; font-weight: 600;
     margin-bottom: 24px; text-wrap: balance;
   }
-  .lede { font-size: 19px; line-height: 1.55; color: var(--blue-50); opacity: 0.82; max-width: 34em; margin-bottom: 36px; }
+  .lede { font-size: 19px; line-height: 1.55; color: var(--blue-50); opacity: 0.84; max-width: 32em; margin-bottom: 36px; }
   .hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-  .hero-meta { font-size: 13px; line-height: 1.45; color: var(--blue-50); opacity: 0.6; }
+  .hero-meta { display: flex; flex-direction: column; gap: 3px; font-size: 13px; line-height: 1.45; color: rgba(213, 235, 255, 0.72); }
+  .hero-meta a { color: var(--blue-200); }
+  .mobile-note { font-size: 15px; line-height: 1.5; color: rgba(213, 235, 255, 0.82); }
+  .link-btn {
+    display: block; margin-top: 12px; font: inherit; font-weight: 600; cursor: pointer;
+    background: var(--blue); color: var(--navy-950); border: 0; border-radius: 10px; padding: 13px 20px;
+  }
 
   /* macOS window frame around real screenshots */
   .window { border-radius: 12px; overflow: hidden; margin: 0; }
@@ -337,97 +493,141 @@ const faqs = [
   .titlebar i { width: 12px; height: 12px; border-radius: 50%; background: #ff5f57; }
   .titlebar i:nth-child(2) { background: #febc2e; }
   .titlebar i:nth-child(3) { background: #28c840; }
-  .titlebar span { position: absolute; left: 0; right: 0; text-align: center; font-size: 12.5px; font-weight: 600; pointer-events: none; }
+  .titlebar span { position: absolute; left: 0; right: 0; text-align: center; font-size: 13px; font-weight: 600; pointer-events: none; }
   .window-dark { background: #1c1c1e; box-shadow: 0 0 0 1px rgba(255,255,255,.1), 0 30px 80px -20px rgba(0, 0, 0, .55); }
   .window-dark .titlebar { background: #2a2a2c; border-bottom: 1px solid #000; }
   .window-dark .titlebar span { color: #a1a1a6; }
-  .window-light { background: #fff; box-shadow: 0 0 0 1px rgba(15,23,42,.1), 0 30px 70px -24px rgba(10, 22, 63, .35); }
+  .window-light { background: #fff; }
   .window-light .titlebar { background: #ececec; border-bottom: 1px solid #d4d4d4; }
   .window-light .titlebar span { color: #4b4b4f; }
+  /* On light sections, shadows are tinted navy instead of grey */
+  .window-light, .window-dark.on-light {
+    box-shadow: 0 0 0 1px rgba(10,22,63,.12), 0 2px 6px rgba(10,22,63,.08), 0 24px 48px -16px rgba(10,22,63,.28);
+  }
   .hero-window { box-shadow: 0 0 0 1px rgba(213,235,255,.14), 0 40px 120px -30px rgba(48, 167, 255, .35), 0 30px 60px -30px rgba(0,0,0,.8); }
 
-  /* Timeline: where downloaded clips end up */
+  /* Timeline: an editor's panel under the window, where the downloads land */
+  .timeline-panel { margin-top: 64px; background: #0d1b4f; border-top: 1px solid rgba(213, 235, 255, 0.1); }
   .timeline {
-    position: relative; margin-top: 64px; padding: 0 0 28px;
-    font-size: 11px; color: rgba(213, 235, 255, 0.55); font-variant-numeric: tabular-nums;
+    position: relative; padding: 22px 0 40px;
+    font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px; color: rgba(213, 235, 255, 0.62); font-variant-numeric: tabular-nums;
   }
   .ruler {
     display: flex; justify-content: space-between; margin-left: 40px; padding-bottom: 8px;
     border-bottom: 1px solid rgba(213, 235, 255, 0.14);
-    background: repeating-linear-gradient(90deg, rgba(213,235,255,.18) 0 1px, transparent 1px 20px) bottom / 100% 6px no-repeat;
+    background: repeating-linear-gradient(90deg, rgba(213,235,255,.2) 0 1px, transparent 1px 20px) bottom / 100% 6px no-repeat;
   }
   .track { display: flex; align-items: stretch; gap: 8px; margin-top: 8px; }
-  .track-name { width: 32px; flex: none; display: grid; place-items: center; font-weight: 600; color: rgba(213,235,255,.5); border-radius: 6px; background: rgba(213,235,255,.05); }
-  .clips { display: flex; gap: 3px; flex: 1; min-width: 0; padding-right: 18%; }
+  .track-name { width: 32px; flex: none; display: grid; place-items: center; font-weight: 500; color: rgba(213,235,255,.7); border-radius: 6px; background: rgba(213,235,255,.06); }
+  .clips { display: flex; gap: 3px; flex: 1; min-width: 0; padding-right: 14%; }
   .clip {
     flex-basis: 0; min-width: 0; height: 52px; display: flex; align-items: center; gap: 8px;
-    background: #1f3a8a; border: 1px solid rgba(140, 208, 255, 0.35); border-radius: 6px; overflow: hidden;
-    color: var(--blue-50);
+    background: var(--navy-800); border: 1px solid rgba(140, 208, 255, 0.55); border-radius: 6px; overflow: hidden;
+    color: var(--blue-50); font-size: 11.5px;
   }
-  .clip img { height: 100%; width: auto; aspect-ratio: 16 / 9; object-fit: cover; flex: none; }
-  .clip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+  .clip img { height: 100%; width: 64px; object-fit: cover; flex: none; }
+  .clip span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; font-family: "Geist Variable", sans-serif; font-size: 12px; }
+  /* Still downloading: dashed, filled to its progress */
+  .clip-arriving {
+    border-style: dashed; border-color: rgba(140, 208, 255, 0.6);
+    background: linear-gradient(90deg, rgba(48,167,255,.32) var(--pct), rgba(22,43,115,.35) var(--pct));
+  }
+  .clip-arriving img { opacity: .55; }
   .clip-audio {
-    height: 30px; background-color: #123a52; border-color: rgba(48, 167, 255, 0.3);
+    height: 30px; background-color: rgba(48, 167, 255, 0.12); border-color: rgba(48, 167, 255, 0.35);
     background-repeat: repeat-x;
   }
+  .clip-audio-arriving {
+    border-style: dashed; background: linear-gradient(90deg, rgba(48,167,255,.18) var(--pct), transparent var(--pct));
+  }
+  /* Full track width, so translateX(%) is relative to the track */
   .playhead {
-    position: absolute; top: 0; bottom: 10px; left: calc(40px + 0.62 * (100% - 40px));
-    width: 2px; background: var(--blue); box-shadow: 0 0 12px rgba(48,167,255,.7);
+    position: absolute; top: 22px; bottom: 30px; left: 40px; right: 0; pointer-events: none;
     animation: scrub 1.6s cubic-bezier(.2,.7,.2,1) .3s both;
   }
-  .playhead span {
-    position: absolute; top: -4px; left: 50%; transform: translateX(-50%); white-space: nowrap;
-    background: var(--blue); color: var(--navy-950); font-weight: 600; padding: 2px 6px; border-radius: 4px;
+  .playhead::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 40%; width: 2px;
+    background: var(--blue); box-shadow: 0 0 12px rgba(48,167,255,.7);
   }
-  @keyframes scrub { from { left: 40px; opacity: 0; } 20% { opacity: 1; } }
+  .playhead span {
+    left: 40%;
+    position: absolute; top: -4px; transform: translateX(-50%); white-space: nowrap;
+    background: var(--blue); color: var(--navy-950); font-weight: 500; padding: 2px 6px; border-radius: 4px;
+  }
+  @keyframes scrub { from { transform: translateX(-40%); opacity: 0; } 20% { opacity: 1; } }
   @media (prefers-reduced-motion: reduce) { .playhead { animation: none; } }
 
   /* Sections */
-  .section { padding: 112px 0; }
-  .section h2 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.08; letter-spacing: -0.03em; font-weight: 700; text-wrap: balance; }
+  .section { padding: 120px 0; }
+  .section h2 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.08; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
   .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 64px; align-items: center; }
 
-  .steps { list-style: none; counter-reset: step; margin-top: 36px; display: grid; gap: 22px; }
-  .steps li { counter-increment: step; position: relative; padding-left: 52px; font-size: 17px; line-height: 1.55; color: var(--slate); max-width: 30em; }
-  .steps li::before {
-    content: counter(step); position: absolute; left: 0; top: -2px; width: 34px; height: 34px; border-radius: 50%;
-    display: grid; place-items: center; font-weight: 600; font-size: 15px; color: var(--navy-800); background: var(--blue-50);
+  /* Keycaps (steps and inline shortcuts) */
+  kbd {
+    font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; font-weight: 500; color: var(--ink);
+    background: var(--white); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; margin: 0 2px;
+  }
+  .steps { list-style: none; margin-top: 36px; display: grid; gap: 24px; }
+  .steps li { display: grid; grid-template-columns: 52px 1fr; gap: 16px; align-items: start; font-size: 17px; line-height: 1.55; color: var(--slate); max-width: 31em; }
+  .steps .key {
+    display: grid; place-items: center; height: 36px; margin: -3px 0 0; padding: 0; font-size: 15px;
+    color: var(--navy-800); background: var(--mist); border-color: #cfd8e6;
   }
   .steps strong { color: var(--ink); font-weight: 600; }
+  .aside { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 15px; color: var(--slate); max-width: 31em; }
 
   .features { background: var(--mist); }
   .row { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 64px; align-items: center; }
-  .row + .row { margin-top: 120px; }
+  .row + .row { margin-top: 128px; }
+  .row-flip { grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); }
   .row-flip .row-copy { order: 2; }
   .row-copy p { font-size: 17px; line-height: 1.6; color: var(--slate); margin-top: 18px; max-width: 30em; }
   .specs { margin-top: 28px; border-top: 1px solid var(--line); max-width: 30em; }
-  .specs div { display: grid; grid-template-columns: 96px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; }
+  .specs div { display: grid; grid-template-columns: 104px 1fr; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-size: 15px; line-height: 1.5; }
   .specs dt { font-weight: 600; color: var(--ink); }
   .specs dd { color: var(--slate); }
-  kbd {
-    font-family: inherit; font-size: 14px; font-weight: 600; color: var(--ink);
-    background: var(--white); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 6px; padding: 1px 7px; margin: 0 2px;
-  }
+  .specs kbd { font-size: 12px; }
 
-  .platform-groups { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; margin-top: 48px; padding-bottom: 56px; border-bottom: 1px solid var(--line); }
-  .platform-groups h3 { font-size: 14px; font-weight: 500; color: var(--slate); margin-bottom: 14px; }
-  .platform-list { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 28px; }
-  .platform-list li { font-size: clamp(24px, 2.6vw, 32px); font-weight: 600; letter-spacing: -0.02em; color: var(--ink); }
-  .facts { list-style: none; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-top: 48px; }
+  .section-lede { margin-top: 14px; font-size: 17px; color: var(--slate); }
+  .platform-groups { display: grid; grid-template-columns: 3fr 4fr; gap: 48px; margin-top: 48px; padding-bottom: 56px; border-bottom: 1px solid var(--line); }
+  .platform-groups h3 { font-size: 15px; font-weight: 500; color: var(--slate); margin-bottom: 14px; }
+  .platform-list { list-style: none; display: flex; flex-wrap: wrap; gap: 6px 22px; }
+  .platform-list li { font-size: clamp(22px, 2.2vw, 28px); font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
+  .platform-note { margin-top: 14px; font-size: 15px; line-height: 1.55; color: var(--slate); max-width: 30em; }
+  .facts { list-style: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 36px; margin-top: 48px; }
   .facts li { font-size: 15px; line-height: 1.6; color: var(--slate); }
-  .facts strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 4px; font-size: 16px; }
+  .facts strong { display: block; color: var(--ink); font-weight: 600; margin-bottom: 4px; font-size: 17px; }
 
   /* Download */
-  .download { background: var(--navy-950); color: var(--white); padding: 112px 0; text-align: center; }
-  .download-inner { display: flex; flex-direction: column; align-items: center; }
-  .download-icon { border-radius: 16px; margin-bottom: 28px; filter: drop-shadow(0 18px 40px rgba(48,167,255,.35)); }
-  .download h2 { font-size: clamp(30px, 3.6vw, 44px); letter-spacing: -0.03em; font-weight: 700; line-height: 1.1; }
-  .download-sub { margin-top: 14px; font-size: 17px; color: var(--blue-50); opacity: .8; max-width: 32em; }
+  .download { background: var(--navy-950); color: var(--white); padding: 120px 0; }
+  .download-inner { display: flex; flex-direction: column; align-items: center; text-align: center; }
+  .download-icon { border-radius: 14px; margin-bottom: 28px; box-shadow: 0 0 0 1px rgba(213,235,255,.14); }
+  .download h2 { font-size: clamp(30px, 3.6vw, 44px); letter-spacing: -0.035em; font-weight: 600; line-height: 1.1; }
+  .download-sub { margin-top: 14px; font-size: 17px; line-height: 1.55; color: rgba(213, 235, 255, 0.84); max-width: 32em; }
   .download-buttons { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 36px; }
-  .btn-dl { flex-direction: column; gap: 2px; min-width: 220px; padding: 16px 28px; font-size: 16px; }
-  .btn-dl small { font-size: 12.5px; font-weight: 500; opacity: .7; }
-  .install-note { margin-top: 28px; font-size: 14px; line-height: 1.6; color: var(--blue-50); opacity: .7; max-width: 36em; }
-  .install-note a { color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
+  .btn-dl { flex-direction: column; gap: 2px; min-width: 240px; padding: 16px 28px; font-size: 17px; }
+  .btn-dl small { font-size: 13px; font-weight: 500; opacity: .78; }
+  .btn-blue.btn-dl small { opacity: 1; color: var(--navy-800); }
+  .download-help { margin-top: 18px; font-size: 15px; color: rgba(213, 235, 255, 0.78); }
+  .download-meta { margin-top: 6px; font-size: 13px; color: rgba(213, 235, 255, 0.72); }
+  .download-meta a, .install a { color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
+
+  .install {
+    width: 100%; max-width: 640px; margin-top: 56px; padding: 28px 32px; text-align: left;
+    background: rgba(213, 235, 255, 0.05); border: 1px solid rgba(213, 235, 255, 0.14); border-radius: 14px;
+  }
+  .install-started { margin-bottom: 16px; padding: 10px 14px; border-radius: 8px; background: rgba(48,167,255,.16); color: var(--white); font-size: 15px; font-weight: 500; }
+  .install h3 { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; }
+  .install-steps { margin: 18px 0 0 20px; display: grid; gap: 12px; font-size: 15px; line-height: 1.6; color: rgba(213, 235, 255, 0.84); }
+  .install-steps li::marker { color: var(--blue-200); font-weight: 600; }
+  .install-steps strong { color: var(--white); font-weight: 600; }
+  .install-fallback { margin-top: 20px; padding-top: 18px; border-top: 1px solid rgba(213, 235, 255, 0.12); font-size: 13px; line-height: 1.6; color: rgba(213, 235, 255, 0.76); }
+  .install-fallback strong { color: var(--white); }
+  .codebox { display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px 8px 8px 12px; background: rgba(0, 0, 0, 0.28); border-radius: 8px; }
+  .codebox code { flex: 1; min-width: 0; font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; color: var(--blue-50); overflow-x: auto; white-space: nowrap; }
+  .copy-btn { flex: none; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--navy-950); background: var(--blue-200); border: 0; border-radius: 6px; padding: 6px 12px; min-height: 32px; }
+  .copy-btn:hover { background: var(--blue-50); }
 
   /* FAQ */
   .faq-inner { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 7fr); gap: 64px; align-items: start; }
@@ -443,35 +643,47 @@ const faqs = [
     border-right: 2px solid var(--slate); border-bottom: 2px solid var(--slate); transform: rotate(45deg); transition: transform .2s ease;
   }
   .faq-list details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
-  .faq-list details p { padding: 0 0 20px; font-size: 15.5px; line-height: 1.65; color: var(--slate); max-width: 40em; }
-  .faq-list code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: var(--mist); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; word-break: break-all; }
+  .faq-list details p { padding: 0 0 20px; font-size: 15px; line-height: 1.65; color: var(--slate); max-width: 40em; }
+  .faq-list code { font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: var(--mist); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; word-break: break-all; }
 
   /* Footer */
   .footer { border-top: 1px solid var(--line); padding: 40px 0 48px; }
   .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
-  .footer-links { display: flex; gap: 24px; font-size: 14px; }
-  .footer-links a { color: var(--slate); }
-  .footer-fine { width: 100%; font-size: 12.5px; line-height: 1.6; color: #64748b; }
+  .footer-links { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 15px; }
+  .footer-links a { color: var(--slate); display: inline-flex; align-items: center; min-height: 32px; }
+  .footer-fine { width: 100%; font-size: 13px; line-height: 1.6; color: #5b6b80; }
   .footer-fine a { color: inherit; text-decoration: underline; }
 
   /* Responsive */
+  @media (max-width: 1100px) and (min-width: 901px) {
+    .hero-grid { grid-template-columns: 1fr 1fr; gap: 40px; }
+    .hero h1 { font-size: clamp(40px, 5vw, 56px); }
+  }
+  @media (max-width: 1024px) {
+    .facts { grid-template-columns: repeat(2, 1fr); }
+  }
   @media (max-width: 900px) {
-    .hero { padding-top: 48px; }
-    .hero-grid, .split, .row, .faq-inner { grid-template-columns: 1fr; gap: 40px; }
+    .hero { padding-top: 56px; }
+    .hero-grid, .split, .row, .row-flip, .faq-inner { grid-template-columns: 1fr; gap: 40px; }
     .row-flip .row-copy { order: 0; }
-    .row + .row { margin-top: 88px; }
-    .section { padding: 80px 0; }
-    .facts { grid-template-columns: 1fr; gap: 24px; }
-    .timeline { margin-top: 48px; }
+    .row + .row { margin-top: 96px; }
+    .section, .download { padding: 88px 0; }
+    .timeline-panel { margin-top: 48px; }
     .clips { padding-right: 0; }
-    .clip span { display: none; }
+    .hero-window, .split .window, .row .window { max-width: 600px; width: 100%; justify-self: center; }
+    .platform-groups { grid-template-columns: 1fr; gap: 28px; }
   }
   @media (max-width: 640px) {
     .wrap { padding: 0 16px; }
     .nav-links a:not(.btn) { display: none; }
-    .platform-groups { grid-template-columns: 1fr; gap: 28px; }
-    .ruler span:not(:first-child):not(:last-child) { visibility: hidden; }
+    .hero-actions { flex-direction: column; align-items: stretch; }
+    .hero-actions .btn-lg { width: 100%; }
+    .ruler span:not(:first-child):not(:last-child) { display: none; }
+    .clip span { display: none; }
     .lede { font-size: 17px; }
+    .facts { grid-template-columns: 1fr; gap: 24px; }
     .btn-dl { width: 100%; }
+    .install { padding: 22px 18px; }
+    .link-btn { width: 100%; }
   }
 </style>

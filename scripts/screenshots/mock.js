@@ -29,8 +29,6 @@
         duration: "7:44", size: "301.4 MB", format: "MP4", resolution: "1080p", fps: "24fps" }),
       done({ id: "d4", url: "https://youtu.be/u9lj-c29dxI", title: "WING IT! — Blender Open Movie", thumbnail: t("u9lj-c29dxI"),
         duration: "3:58", size: "162.9 MB", format: "MP4", resolution: "1080p", fps: "24fps" }),
-      done({ id: "d5", url: "https://youtu.be/PVGeM40dABA", title: "Coffee Run — Blender Open Movie", thumbnail: t("PVGeM40dABA"),
-        duration: "3:05", size: "118.2 MB", format: "MP4", resolution: "1080p", fps: "24fps" }),
     ],
     batch: [
       { ...base, id: "b1", url: "https://youtu.be/mN0zPOpADL4", title: "Agent 327: Operation Barbershop", thumbnail: t("mN0zPOpADL4"),
@@ -41,6 +39,8 @@
         progress: 82, speed: "21.88MiB/s", eta: "ETA 0:04", status: "downloading", duration: "12:11", size: "533.0 MB", format: "MP4", resolution: "1080p", fps: "24fps" },
     ],
   };
+  // Proof of the edit-ready claim: one row converting, one finished MP4.
+  lists.convert = [lists.list[1], lists.list[2]];
   lists.settings = lists.list;
   lists.menu = lists.list;
   const history = lists[scene] || [];

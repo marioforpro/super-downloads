@@ -22,12 +22,22 @@ const STAGE = fs.mkdtempSync(path.join(os.tmpdir(), "sd-shots-"));
 const THUMBS = ["_cMxraX_5RE", "UXqq0ZvbOnk", "WhWc3b3KhnY", "PVGeM40dABA", "u9lj-c29dxI", "Y-rmzh0PI3c", "mN0zPOpADL4", "pKmSdY56VtY"];
 
 // Scenes used on the landing; `act` drives the UI before the capture.
+// `fit` returns the y (CSS px) where the window should end, so crops land on a
+// row boundary instead of cutting through one.
+const rowEnd = (n, pad = 10) => (pg) =>
+  pg.evaluate(([n, pad]) => {
+    const rows = document.querySelectorAll(".download-item");
+    const r = rows[Math.min(n, rows.length) - 1].getBoundingClientRect();
+    return Math.ceil(r.bottom + pad);
+  }, [n, pad]);
 const SCENES = [
-  { scene: "list", theme: "dark", h: 400 },
-  { scene: "list", theme: "light", h: 400 },
-  { scene: "empty", theme: "dark", h: 320, clip: "https://youtu.be/WhWc3b3KhnY" },
-  { scene: "batch", theme: "dark", h: 400, act: (pg) => pg.click("#batch-toggle") },
-  { scene: "settings", theme: "light", h: 420, act: (pg) => pg.click("#settings-toggle") },
+  { scene: "list", theme: "dark", h: 520, fit: rowEnd(4) },
+  { scene: "convert", theme: "light", h: 400, fit: rowEnd(2) },
+  { scene: "empty", theme: "dark", h: 250, clip: "https://youtu.be/WhWc3b3KhnY" },
+  { scene: "batch", theme: "dark", h: 420, act: (pg) => pg.click("#batch-toggle"),
+    fit: async (pg) => (await rowEnd(3, 0)(pg)) + 60 },
+  { scene: "settings", theme: "light", h: 520, act: (pg) => pg.click("#settings-toggle"),
+    fit: (pg) => pg.evaluate(() => Math.ceil(document.querySelector("#engine-section").closest(".settings-group").getBoundingClientRect().bottom + 18)) },
   { scene: "menu", theme: "dark", h: 420, act: (pg) => pg.click('.download-item-menu-btn[data-download-id="d3"]') },
   { scene: "onboarding", theme: "light", h: 640 },
 ];
@@ -70,9 +80,15 @@ const server = http.createServer((req, res) => {
     await pg.goto(`http://localhost:${port}/index.html?theme=${s.theme}&scene=${s.scene}${clip}`);
     await pg.waitForTimeout(900);
     if (s.act) { await s.act(pg); await pg.waitForTimeout(700); }
+    if (s.fit) {
+      await pg.setViewportSize({ width: 560, height: await s.fit(pg) });
+      await pg.waitForTimeout(300);
+    }
     const png = path.join(STAGE, `${s.scene}-${s.theme}.png`);
     await pg.screenshot({ path: png });
     execFileSync("cwebp", ["-quiet", "-q", "88", png, "-o", path.join(OUT, `${s.scene}-${s.theme}.webp`)]);
+    // 1× variant for srcset (the landing shows windows at ≤ 600 CSS px).
+    execFileSync("cwebp", ["-quiet", "-q", "86", "-resize", "560", "0", png, "-o", path.join(OUT, `${s.scene}-${s.theme}-560.webp`)]);
     console.log("✓", `${s.scene}-${s.theme}.webp`);
     await ctx.close();
   }
