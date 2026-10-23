@@ -2,7 +2,7 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
-> **NEXT (2026-10-23):** v1.5.2 publicada + landing pulida tras revisión de 4 expertos (en producción). Primer paso founder: actualizar la app instalada con el banner «Update» y pegar `superdownloads.app` en WhatsApp/X para ver la preview. Decisiones abiertas: qué pasa al acabar «Free for a limited time» (el FAQ calla a propósito) · frase «Made by Mario Monteiro» · firma/notarización (R-SD-009). Siguiente build: «Report a problem» en la app (R-SD-008).
+> **NEXT (2026-10-23):** v1.5.3 lista en `main` (commit + push hechos): «Report a problem» + pantalla de bienvenida rediseñada; E2E 9/9. Falta publicarla — un comando del founder (abajo, paso 4). Después: probar ⋯ › Report una vez en la app instalada. Decisiones abiertas: qué pasa al acabar «Free for a limited time» · frase «Made by Mario Monteiro» · firma/notarización (R-SD-009).
 
 ## Dónde estamos (2026-10-23)
 
@@ -16,7 +16,7 @@
 1. ~~Desplegar la landing~~ — **en producción 2026-10-23**. Pendiente: pegar `superdownloads.app` en WhatsApp/X para ver la preview.
 2. ~~v1.5.2 de mantenimiento~~ — **publicada 2026-10-23** (E2E 9/9). Pendiente founder: actualizar la app instalada con el banner «Update». E2E antes: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`. Release: `load-secrets && ./scripts/make-release.sh`.
 3. ~~Motor que se actualiza solo~~ — **ya existía** desde v1.2.0 (refresco semanal en segundo plano). Lo que faltaba era verificar el checksum: hecho, va en la v1.5.2 (R-SD-007).
-4. **«Report a problem» dentro de la app** (R-SD-008) — que los amigos puedan reportar con un clic, con versión y error incluidos.
+4. **v1.5.3 = «Report a problem» + bienvenida nueva** (R-SD-008) — código, tests (WebKit 30/30, `npm run check`, E2E 9/9), commit y push hechos. **Publicar:** `! load-secrets && ./scripts/make-release.sh --publish` (el modo automático no me deja publicar releases). Luego: actualizar la app con el banner y probar ⋯ › Report en una fila fallida.
 5. **Decidir firma + notarización de Apple** (R-SD-009): el disparador acordado (>100 descargas) ya se cumplió. 99 USD/año.
 
 ## Regenerar screenshots de la landing

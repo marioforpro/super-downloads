@@ -3004,6 +3004,26 @@ fn activation_os_version() -> String {
         .unwrap_or_else(|| "unknown".to_string())
 }
 
+#[derive(serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+struct SystemInfo {
+    os_version: String,
+    arch: &'static str,
+}
+
+// macOS version + CPU for the in-app problem report. The webview's user agent
+// can't be used: WebKit freezes it at "Mac OS X 10_15_7".
+#[tauri::command]
+async fn get_system_info() -> SystemInfo {
+    let os_version = tauri::async_runtime::spawn_blocking(activation_os_version)
+        .await
+        .unwrap_or_else(|_| "unknown".to_string());
+    SystemInfo {
+        os_version,
+        arch: activation_arch(),
+    }
+}
+
 #[tauri::command]
 async fn register_activation(
     app: tauri::AppHandle,
@@ -3548,7 +3568,8 @@ pub fn run() {
             check_for_update,
             install_update,
             update_ytdlp,
-            get_ytdlp_version
+            get_ytdlp_version,
+            get_system_info
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

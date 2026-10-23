@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [1.5.3] — 2026-10-23
+
+Friends-testing release: reporting a problem takes one click, and the welcome screen is redesigned.
+
+### Added
+- **Report a problem** — on a failed download, ⋯ › «Report This Problem…»; any time, Settings › Help › «Report a problem». Opens an email to support already filled in with the link, the error, the engine's own error output, format, quality setting and app / engine / macOS versions. The same text is copied to the clipboard, for anyone whose Mac has no mail app set up (Gmail in the browser, WhatsApp).
+- The app now keeps the engine's original error message (last 800 characters) next to the friendly one, so reports carry the real cause.
+
+### Changed
+- **Welcome screen redesigned** — a full-window welcome instead of a card on a dimmed background: three features with icons («Copy. Switch. Enter.», «Ready for your timeline», «Seven platforms»), «Free for a limited time» as a badge, a label that says what the email is for, and a neutral disabled button (the old one looked broken). Same treatment for the standalone activation screen. Works in light and dark, and scrolls in small windows.
+
 ## [1.5.2] — 2026-10-23 (released)
 
 GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.5.2 — anonymous DMG URLs 200 (97/109 MB); updater `latest.json` serves 1.5.2 (aarch64 + x86_64); DMG verified: engine 2026.10.21 + Vimeo plugin bundled. Live E2E 9/9 before publishing.

@@ -320,11 +320,29 @@ function retryActivationSync() {
 
 function activationFieldsHtml() {
   return `
-      <input type="email" class="activation-email-input" placeholder="you@email.com" spellcheck="false" autocomplete="email" />
+      <label class="activation-email-label" for="activation-email">Enter your email to activate</label>
+      <input type="email" id="activation-email" class="activation-email-input" placeholder="you@email.com" spellcheck="false" autocomplete="email" />
       <label class="checkbox-label activation-optin">
         <input type="checkbox" class="activation-optin-checkbox" checked />
-        <span>Email me about updates and new products</span>
+        <span>Send me updates and new products</span>
       </label>`;
+}
+
+// Stroke icons for the welcome screen (16px, currentColor).
+const ONBOARDING_ICONS = {
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/>',
+  timeline: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18M8 5v5M13 14h5M6 14h4"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z"/>',
+};
+
+function onboardingFeatureHtml(icon, title, text) {
+  return `
+        <div class="onboarding-feature">
+          <span class="onboarding-feature-icon" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ONBOARDING_ICONS[icon]}</svg>
+          </span>
+          <span class="onboarding-feature-text"><strong>${title}</strong><span>${text}</span></span>
+        </div>`;
 }
 
 function showActivationCard() {
@@ -334,7 +352,8 @@ function showActivationCard() {
   overlay.innerHTML = `
     <div class="onboarding-card">
       <h2 class="onboarding-title">Activate Super Downloads</h2>
-      <p class="onboarding-tagline">Free for a limited time — unlimited downloads. Enter your email to activate.</p>
+      <p class="onboarding-tagline">The video downloader built for editors.</p>
+      <div class="onboarding-free-note">Free for a limited time · unlimited downloads</div>
       ${activationFieldsHtml()}
       <button class="onboarding-start-btn" disabled>Activate — it's free</button>
       ${isProUser() ? '<a href="#" class="activation-skip-link">Skip</a>' : ""}
@@ -373,7 +392,7 @@ function showOnboarding() {
   overlay.className = "onboarding-overlay";
   overlay.innerHTML = `
     <div class="onboarding-card">
-      <svg class="onboarding-icon" width="56" height="56" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+      <svg class="onboarding-icon" width="40" height="40" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="ob-bg" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#162b73"/>
@@ -390,12 +409,13 @@ function showOnboarding() {
       </svg>
       <h2 class="onboarding-title">Welcome to Super Downloads</h2>
       <p class="onboarding-tagline">The video downloader built for editors.</p>
+      <div class="onboarding-free-note">${FREE_MODE ? "Free for a limited time · unlimited downloads" : `${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited`}</div>
       <div class="onboarding-features">
-        <div class="onboarding-feature">Download from YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn</div>
-        <div class="onboarding-feature">Every video is Premiere Pro ready — H.264/MP4</div>
-        <div class="onboarding-feature">Copy a link and press Enter — or turn on Batch mode to grab many at once</div>
+        ${onboardingFeatureHtml("copy", "Copy. Switch. Enter.", "Copy a video link, come back and press Enter. Batch mode grabs many at once.")}
+        ${onboardingFeatureHtml("timeline", "Ready for your timeline", "H.264 MP4, straight into Premiere, Resolve or Final Cut.")}
+        ${onboardingFeatureHtml("globe", "Seven platforms", "YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn.")}
       </div>
-      <div class="onboarding-free-note">${FREE_MODE ? "Free for a limited time — unlimited downloads." : `${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited`}</div>
+      <div class="onboarding-divider" aria-hidden="true"></div>
       ${activationFieldsHtml()}
       <button class="onboarding-start-btn" disabled>Get Started</button>
       ${isProUser() ? '<a href="#" class="activation-skip-link">Skip</a>' : ""}
@@ -474,6 +494,7 @@ async function refreshEngineVersion() {
   if (!el || !window.__TAURI__?.core?.invoke) return;
   try {
     const info = await window.__TAURI__.core.invoke("get_ytdlp_version");
+    lastEngineInfo = info;
     el.textContent = info.version ? `${info.version} · ${info.source}` : "not found";
   } catch {
     el.textContent = "unknown";
@@ -501,6 +522,73 @@ function setupEngineSection() {
   });
   refreshEngineVersion();
 }
+
+// ── Problem report ──────────────────────────────────────────────────
+// Opens a prefilled email (no backend): the tester adds a line, we get the
+// link, the engine's own error and every version needed to reproduce.
+const SUPPORT_EMAIL = "support@superdownloads.app";
+const MAX_REPORT_ERROR_CHARS = 800; // yt-dlp puts the cause at the end
+let lastEngineInfo = null;
+
+async function settle(fn) {
+  try {
+    return await fn();
+  } catch {
+    return null;
+  }
+}
+
+async function collectDiagnostics() {
+  const invoke = window.__TAURI__?.core?.invoke;
+  const [appVersion, engine, system] = await Promise.all([
+    settle(() => window.__TAURI__.app.getVersion()),
+    lastEngineInfo || settle(() => invoke("get_ytdlp_version")),
+    settle(() => invoke("get_system_info")),
+  ]);
+  const settings = JSON.parse(localStorage.getItem("appSettings") || "{}");
+  return [
+    `App: ${appVersion || "unknown"}`,
+    `Engine: ${engine?.version ? `${engine.version} (${engine.source})` : "unknown"}`,
+    `macOS: ${system ? `${system.osVersion} (${system.arch})` : "unknown"}`,
+    `Quality setting: ${settings.videoQuality || "best"}`,
+  ];
+}
+
+async function openProblemReport(download = null) {
+  const lines = ["What happened? (optional)", "", "", "— Details added by the app —"];
+  let subject = "Problem report";
+  if (download) {
+    let host = "";
+    try { host = new URL(download.url).hostname.replace(/^www\./, ""); } catch {}
+    if (host) subject += ` — ${host}`;
+    lines.push(`Link: ${download.url}`);
+    if (download.error) lines.push(`Error: ${download.error}`);
+    if (download.rawError && download.rawError !== download.error) {
+      lines.push(`Engine output: ${download.rawError}`);
+    }
+    lines.push(`Format: ${download.outputFormat || "mp4"}`);
+  }
+  lines.push(...(await collectDiagnostics()));
+
+  // Also copy the report: a tester who uses webmail has no mail app set up,
+  // and the mailto link then goes nowhere without telling anyone.
+  const report = [`To: ${SUPPORT_EMAIL}`, `Subject: ${subject}`, "", ...lines].join("\n");
+  let copied = false;
+  try {
+    await navigator.clipboard.writeText(report);
+    lastHandledClipboardText = report.trim(); // never offered as a download link
+    copied = true;
+  } catch {}
+
+  await openExternal(
+    `mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(lines.join("\r\n"))}`
+  );
+  if (copied) {
+    showToast("Report copied — if no email opened, paste it into Gmail or WhatsApp", 6000);
+  }
+}
+
+document.querySelector("#report-problem-btn")?.addEventListener("click", () => openProblemReport());
 
 // Initialize
 const syncQualitySegmented = enhanceSegmented(videoQuality);
@@ -1024,7 +1112,11 @@ async function handleMenuAction(action, downloadId) {
     case "cancel":
       await cancelDownload(downloadId);
       break;
-      
+
+    case "report":
+      await openProblemReport(download);
+      break;
+
     default:
       console.warn("Unknown menu action:", action);
   }
@@ -1203,6 +1295,7 @@ function createDownloadItemHTML(download) {
             <button class="menu-item" data-action="show-in-finder" data-download-id="${download.id}">Show in Finder</button>
             <button class="menu-item" data-action="copy-link" data-download-id="${download.id}">Copy Link Address</button>
             ${canRetry ? `<button class="menu-item" data-action="retry" data-download-id="${download.id}">Retry Download</button>` : ""}
+            ${download.status === "error" ? `<button class="menu-item" data-action="report" data-download-id="${download.id}">Report This Problem…</button>` : ""}
             ${canCancel ? `<button class="menu-item" data-action="cancel" data-download-id="${download.id}">Cancel Download</button>` : ""}
             <button class="menu-item" data-action="remove" data-download-id="${download.id}">Remove from List</button>
           </div>
@@ -2436,6 +2529,7 @@ window.__TAURI__.event.listen("download-error", (event) => {
   updateDownload(downloadId, {
     status: "error",
     error: displayError,
+    rawError: String(errorMessage || "").trim().slice(-MAX_REPORT_ERROR_CHARS),
     completed: false,
     eta: ""
   });

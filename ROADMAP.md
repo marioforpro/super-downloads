@@ -37,11 +37,15 @@ updated: 2026-10-23
   - moved: 2026-10-23
   - correction 2026-10-23: the weekly background refresh **already existed** (v1.2.0: launch-time check, atomic install into `bin/engine-<tag>/`, bundled engine as fallback). The plan first said otherwise — wrong. What was missing was integrity: the downloaded zip was only size-checked (known bug #7).
   - progress: 2026-10-23 · the self-update now fetches the release's `SHA2-256SUMS` first and refuses a zip whose SHA-256 does not match (`expected_sha256` / `sha256_hex` in `lib.rs`, unit-tested; live `engine_self_update_live` PASS with 2026.10.21). Ships in v1.5.2.
-- **R-SD-008** · P1 · backlog · Tester feedback loop — «Report a problem» inside the app
+- **R-SD-008** · P1 · active · Tester feedback loop — «Report a problem» inside the app
   - added: 2026-10-23
   - moved: 2026-10-23
   - why: the active phase is friends testing, but the only channel is a support email nobody sees in the app. A bug report that already carries app version, engine version, macOS version and the failing URL + error saves a back-and-forth per bug.
   - scope: menu item on a failed row («Report this problem») + Settings link → prefilled `mailto:support@superdownloads.app` (no backend). Then work the known-bugs list in `NEXT.md` as reports arrive.
+  - progress: 2026-10-23 · code done on `main`, not released: ⋯ menu on a failed row → «Report This Problem…»; Settings › App › Help → «Report a problem». Both open a prefilled email (link, friendly error, last 800 chars of the engine's raw error — now stored as `rawError` on the row, format, quality setting, app/engine/macOS+arch versions). New Rust command `get_system_info` (WebKit's user agent is frozen at 10.15.7). `npm run check` green; mail body verified by simulation, not yet clicked in the built app.
+  - progress: 2026-10-23 · the same click also copies the report to the clipboard + a 6-s toast («paste it into Gmail or WhatsApp»): a tester on webmail has no mail app configured, so a bare `mailto:` would go nowhere silently. The copied text is marked as handled so copy & come back / Batch mode never treat it as a link.
+  - progress: 2026-10-23 · verified in a WebKit harness over the real `src/` with a mocked Tauri API (30/30: menu item only on failed rows, mailto subject/body, clipboard copy, toast, copy & come back ignores the report, Settings generic report). Rides in v1.5.3 together with the redesigned welcome screen (founder feedback on the first-run card). Real-app clicks NOT done: driving the GUI while the founder used the Mac sent test keystrokes to WhatsApp (not sent) — never drive the GUI during a live session; use the harness.
+  - next: publish v1.5.3; founder clicks ⋯ › Report once on a failed row in the installed app.
 - **R-SD-009** · P2 · backlog · Signing + notarization decision (SD-F-009 trigger reached)
   - added: 2026-10-23
   - moved: 2026-10-23

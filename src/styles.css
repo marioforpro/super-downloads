@@ -567,14 +567,16 @@ body.theme-light .app.auto-add-active::after {
   background: rgba(76, 141, 255, 0.12);
 }
 
-/* Onboarding */
+/* Onboarding — full-window welcome sheet */
 .onboarding-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background:
+    radial-gradient(420px 220px at 50% -40px, rgba(76, 141, 255, 0.16), transparent 70%),
+    var(--bg-primary);
   display: flex;
-  align-items: center;
   justify-content: center;
+  overflow-y: auto;
   z-index: 10001;
   opacity: 0;
   transition: opacity 0.3s ease;
@@ -585,56 +587,98 @@ body.theme-light .app.auto-add-active::after {
 }
 
 .onboarding-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 24px 20px;
-  max-width: 360px;
-  width: 90%;
+  width: 100%;
+  max-width: 400px;
+  margin: auto 0;
+  padding: 16px 22px 14px;
+  box-sizing: border-box;
   text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  transform: translateY(6px);
+  transition: transform 0.35s ease;
+}
+
+.onboarding-overlay.visible .onboarding-card {
+  transform: none;
 }
 
 .onboarding-icon {
-  border-radius: 14px;
-  margin-bottom: 12px;
+  display: block;
+  margin: 0 auto 8px;
+  border-radius: 9px;
+  box-shadow: 0 6px 18px rgba(22, 43, 115, 0.45);
 }
 
 .onboarding-title {
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
+  letter-spacing: -0.01em;
   color: var(--text-primary);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
 }
 
 .onboarding-tagline {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
+  margin-bottom: 10px;
+}
+
+.onboarding-free-note {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: rgba(31, 201, 128, 0.12);
+  color: var(--status-completed);
+  font-size: 10px;
+  font-weight: 600;
   margin-bottom: 16px;
 }
 
 .onboarding-features {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 14px;
+  gap: 10px;
+  text-align: left;
 }
 
 .onboarding-feature {
-  font-size: 10px;
-  color: var(--text-primary);
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 10px;
-  text-align: left;
-  line-height: 1.4;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
 }
 
-.onboarding-free-note {
-  font-size: 9px;
+.onboarding-feature-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: rgba(76, 141, 255, 0.14);
+  color: var(--accent-blue);
+}
+
+.onboarding-feature-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.35;
+}
+
+.onboarding-feature-text strong {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.onboarding-feature-text span {
+  font-size: 11px;
   color: var(--text-secondary);
-  margin-bottom: 14px;
+}
+
+.onboarding-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 16px 0 12px;
 }
 
 .onboarding-start-btn {
@@ -647,7 +691,7 @@ body.theme-light .app.auto-add-active::after {
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: filter 0.15s ease;
+  transition: filter 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 
 .onboarding-start-btn:hover {
@@ -655,7 +699,7 @@ body.theme-light .app.auto-add-active::after {
 }
 
 .onboarding-terms {
-  font-size: 9px;
+  font-size: 9.5px;
   color: var(--text-secondary);
   margin-top: 10px;
   line-height: 1.4;
@@ -1691,29 +1735,51 @@ select:focus {
 }
 
 /* Email activation (onboarding + standalone card) */
+.activation-email-label {
+  display: block;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
 .activation-email-input {
   width: 100%;
-  height: 32px;
+  height: 34px;
   box-sizing: border-box;
-  padding: 0 10px;
-  margin-bottom: 8px;
+  padding: 0 11px;
+  margin-bottom: 10px;
   border-radius: 8px;
   border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-  background: transparent;
+  background: var(--bg-secondary);
   color: inherit;
   font-size: 12px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.activation-email-input:focus {
+  outline: none;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 0 3px rgba(76, 141, 255, 0.22);
 }
 
 .activation-optin {
   display: flex;
-  justify-content: center;
-  margin-bottom: 12px;
-  font-size: 10px;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 14px;
+  font-size: 11px;
   color: var(--text-secondary);
+  text-align: left;
 }
 
 .onboarding-start-btn:disabled {
-  opacity: 0.45;
+  background: var(--bg-tertiary);
+  box-shadow: inset 0 0 0 1px var(--border-color);
+  color: var(--text-secondary);
   cursor: not-allowed;
   filter: none;
 }
