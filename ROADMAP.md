@@ -5,7 +5,7 @@ scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: active
 current_phase: Free app, private use + friends testing (v1.5.4 live) — work plan 2026-10-23 below
-next_milestone: Signing decision (R-SD-009) + fixes from tester reports
+next_milestone: Developer ID signing + notarization in December (R-SD-009, target 2026-12-20) + fixes from tester reports
 updated: 2026-10-23
 ---
 
@@ -24,7 +24,7 @@ updated: 2026-10-23
   - progress: 2026-10-23 · built locally, not deployed. New `web/src/pages/index.astro`: hero = real app window over an editing timeline, «Copy. Switch. Enter.» sequence, three feature rows with real screenshots (dark + light), platforms + trust facts, download, FAQ. `og.png` now exists (it was referenced but missing → every shared link had no preview). Geist as web typeface (BRAND.md had typography «pending»). JSON-LD `softwareVersion` 1.1 → 1.5.1. Screenshots come from the real frontend rendered in WebKit with staged data (`scripts/screenshots/`), thumbnails = Blender Studio open movies, CC BY 4.0, credited in the footer.
   - shipped: 2026-10-23 — live on superdownloads.app (home, og.png, shots 200). Founder check pending: share preview in WhatsApp/X.
   - progress: 2026-10-23 · polish pass from a 4-reviewer design review (visual, UX/conversion, copy, a11y/perf): one-story hero, chip-detected direct download, install guide after the click, mobile «send to your Mac», copy rewrite, expanded FAQ (JSON-LD = visible), WCAG AA fixes, self-hosted Geist. Open founder questions: what happens after the free period (FAQ deliberately silent), maker line wording.
-  - later: 15-s hero loop (screen recording or HyperFrames) — founder taste call, still open. Done 2026-10-23: `/changelog` page (plain-language notes in `web/src/data/releases.js`, also backfilled into GitHub releases 1.2.0–1.5.2) · version + size on the download buttons (read at build time) · sitemap refreshed (+ /changelog, /copyright).
+  - next: 15-s hero loop (screen recording or HyperFrames) — founder taste call, still open. Done 2026-10-23: `/changelog` page (plain-language notes in `web/src/data/releases.js`, also backfilled into GitHub releases 1.2.0–1.5.2) · version + size on the download buttons (read at build time) · sitemap refreshed (+ /changelog, /copyright).
 - **R-SD-006** · P0 · shipped · v1.5.2 maintenance release — fresh engine + small fixes
   - added: 2026-10-23
   - moved: 2026-10-23
@@ -37,6 +37,7 @@ updated: 2026-10-23
   - moved: 2026-10-23
   - correction 2026-10-23: the weekly background refresh **already existed** (v1.2.0: launch-time check, atomic install into `bin/engine-<tag>/`, bundled engine as fallback). The plan first said otherwise — wrong. What was missing was integrity: the downloaded zip was only size-checked (known bug #7).
   - progress: 2026-10-23 · the self-update now fetches the release's `SHA2-256SUMS` first and refuses a zip whose SHA-256 does not match (`expected_sha256` / `sha256_hex` in `lib.rs`, unit-tested; live `engine_self_update_live` PASS with 2026.10.21). Ships in v1.5.2.
+  - shipped: 2026-10-23 — in v1.5.2 (published by the founder via `make-release.sh --publish`).
 - **R-SD-008** · P1 · shipped · Tester feedback loop — «Report a problem» inside the app
   - added: 2026-10-23
   - moved: 2026-10-23
@@ -46,7 +47,7 @@ updated: 2026-10-23
   - progress: 2026-10-23 · the same click also copies the report to the clipboard + a 6-s toast («paste it into Gmail or WhatsApp»): a tester on webmail has no mail app configured, so a bare `mailto:` would go nowhere silently. The copied text is marked as handled so copy & come back / Batch mode never treat it as a link.
   - progress: 2026-10-23 · verified in a WebKit harness over the real `src/` with a mocked Tauri API (30/30: menu item only on failed rows, mailto subject/body, clipboard copy, toast, copy & come back ignores the report, Settings generic report). Rides in v1.5.3 together with the redesigned welcome screen (founder feedback on the first-run card). Real-app clicks NOT done: driving the GUI while the founder used the Mac sent test keystrokes to WhatsApp (not sent) — never drive the GUI during a live session; use the harness.
   - shipped: 2026-10-23 — v1.5.3 published (DMGs 200, `latest.json` 1.5.3 both arches). Founder verified 2026-10-23 in the installed app: ⋯ › Report opens Apple Mail with the email ready to send. Known-bugs list in `NEXT.md` is worked as reports arrive.
-- **R-SD-009** · P2 · backlog · Signing + notarization decision (SD-F-009 trigger reached)
+- **R-SD-009** · P2 · next · Signing + notarization — decided yes, December (SD-F-009 trigger reached)
   - added: 2026-10-23
   - moved: 2026-10-23
   - why: SD-F-009 (2026-08-16) said «revisit at >100 downloads or install complaints». DMG downloads across releases are now **113** (GitHub API, 2026-10-23). Unsigned builds make macOS 15 hide «Open Anyway» deep in System Settings, the single biggest drop-off for non-technical friends. Apple Developer Program = 99 USD/year; notarization is free with it (Apple: «Notarizing macOS software before distribution»).
