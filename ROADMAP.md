@@ -4,7 +4,7 @@
 scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: active
-current_phase: Free app, private use + friends testing (v1.5.3 live) — work plan 2026-10-23 below
+current_phase: Free app, private use + friends testing (v1.5.4 live) — work plan 2026-10-23 below
 next_milestone: Signing decision (R-SD-009) + fixes from tester reports
 updated: 2026-10-23
 ---
@@ -53,12 +53,12 @@ updated: 2026-10-23
   - decided: 2026-10-23 — founder: yes, in December (Christmas break). App Store is out (guideline 5.2.3 bans downloaders); Developer ID + notarization is an automated malware/signing check, not App Review.
   - target: 2026-12-20
   - next: founder enrolls in the Apple Developer Program (marioforpro@gmail.com) and creates a Developer ID Application cert → Claude: sign every engine dylib/.so + hardened-runtime entitlements, `notarytool` + staple in `make-release.sh`, drop the xattr / «Open Anyway» install guide from landing + FAQ.
-- **R-SD-010** · P1 · active · v1.5.4 — reliability + polish from the known-bugs list
+- **R-SD-010** · P1 · shipped · v1.5.4 — reliability + polish from the known-bugs list
   - added: 2026-10-23
   - moved: 2026-10-23
   - scope: stall watchdog (90 s without engine output → retryable «connection stalled» error, also bounds the Keychain-prompt cookie retry) · ⋯ menu survives re-renders · Settings focus management · real minimum macOS declared (Info.plist per arch) + landing aligned · row entry animation · release script hardening (tag = built commit, provenance gate, CHANGELOG notes).
   - progress: 2026-10-23 · code + docs done; `npm run check` green (36 Rust tests incl. 3 watchdog tests on a real process); WebKit UI check 39/39; landing build green.
-  - next: live E2E → build → founder publishes.
+  - shipped: 2026-10-23 — v1.5.4 published (E2E 9/9; DMGs 200; `latest.json` 1.5.4; first release through the hardened script: tag = built commit, CHANGELOG notes).
 
 - **R-SD-001** · P1 · dropped · Submit Super Downloads to LemonSqueezy for approval
   - dropped: 2026-07-21
