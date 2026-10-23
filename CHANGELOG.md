@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [Unreleased] — landing
+## [1.5.2] — 2026-10-23
+
+Maintenance release.
+
+### Changed
+- **Download engine updated** — bundled yt-dlp 2026.08.19 → 2026.10.21 (verified against the release's SHA2-256SUMS).
+- Empty list now says «Copy a video link and come back», the flow the app has used since v1.5.0.
+
+### Security
+- **The weekly engine self-update now verifies a checksum.** Before installing a new yt-dlp, the app downloads the release's `SHA2-256SUMS` and refuses a zip whose SHA-256 doesn't match. It used to check only the file size.
+
+### Fixed
+- X/Twitter detection used a substring match, so a Dropbox link (`dropbox.com` contains `x.com`) could get the X sign-in retry. It now matches the host.
+- Removed a dead fallback in «Copy Link Address» that called a command the app doesn't have.
+
+## Landing — 2026-10-23
 
 ### Changed (superdownloads.app)
 - **Redesigned landing with real app screenshots** (2026-10-23): hero with the app window over an editing timeline, «Copy. Switch. Enter.» walkthrough, feature rows (edit-ready H.264/AAC, Batch mode, Settings) in dark and light, platforms + trust facts, download, FAQ. Geist typeface; higher-contrast buttons.

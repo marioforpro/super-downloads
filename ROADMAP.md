@@ -24,17 +24,18 @@ updated: 2026-10-23
   - progress: 2026-10-23 · built locally, not deployed. New `web/src/pages/index.astro`: hero = real app window over an editing timeline, «Copy. Switch. Enter.» sequence, three feature rows with real screenshots (dark + light), platforms + trust facts, download, FAQ. `og.png` now exists (it was referenced but missing → every shared link had no preview). Geist as web typeface (BRAND.md had typography «pending»). JSON-LD `softwareVersion` 1.1 → 1.5.1. Screenshots come from the real frontend rendered in WebKit with staged data (`scripts/screenshots/`), thumbnails = Blender Studio open movies, CC BY 4.0, credited in the footer.
   - next: founder OK → commit + push (Vercel auto-deploys) → check superdownloads.app + share preview (opengraph.xyz or a WhatsApp/X paste).
   - later: 15-s hero loop (screen recording or HyperFrames) · `/changelog` page fed from GitHub Releases · version + size on the download buttons, read at build time.
-- **R-SD-006** · P0 · backlog · v1.5.2 maintenance release — fresh engine + small fixes
+- **R-SD-006** · P0 · active · v1.5.2 maintenance release — fresh engine + small fixes
   - added: 2026-10-23
   - moved: 2026-10-23
-  - why: the daily health check went **DEGRADED (stale engine)** on 2026-10-22 — bundled yt-dlp `2026.08.19` is 64 days old (gate 28 d); upstream is `2026.10.21`. All 7 platforms still PASS, but yt-dlp ships fixes every 2–4 weeks because sites change (yt-dlp releases page), and users only get a newer engine if they press Update in Settings.
+  - why: the daily health check went **DEGRADED (stale engine)** on 2026-10-22 — bundled yt-dlp `2026.08.19` is 64 days old (gate 28 d); upstream is `2026.10.21`. All 7 platforms still PASS. Installed apps already refresh the engine weekly on their own (since v1.2.0), so this mostly matters for fresh installs and for the case where the self-update fails — but yt-dlp ships fixes every 2–4 weeks because sites change, so the bundled copy should not lag.
   - scope: bump bundled yt-dlp → latest stable · fix `url.contains("x.com")` also matching dropbox.com (known bug #6) · remove the dead `copy_to_clipboard` fallback · empty-state copy «Copy a video link and come back» (IDEA-0036) · live E2E before publishing · verify the real minimum macOS (Tauri 2 targets 10.15; `tauri.conf.json` and the JSON-LD still claim 10.13) and align the landing.
-  - next: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture` → `load-secrets && ./scripts/make-release.sh` → publish.
-- **R-SD-007** · P1 · backlog · Engine keeps itself fresh — background yt-dlp refresh with checksum
+  - progress: 2026-10-23 · code done on `main`: bundled yt-dlp 2026.08.19 → 2026.10.21 (checksum-verified), host-based X/Twitter match, dead `copy_to_clipboard` fallback removed (`KNOWN_MISSING` now empty), empty-state copy, engine checksum (R-SD-007). `npm run check` green.
+  - next: live E2E → build → publish. Minimum-macOS check still open.
+- **R-SD-007** · P1 · active · Engine self-update verified by checksum
   - added: 2026-10-23
   - moved: 2026-10-23
-  - why: R-SD-006 fixes today; this removes the whole class. 4K Video Downloader and Downie both update their extractor silently; our manual «Update» button is invisible to friends testing the app.
-  - scope: on launch, at most once a week, check the latest yt-dlp release in the background; download, verify against the release's `SHA2-256SUMS` (known bug #7: no checksum today), swap atomically, keep the bundled one as fallback. No UI unless it fails twice. Note: our Vimeo plugin (`ytdlp-plugins/`) must keep loading with the refreshed engine — cover with the existing E2E case.
+  - correction 2026-10-23: the weekly background refresh **already existed** (v1.2.0: launch-time check, atomic install into `bin/engine-<tag>/`, bundled engine as fallback). The plan first said otherwise — wrong. What was missing was integrity: the downloaded zip was only size-checked (known bug #7).
+  - progress: 2026-10-23 · the self-update now fetches the release's `SHA2-256SUMS` first and refuses a zip whose SHA-256 does not match (`expected_sha256` / `sha256_hex` in `lib.rs`, unit-tested; live `engine_self_update_live` PASS with 2026.10.21). Ships in v1.5.2.
 - **R-SD-008** · P1 · backlog · Tester feedback loop — «Report a problem» inside the app
   - added: 2026-10-23
   - moved: 2026-10-23

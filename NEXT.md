@@ -11,9 +11,9 @@
 
 ## Próximos pasos, en orden
 
-1. **Desplegar la landing** (founder, 2 min): revisar en local `cd web && npm run dev` → OK → commit + push (Vercel despliega solo) → pegar `superdownloads.app` en WhatsApp/X para ver la preview.
-2. **v1.5.2 de mantenimiento** (R-SD-006): motor yt-dlp al día + fix `x.com`/dropbox + copy del estado vacío. E2E antes: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`. Release: `load-secrets && ./scripts/make-release.sh`.
-3. **Motor que se actualiza solo** con verificación SHA256 (R-SD-007) — elimina el «motor viejo» para siempre.
+1. ~~Desplegar la landing~~ — **en producción 2026-10-23**. Pendiente: pegar `superdownloads.app` en WhatsApp/X para ver la preview.
+2. **v1.5.2 de mantenimiento** (R-SD-006): código hecho (motor 2026.10.21, checksum del auto-update, fix `x.com`/dropbox, copy del estado vacío); falta publicar. E2E antes: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`. Release: `load-secrets && ./scripts/make-release.sh`.
+3. ~~Motor que se actualiza solo~~ — **ya existía** desde v1.2.0 (refresco semanal en segundo plano). Lo que faltaba era verificar el checksum: hecho, va en la v1.5.2 (R-SD-007).
 4. **«Report a problem» dentro de la app** (R-SD-008) — que los amigos puedan reportar con un clic, con versión y error incluidos.
 5. **Decidir firma + notarización de Apple** (R-SD-009): el disparador acordado (>100 descargas) ya se cumplió. 99 USD/año.
 
@@ -28,8 +28,8 @@ Cuando cambie la UI de la app: ver `scripts/screenshots/README.md` (renderiza el
 3. Un prompt oculto del Llavero (cookies) puede dejar el reintento esperando — cancelable, sin timeout.
 4. Al abrir Settings el foco no entra en el panel.
 5. Las filas nuevas no tienen animación de entrada.
-6. `url.contains("x.com")` también casa con dropbox.com → **en R-SD-006**.
-7. Sin verificación SHA256 del motor auto-actualizado → **en R-SD-007**.
+6. ~~`url.contains("x.com")` casaba con dropbox.com~~ → arreglado en v1.5.2.
+7. ~~Sin verificación SHA256 del motor auto-actualizado~~ → arreglado en v1.5.2.
 8. Las URLs de prueba del fallback de Instagram están muertas (`--ig-fallback` da WARN).
 9. Intel: la primera ejecución del motor tras instalar tarda ~10 s (Rosetta; el calentamiento en segundo plano lo absorbe).
 

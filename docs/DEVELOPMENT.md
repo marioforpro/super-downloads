@@ -72,11 +72,13 @@ starts in ~0.2s.
 To update yt-dlp:
 ```bash
 curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp_macos.zip -o /tmp/yt-dlp_macos.zip
+curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS -o /tmp/SHA2-256SUMS
+(cd /tmp && grep ' yt-dlp_macos.zip$' SHA2-256SUMS | shasum -a 256 -c -)   # must print OK
 rm -rf src-tauri/binaries/yt-dlp-onedir
 ditto -x -k /tmp/yt-dlp_macos.zip src-tauri/binaries/yt-dlp-onedir
 src-tauri/binaries/yt-dlp-onedir/yt-dlp_macos --version
 ```
-The in-app self-update installs the same zip into
+The in-app self-update (weekly, at launch; refuses a zip whose SHA-256 doesn't match the release's `SHA2-256SUMS`) installs the same zip into
 `~/Library/Application Support/com.supermac.super-downloads/bin/engine-<tag>/`.
 Live test: `cd src-tauri && cargo test engine_self_update_live -- --ignored --nocapture`.
 
