@@ -2,7 +2,7 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
-> **NEXT (2026-10-23):** v1.5.3 publicada («Report a problem» + bienvenida nueva). Primer paso founder: actualizar la app con el banner «Update» y probar ⋯ › Report en una fila fallida (+ pegar `superdownloads.app` en WhatsApp/X para ver la preview). Decisiones abiertas: firma/notarización (R-SD-009) · qué pasa al acabar «Free for a limited time» · frase «Made by Mario Monteiro». Después: arreglar lo que reporten los amigos.
+> **NEXT (2026-10-23):** v1.5.3 publicada («Report a problem» + bienvenida nueva). «Report a problem» probado por el founder en la app instalada (abre Apple Mail listo para enviar). Pendiente: pegar `superdownloads.app` en WhatsApp/X para ver la preview). Decisiones abiertas: firma/notarización (R-SD-009) · qué pasa al acabar «Free for a limited time» · frase «Made by Mario Monteiro». Después: arreglar lo que reporten los amigos.
 
 ## Dónde estamos (2026-10-23)
 
@@ -16,7 +16,7 @@
 1. ~~Desplegar la landing~~ — **en producción 2026-10-23**. Pendiente: pegar `superdownloads.app` en WhatsApp/X para ver la preview.
 2. ~~v1.5.2 de mantenimiento~~ — **publicada 2026-10-23** (E2E 9/9). Pendiente founder: actualizar la app instalada con el banner «Update». E2E antes: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`. Release: `load-secrets && ./scripts/make-release.sh`.
 3. ~~Motor que se actualiza solo~~ — **ya existía** desde v1.2.0 (refresco semanal en segundo plano). Lo que faltaba era verificar el checksum: hecho, va en la v1.5.2 (R-SD-007).
-4. ~~«Report a problem» dentro de la app~~ — **publicado en la v1.5.3** (2026-10-23; E2E 9/9, UI 30/30). Pendiente founder: probar ⋯ › Report una vez en la app instalada. Los reportes de amigos llegan a support@ — de ahí salen los siguientes arreglos.
+4. ~~«Report a problem» dentro de la app~~ — **publicado en la v1.5.3** (2026-10-23; E2E 9/9, UI 30/30). Probado por el founder: abre Apple Mail con el correo listo. Los reportes de amigos llegan a support@ — de ahí salen los siguientes arreglos.
 5. **Decidir firma + notarización de Apple** (R-SD-009): el disparador acordado (>100 descargas) ya se cumplió. 99 USD/año.
 
 ## Regenerar screenshots de la landing
