@@ -135,10 +135,10 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
       <div class="wrap">
         <h2 id="demo-title" class="sr-only">See it in 24 seconds</h2>
         <figure class="demo-frame">
-          <video id="demo-video" muted loop playsinline preload="none" poster="/demo/demo-poster.webp" width="1920" height="1080"
+          <video id="demo-video" muted loop playsinline preload="none" poster="/demo/demo-poster-v8.webp" width="1920" height="1080"
             aria-label="Demo: copy a video link in the browser, switch to Super Downloads, press Enter; the video downloads, converts to H.264 and lands on an editing timeline">
-            <source src="/demo/demo-1080.webm" type="video/webm" />
-            <source src="/demo/demo-1080.mp4" type="video/mp4" />
+            <source src="/demo/demo-1080-v8.webm" type="video/webm" />
+            <source src="/demo/demo-1080-v8.mp4" type="video/mp4" />
           </video>
           <button class="demo-sound" id="demo-sound" type="button">Play with sound</button>
         </figure>
@@ -499,7 +499,8 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   }
 
   /* Hero */
-  .hero { background: var(--navy-950); color: var(--white); padding: 80px 0 24px; overflow: hidden; }
+  /* Bottom room = the window's glow (≈130 px) fades out inside the hero, never cut by its edge */
+  .hero { background: var(--navy-950); color: var(--white); padding: 80px 0 150px; overflow: hidden; }
   .hero-grid { display: grid; grid-template-columns: minmax(0, 6fr) minmax(0, 5fr); gap: 56px; align-items: center; }
   .hero h1 {
     font-size: clamp(40px, 5.2vw, 64px); line-height: 1.02; letter-spacing: -0.04em; font-weight: 600;
@@ -539,7 +540,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   /* Sections */
   .section { padding: 120px 0; }
   /* Demo film, on the hero's navy: one continuous ground from the headline to the film */
-  .demo { background: var(--navy-950); padding: 88px 0 104px; }
+  .demo { background: var(--navy-950); padding: 0 0 104px; }
   .demo-frame { position: relative; margin: 0 auto; max-width: 1120px; border-radius: 16px; overflow: hidden;
     box-shadow: 0 0 0 1px rgba(213,235,255,.16), 0 40px 120px -30px rgba(48,167,255,.35), 0 30px 60px -30px rgba(0,0,0,.8); background: #070f30; }
   .demo-frame video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
@@ -655,7 +656,8 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     .row-flip .row-copy { order: 0; }
     .row + .row { margin-top: 96px; }
     .section, .download { padding: 88px 0; }
-    .demo { padding: 56px 0 72px; }
+    .hero { padding-bottom: 110px; }
+    .demo { padding: 0 0 72px; }
     .hero-window, .split .window, .row .window { max-width: 600px; width: 100%; justify-self: center; }
     .platform-groups { grid-template-columns: 1fr; gap: 28px; }
   }
