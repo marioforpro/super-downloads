@@ -1,0 +1,250 @@
+<template>
+  <style>
+    @font-face {
+      font-family: "Geist";
+      src: url("assets/fonts/geist.woff2") format("woff2");
+      font-weight: 100 900;
+    }
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      font-family: "Geist", sans-serif;
+      background: #edf2f8;
+    }
+    #b-dark {
+      position: absolute;
+      inset: 0;
+      background: #000;
+      z-index: 20;
+    }
+    #b-win {
+      position: absolute;
+      left: 50px;
+      top: 200px;
+      width: 980px;
+      height: 860px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 0 0 1px rgba(10, 22, 63, 0.1), 0 2px 6px rgba(10, 22, 63, 0.08), 0 40px 90px -30px rgba(10, 22, 63, 0.4);
+    }
+    .chrome {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 116px;
+      background: #f6f8fb;
+      border-bottom: 1px solid rgba(10, 22, 63, 0.08);
+    }
+    .lights {
+      position: absolute;
+      left: 30px;
+      top: 50px;
+      display: flex;
+      gap: 12px;
+    }
+    .lights i {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #ff5f57;
+    }
+    .lights i:nth-child(2) { background: #febc2e; }
+    .lights i:nth-child(3) { background: #28c840; }
+    .addr {
+      position: absolute;
+      left: 104px;
+      right: 24px;
+      top: 20px;
+      height: 76px;
+      border-radius: 38px;
+      background: #e8edf4;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      color: #0a163f;
+      font-size: 33px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .addr svg { flex: none; opacity: 0.55; }
+    .url { position: relative; }
+    .url b { font-weight: 500; position: relative; z-index: 1; }
+    #b-sel {
+      position: absolute;
+      left: -6px;
+      right: -6px;
+      top: -4px;
+      bottom: -4px;
+      border-radius: 8px;
+      background: rgba(48, 167, 255, 0.32);
+      transform-origin: left center;
+    }
+    .page {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 116px;
+      bottom: 0;
+      background: #0a0a0a 70% 38% / cover no-repeat url("assets/img/spring-still.jpg");
+    }
+    #b-strip {
+      position: absolute;
+      left: 70px;
+      top: 1120px;
+      height: 160px;
+      display: flex;
+      align-items: center;
+      gap: 56px;
+    }
+    .keys {
+      display: flex;
+      gap: 18px;
+      width: 330px;
+    }
+    .key {
+      position: relative;
+      flex: none;
+      width: 110px;
+      height: 118px;
+    }
+    .key.wide { width: 190px; }
+    .cap {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 110px;
+      border-radius: 22px;
+      background: linear-gradient(#ffffff, #eef2f8);
+      box-shadow: 0 8px 0 #c5cfdd, 0 16px 28px rgba(10, 22, 63, 0.18);
+      display: grid;
+      place-items: center;
+      color: #0a163f;
+      font-size: 50px;
+      font-weight: 600;
+    }
+    .key.wide .cap { font-size: 40px; }
+    .title {
+      position: relative;
+      color: #0a163f;
+      font-size: 124px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      white-space: nowrap;
+    }
+    #b-capsule {
+      position: absolute;
+      left: 540px;
+      top: 640px;
+      height: 96px;
+      padding: 0 40px 0 32px;
+      border-radius: 44px;
+      background: #fff;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      color: #0a163f;
+      font-size: 36px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+      box-shadow: 0 0 0 1px rgba(10, 22, 63, 0.08), 0 30px 70px -14px rgba(10, 22, 63, 0.45);
+      z-index: 10;
+    }
+    #b-capsule, #b-ktab { opacity: 0; }
+    #b-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 38px;
+      height: 54px;
+      z-index: 15;
+      filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.35));
+    }
+  </style>
+  <div id="root" data-composition-id="v-browser" data-width="1080" data-height="1920">
+    <div id="b-win">
+      <div class="chrome">
+        <div class="lights"><i></i><i></i><i></i></div>
+        <div class="addr">
+          <svg width="26" height="30" viewBox="0 0 24 28" fill="none" stroke="#0a163f" stroke-width="2.4" stroke-linecap="round"><rect x="3" y="12" width="18" height="13" rx="3"/><path d="M7 12V8a5 5 0 0 1 10 0v4"/></svg>
+          <span class="url" id="b-url"><span id="b-sel"></span><b>youtube.com/watch?v=WhWc3b3KhnY</b></span>
+        </div>
+      </div>
+      <div class="page"></div>
+    </div>
+
+    <div id="b-strip">
+      <div class="keys">
+        <div class="key" id="b-kcmd"><div class="cap" id="b-kcmd-cap">⌘</div></div>
+        <div class="key" id="b-kc"><div class="cap" id="b-kc-cap">C</div></div>
+        <div class="key wide" id="b-ktab"><div class="cap" id="b-ktab-cap">Tab</div></div>
+      </div>
+      <div class="title" id="b-copy">Copy.</div>
+    </div>
+
+    <div id="b-capsule">
+      <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#30a7ff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+      <span>youtube.com/watch?v=WhWc3b3KhnY</span>
+    </div>
+
+    <svg id="b-cursor" viewBox="0 0 28 40"><path d="M2.5 2.5 L2.5 31 L9.2 24.6 L13.6 35 L18.2 33 L13.8 22.9 L23 22.9 Z" fill="#000" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/></svg>
+
+    <div id="b-dark"></div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const F = (f) => f / 30;
+
+      // Rise out of the dark.
+      tl.fromTo("#b-dark", { opacity: 1 }, { opacity: 0, duration: 0.45, ease: "power2.out" }, 0.05);
+      tl.fromTo("#b-win", { y: 70, scale: 0.965 }, { y: 0, scale: 1, duration: 0.8, ease: "expo.out" }, 0.05);
+
+      // Cursor comes in, clicks the address bar, the link is selected.
+      tl.fromTo("#b-cursor", { x: 1150, y: 1960 }, { x: 900, y: 258, duration: 0.6, ease: "power3.inOut" }, 0.55);
+      tl.to("#b-cursor", { scale: 0.86, duration: F(2), ease: "power2.in", transformOrigin: "0 0" }, 1.15);
+      tl.to("#b-cursor", { scale: 1, duration: F(5), ease: "expo.out" }, 1.15 + F(2));
+      tl.fromTo("#b-sel", { scaleX: 0 }, { scaleX: 1, duration: F(8), ease: "power2.out" }, 1.22);
+      tl.to("#b-cursor", { x: 1000, y: 460, opacity: 0, duration: 0.5, ease: "power2.in" }, 1.7);
+
+      // Keycaps: ⌘ + C on the beat (f 60).
+      tl.fromTo("#b-kcmd", { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 1.4);
+      tl.fromTo("#b-kc", { y: 36, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: "expo.out" }, 1.48);
+      tl.set("#b-ktab", { x: -128 }, 0);
+      const press = (cap, at, hold) => {
+        tl.to(cap, { y: 6, boxShadow: "0 2px 0 #c5cfdd, 0 6px 12px rgba(10,22,63,0.18)", duration: F(4), ease: "power2.in" }, at - F(4));
+        tl.to(cap, { y: 0, boxShadow: "0 8px 0 #c5cfdd, 0 16px 28px rgba(10,22,63,0.18)", duration: F(8), ease: "expo.out" }, at + hold);
+      };
+      press("#b-kcmd-cap", F(52), 0.42);
+      press("#b-kc-cap", F(60), 0.12);
+
+      // «Copy.» lands on the beat, blur to sharp, then holds dead still.
+      tl.fromTo("#b-copy", { opacity: 0, filter: "blur(10px)" }, { opacity: 1, filter: "blur(0px)", duration: F(5), ease: "power2.out" }, F(60));
+
+      // The link lifts off the bar as a capsule.
+      tl.set("#b-capsule", { xPercent: -50, yPercent: -50, scale: 0.8, y: -372 }, 0);
+      tl.to("#b-capsule", { opacity: 1, duration: F(3), ease: "none" }, F(60));
+      tl.to("#b-capsule", { y: 0, scale: 1.0, duration: 0.6, ease: "expo.out" }, F(60));
+      tl.to("#b-url b", { opacity: 0.35, duration: F(6) }, F(60));
+
+      // ⌘ Tab: C leaves, Tab arrives, both press on f 90.
+      tl.to("#b-kc", { y: 24, opacity: 0, duration: F(5), ease: "power3.in" }, 2.45);
+      tl.to("#b-ktab", { opacity: 1, duration: F(6), ease: "power2.out" }, 2.55);
+      tl.fromTo("#b-ktab", { y: 36 }, { y: 0, duration: 0.4, ease: "expo.out" }, 2.55);
+      press("#b-kcmd-cap", F(85), 0.3);
+      press("#b-ktab-cap", F(90), 0.12);
+      tl.to("#b-copy", { opacity: 0, filter: "blur(10px)", duration: F(5), ease: "power2.in" }, F(84));
+
+      // Whip: the browser world leaves left; the capsule stays (scene «app» takes it at 3.5 s).
+      tl.to(["#b-win", "#b-strip"], { x: -2100, filter: "blur(18px)", duration: 0.42, ease: "power3.in" }, 3.33);
+      tl.set("#b-capsule", { opacity: 0 }, 3.5);
+
+      window.__timelines["v-browser"] = tl;
+    })();
+  </script>
+</template>

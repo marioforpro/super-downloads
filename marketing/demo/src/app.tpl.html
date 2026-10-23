@@ -24,14 +24,14 @@
     #a-cam {
       position: absolute;
       inset: 0;
-      transform-origin: 1272px 562px;
+      transform-origin: {{L:camOX}}px {{L:camOY}}px;
     }
     #a-glow {
       position: absolute;
-      left: 760px;
-      top: 170px;
-      width: 1024px;
-      height: 760px;
+      left: {{L:glowX}}px;
+      top: {{L:glowY}}px;
+      width: {{L:glowW}}px;
+      height: {{L:glowH}}px;
       border-radius: 40px;
       background: rgba(48, 167, 255, 0.5);
       filter: blur(120px);
@@ -39,10 +39,10 @@
     }
     #a-win {
       position: absolute;
-      left: 720px;
-      top: 110px;
-      width: 1104px;
-      height: 890px;
+      left: {{L:winX}}px;
+      top: {{L:winY}}px;
+      width: {{L:winW}}px;
+      height: {{L:winH}}px;
     }
     #a-scale {
       position: absolute;
@@ -50,7 +50,7 @@
       top: 0;
       width: 480px;
       height: 312px;
-      transform: scale(2.3);
+      transform: scale({{L:S}});
       transform-origin: 0 0;
       border-radius: 10px;
       overflow: hidden;
@@ -106,25 +106,25 @@
 
     #a-left {
       position: absolute;
-      left: 110px;
+      left: {{L:leftX}}px;
       top: 0;
-      width: 560px;
-      height: 1080px;
+      width: {{L:titleW}}px;
+      height: {{L:H}}px;
     }
     .title {
       position: absolute;
       left: 0;
-      top: 330px;
-      width: 560px;
+      top: {{L:titleY}}px;
+      width: {{L:titleW}}px;
       color: #fff;
-      font-size: 92px;
+      font-size: {{L:titleSize}}px;
       font-weight: 700;
       line-height: 0.98;
       letter-spacing: -0.03em;
     }
     .key {
       position: absolute;
-      top: 640px;
+      top: {{L:keyY}}px;
       width: 110px;
       height: 118px;
     }
@@ -183,7 +183,7 @@
       filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.45));
     }
   </style>
-  <div id="root" data-composition-id="app" data-width="1920" data-height="1080">
+  <div id="root" data-composition-id="{{L:id}}" data-width="{{L:W}}" data-height="{{L:H}}">
     <div id="a-world">
     <div id="a-bg"></div>
     <div id="a-cam">
@@ -229,10 +229,10 @@
       <div class="title" id="a-t-ready">Ready<br />to edit.</div>
       <div class="title" id="a-t-batch">Batch<br />mode.</div>
       <div class="title" id="a-t-many">Many<br />at once.</div>
-      <div class="key" id="a-kcmd" style="left: 0"><div class="cap" id="a-kcmd-cap">⌘</div></div>
-      <div class="key wide" id="a-kret" style="left: 128px"><div class="cap" id="a-kret-cap">↵</div></div>
-      <div class="key" id="a-kb" style="left: 128px"><div class="cap" id="a-kb-cap">B</div></div>
-      <div class="key" id="a-kc" style="left: 128px"><div class="cap" id="a-kc-cap">C</div></div>
+      <div class="key" id="a-kcmd" style="left: {{L:keysX}}px"><div class="cap" id="a-kcmd-cap">⌘</div></div>
+      <div class="key wide" id="a-kret" style="left: {{L:keys2X}}px"><div class="cap" id="a-kret-cap">↵</div></div>
+      <div class="key" id="a-kb" style="left: {{L:keys2X}}px"><div class="cap" id="a-kb-cap">B</div></div>
+      <div class="key" id="a-kc" style="left: {{L:keys2X}}px"><div class="cap" id="a-kc-cap">C</div></div>
     </div>
     </div>
 
@@ -253,22 +253,22 @@
       const G = (g) => g - 3.4; // scene clock = film clock - 3.4 s
       const F = (f) => f / 30;
 
-      // Geometry (measured from the real app, tools/extract-ui.cjs): window at 720,80 scaled 2.3,
+      // Geometry (measured from the real app, tools/extract-ui.cjs): window position/scale from the layout,
       // title bar 28 base px, rows every 74.5 base px from y 8 inside the list.
-      const S = 2.3, WX = 720, WY = 110 + 28 * S, LIST = 51;
+      const S = {{L:S}}, WX = {{L:winX}}, WY = {{L:winY}} + 28 * S, LIST = 51;
       const app = (bx, by) => [WX + bx * S, WY + by * S];
       const PITCH = 74.5;
-      const CAM = { s: 1.045, ox: 1272, oy: 562 };
+      const CAM = { s: 1.045, ox: {{L:camOX}}, oy: {{L:camOY}} };
       const onScreen = ([x, y]) => [CAM.ox + CAM.s * (x - CAM.ox), CAM.oy + CAM.s * (y - CAM.oy)];
       const INPUT = app(111, 25.5);
 
       // ── Arrival: colour flood from the capsule, the window rises under it ──
-      tl.fromTo("#a-world", { clipPath: "circle(0% at 960px 340px)" }, { clipPath: "circle(150% at 960px 340px)", duration: 0.5, ease: "power2.inOut" }, G(3.5));
+      tl.fromTo("#a-world", { clipPath: "circle(0% at {{L:capX}}px {{L:capY}}px)" }, { clipPath: "circle(150% at {{L:capX}}px {{L:capY}}px)", duration: 0.5, ease: "power2.inOut" }, G(3.5));
       tl.fromTo("#a-win", { y: 320, opacity: 0 }, { y: 0, opacity: 1, duration: 0.9, ease: "expo.out" }, G(3.55));
       tl.fromTo("#a-glow", { opacity: 0 }, { opacity: 0.55, duration: 1.2, ease: "power2.out" }, G(3.7));
 
       // The capsule from the browser (same place, same size) arcs into the URL field.
-      tl.set("#a-cap0", { x: 960, y: 340, xPercent: -50, yPercent: -50, scale: 1.12 }, 0);
+      tl.set("#a-cap0", { x: {{L:capX}}, y: {{L:capY}}, xPercent: -50, yPercent: -50, scale: {{L:capScale}} }, 0);
       tl.set("#a-cap0", { opacity: 1 }, G(3.5));
       tl.to("#a-cap0", { x: INPUT[0] + 40, duration: 0.6, ease: "power2.inOut" }, G(3.75));
       tl.to("#a-cap0", { y: INPUT[1], scale: 0.7, duration: 0.6, ease: "power3.inOut" }, G(3.75));
@@ -363,29 +363,29 @@
 
       // ── Camera: punch in on the row while it downloads and converts, pull back for Batch,
       //    then one slow push that ends exactly at the drag's framing (CAM). Never a dead stop. ──
-      tl.fromTo("#a-cam", { scale: 1, x: 0, y: 0 }, { scale: 1.5, x: 270, y: 219, duration: 0.7, ease: "power2.inOut" }, G(5.15));
-      tl.to("#a-cam", { scale: 1.53, x: 276, y: 225, duration: 2.6, ease: "none" }, G(5.85));
+      tl.fromTo("#a-cam", { scale: 1, x: 0, y: 0 }, { scale: {{L:punchS}}, x: {{L:punchX}}, y: {{L:punchY}}, duration: 0.7, ease: "power2.inOut" }, G(5.15));
+      tl.to("#a-cam", { scale: {{L:punchS2}}, x: {{L:punchX2}}, y: {{L:punchY2}}, duration: 2.6, ease: "none" }, G(5.85));
       tl.to("#a-cam", { scale: 1, x: 0, y: 0, duration: 0.6, ease: "power2.inOut" }, G(8.45));
       tl.to("#a-cam", { scale: CAM.s, duration: G(13.4) - G(9.05), ease: "power1.inOut" }, G(9.05));
 
       // ── Drag Spring out (now in slot 4) → it carries us into the timeline ──
       const thumb = onScreen(app(15 + 45, LIST + 8 + 3 * PITCH + 7 + 25.5));
       const tw = 90 * S * CAM.s, th = 51 * S * CAM.s;
-      tl.set("#a-cursor", { x: 1560, y: 1140 }, 0);
+      tl.set("#a-cursor", { x: {{L:curX}}, y: {{L:curY}} }, 0);
       tl.set("#a-cursor", { opacity: 1 }, G(13.35));
       tl.to("#a-cursor", { x: thumb[0] + 30, y: thumb[1] + 10, duration: 0.55, ease: "power3.inOut" }, G(13.35));
       tl.to("#a-cursor", { scale: 0.86, duration: F(2), ease: "power2.in", transformOrigin: "0 0" }, G(13.95));
       tl.set("#a-drag", { x: thumb[0] - tw / 2, y: thumb[1] - th / 2, width: tw, height: th }, 0);
       tl.set("#a-drag", { opacity: 1 }, G(14.0));
       tl.to("#a-drag", { scale: 1.12, duration: F(4), ease: "power2.out" }, G(14.0));
-      // Hand-off point to «timeline»: the clip's centre at (560, 820), still at 1.12×.
-      tl.to("#a-drag", { x: 560 - tw / 2, y: 820 - th / 2, duration: 0.48, ease: "power2.inOut" }, G(14.12));
-      tl.to("#a-cursor", { x: 560 + 30, y: 820 + 10, duration: 0.48, ease: "power2.inOut" }, G(14.12));
+      // Hand-off point to «timeline»: the clip's centre at the layout's drag point, still at 1.12×.
+      tl.to("#a-drag", { x: {{L:dragX}} - tw / 2, y: {{L:dragY}} - th / 2, duration: 0.48, ease: "power2.inOut" }, G(14.12));
+      tl.to("#a-cursor", { x: {{L:dragX}} + 30, y: {{L:dragY}} + 10, duration: 0.48, ease: "power2.inOut" }, G(14.12));
       tl.set(["#a-drag", "#a-cursor"], { opacity: 0 }, G(14.6));
       // The app world leaves upward with blur while the timeline rises (scene «timeline»).
-      tl.to(["#a-cam", "#a-left"], { y: -520, filter: "blur(14px)", duration: 0.5, ease: "power3.in" }, G(14.1));
+      tl.to(["#a-cam", "#a-left"], { y: {{L:leave}}, filter: "blur(14px)", duration: 0.5, ease: "power3.in" }, G(14.1));
 
-      window.__timelines["app"] = tl;
+      window.__timelines["{{L:id}}"] = tl;
     })();
   </script>
 </template>

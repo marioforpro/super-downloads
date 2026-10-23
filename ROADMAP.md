@@ -59,6 +59,12 @@ updated: 2026-10-23
   - scope: stall watchdog (90 s without engine output → retryable «connection stalled» error, also bounds the Keychain-prompt cookie retry) · ⋯ menu survives re-renders · Settings focus management · real minimum macOS declared (Info.plist per arch) + landing aligned · row entry animation · release script hardening (tag = built commit, provenance gate, CHANGELOG notes).
   - progress: 2026-10-23 · code + docs done; `npm run check` green (36 Rust tests incl. 3 watchdog tests on a real process); WebKit UI check 39/39; landing build green.
   - shipped: 2026-10-23 — v1.5.4 published (E2E 9/9; DMGs 200; `latest.json` 1.5.4; first release through the hardened script: tag = built commit, CHANGELOG notes).
+- **R-SD-011** · P1 · active · Demo film — «Links become clips» (landing, social, in-app)
+  - added: 2026-10-23
+  - moved: 2026-10-23
+  - why: founder decision 2026-10-23 — the app is a lead magnet; a short, modern demo that teaches the flow is what gets shared and what friends/clients see first.
+  - progress: 2026-10-23 · built in HyperFrames from the REAL app UI (`marketing/demo/tools/extract-ui.cjs` renders `src/` in WebKit; scenes generated from one template for 16:9 and 9:16). 24 s on a 120 BPM grid: copy in the browser → capsule flies into the app → Enter → download + «Converting to H.264» punch-in → Batch rain of 3 links → drag onto an editing timeline where «Spring» (Blender, CC BY 4.0) plays → platforms roll → end card «Free for Mac · Made by Mario Monteiro». STUDIO motion QA run on every render (81 → intended-only fails). Landing `#demo` section live (muted loop while visible, «Play with sound», no autoplay with reduced motion). Settings › Help › Watch demo (unreleased, next app version). Vertical 1080×1920 rendered.
+  - next: founder picks a 120 BPM music track (Artlist or own library) → normalize to −14 LUFS → final social exports; founder posts on Instagram/X.
 
 - **R-SD-001** · P1 · dropped · Submit Super Downloads to LemonSqueezy for approval
   - dropped: 2026-07-21

@@ -1033,7 +1033,7 @@
       <div class="title" id="a-t-ready">Ready<br />to edit.</div>
       <div class="title" id="a-t-batch">Batch<br />mode.</div>
       <div class="title" id="a-t-many">Many<br />at once.</div>
-      <div class="key" id="a-kcmd" style="left: 0"><div class="cap" id="a-kcmd-cap">⌘</div></div>
+      <div class="key" id="a-kcmd" style="left: 0px"><div class="cap" id="a-kcmd-cap">⌘</div></div>
       <div class="key wide" id="a-kret" style="left: 128px"><div class="cap" id="a-kret-cap">↵</div></div>
       <div class="key" id="a-kb" style="left: 128px"><div class="cap" id="a-kb-cap">B</div></div>
       <div class="key" id="a-kc" style="left: 128px"><div class="cap" id="a-kc-cap">C</div></div>
@@ -1057,7 +1057,7 @@
       const G = (g) => g - 3.4; // scene clock = film clock - 3.4 s
       const F = (f) => f / 30;
 
-      // Geometry (measured from the real app, tools/extract-ui.cjs): window at 720,80 scaled 2.3,
+      // Geometry (measured from the real app, tools/extract-ui.cjs): window position/scale from the layout,
       // title bar 28 base px, rows every 74.5 base px from y 8 inside the list.
       const S = 2.3, WX = 720, WY = 110 + 28 * S, LIST = 51;
       const app = (bx, by) => [WX + bx * S, WY + by * S];
@@ -1182,7 +1182,7 @@
       tl.set("#a-drag", { x: thumb[0] - tw / 2, y: thumb[1] - th / 2, width: tw, height: th }, 0);
       tl.set("#a-drag", { opacity: 1 }, G(14.0));
       tl.to("#a-drag", { scale: 1.12, duration: F(4), ease: "power2.out" }, G(14.0));
-      // Hand-off point to «timeline»: the clip's centre at (560, 820), still at 1.12×.
+      // Hand-off point to «timeline»: the clip's centre at the layout's drag point, still at 1.12×.
       tl.to("#a-drag", { x: 560 - tw / 2, y: 820 - th / 2, duration: 0.48, ease: "power2.inOut" }, G(14.12));
       tl.to("#a-cursor", { x: 560 + 30, y: 820 + 10, duration: 0.48, ease: "power2.inOut" }, G(14.12));
       tl.set(["#a-drag", "#a-cursor"], { opacity: 0 }, G(14.6));

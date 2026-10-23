@@ -2,7 +2,7 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
-> **NEXT (2026-10-23):** **v1.5.4 publicada.** Landing: nueva página `/changelog` (novedades en lenguaje claro), sitemap al día, notas de GitHub rellenadas. Plan del proyecto vaciado de todo lo hacible sin ti. Primer paso founder: actualizar con el banner. Después: arreglar lo que reporten los amigos. Decidido 2026-10-23: la app es un lead magnet (regalo que lleva a tus otros proyectos), free sin fecha, frase de autor se queda (`docs/DECISIONS.md`). En curso: demo animada de la app. Pendiente: borrar ramas viejas `feat/batch-url-paste` y `ooo/platform-health-2026-08-17` (no integradas tal cual; su trabajo se rehízo en main). Firma Apple: diciembre (R-SD-009, objetivo 2026-12-20).
+> **NEXT (2026-10-23):** v1.5.4 publicada. **Demo de 24 s hecha** (R-SD-011): en la landing (`superdownloads.app/#demo`) y renderizada en 16:9 y 9:16 (`marketing/demo*/renders/`). Falta: **elegir música** (pista de 120 BPM) para la versión de redes y publicarla en Instagram/X. «Watch demo» en Settings sale en la próxima versión de la app. Decidido hoy: lead magnet, free sin fecha, frase de autor. Firma Apple: diciembre (R-SD-009).
 
 ## Dónde estamos (2026-10-23)
 
