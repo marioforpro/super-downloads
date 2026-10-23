@@ -15,9 +15,9 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 
 ## Current State (updated 2026-10-23)
 
-- **State:** FREE app, live — **v1.5.2 published 2026-10-23** (GitHub Release + updater; DMGs 97/109 MB).
+- **State:** FREE app, live — **v1.5.3 published 2026-10-23** (GitHub Release + updater; DMGs 97/109 MB).
 - **Active plan:** private use + friends testing (no public launch for now — `docs/DECISIONS.md` 2026-10-03). Fix what testers find; run the live E2E before each release. Payments track closed.
-- **Releases shipped:** v1.1.0 (2026-05-06) · v1.1.1 (2026-05-31) · v1.2.0 (2026-07-16) · v1.3.0 (2026-10-03, free mode + email activation) · v1.4.0 (2026-10-03, onedir engine, launch-freeze fix, Settings redesign, QA pass, Vimeo 3-step) · v1.5.0 (2026-10-04, copy & come back, paste-to-download, Batch mode) · v1.5.1 (2026-10-20, Vimeo domain-restricted embeds via bundled yt-dlp plugin `src-tauri/ytdlp-plugins/`) · v1.5.2 (2026-10-23, engine 2026.10.21, checksum-verified engine self-update, X-host fix). Pre-release E2E: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`.
+- **Releases shipped:** v1.1.0 (2026-05-06) · v1.1.1 (2026-05-31) · v1.2.0 (2026-07-16) · v1.3.0 (2026-10-03, free mode + email activation) · v1.4.0 (2026-10-03, onedir engine, launch-freeze fix, Settings redesign, QA pass, Vimeo 3-step) · v1.5.0 (2026-10-04, copy & come back, paste-to-download, Batch mode) · v1.5.1 (2026-10-20, Vimeo domain-restricted embeds via bundled yt-dlp plugin `src-tauri/ytdlp-plugins/`) · v1.5.2 (2026-10-23, engine 2026.10.21, checksum-verified engine self-update, X-host fix) · v1.5.3 (2026-10-23, in-app «Report a problem» → prefilled email + clipboard copy, redesigned welcome screen). Pre-release E2E: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`.
 - **Phase 0-3:** COMPLETE (foundation, app polish, freemium + onboarding + auto-updater, www + bare domain via Vercel)
 - **Phase 4 (Billing):** CLOSED 2026-10-03 — no payments provider (no LemonSqueezy account); the app is free with email activation. See `docs/DECISIONS.md` 2026-10-03.
 - **GitHub:** `marioforpro/super-downloads` (public — Releases reachable anonymously)
@@ -26,7 +26,7 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 - **Analytics:** PostHog integrated in landing
 - **Billing:** none. License/checkout code is dormant behind `FREE_MODE` in `src/main.js`
 - **Landing:** redesigned 2026-10-23 (real app screenshots, editing-timeline hero, `og.png`, Geist) — live. Screenshots regenerate via `scripts/screenshots/capture.cjs`.
-- **Health:** 7/7 platforms PASS; bundled engine 2026.10.21 (v1.5.2). Installed apps self-update the engine weekly (since v1.2.0).
+- **Health:** 7/7 platforms PASS; bundled engine 2026.10.21 (v1.5.3). Installed apps self-update the engine weekly (since v1.2.0).
 - **Founder actions pending:** update the installed app via the banner; decide signing/notarization (R-SD-009). See `NEXT.md`
 
 ## Critical Context

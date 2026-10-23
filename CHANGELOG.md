@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [1.5.3] — 2026-10-23
+## [1.5.3] — 2026-10-23 (released)
+
+GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.5.3 — anonymous DMG URLs 200 (97/109 MB); updater `latest.json` serves 1.5.3 (aarch64 + x86_64). Live E2E 9/9 + WebKit UI check 30/30 before publishing.
 
 Friends-testing release: reporting a problem takes one click, and the welcome screen is redesigned.
 

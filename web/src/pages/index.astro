@@ -7,7 +7,7 @@ const DMG_INTEL = `${REPO}/releases/latest/download/Super-Downloads_x64.dmg`;
 
 // Version and DMG sizes, read from the latest GitHub release at build time.
 // Fallbacks keep the build working offline or when the API rate-limits.
-const release = { version: '1.5.2', arm: 97, intel: 109 };
+const release = { version: '1.5.3', arm: 97, intel: 109 };
 try {
   const res = await fetch('https://api.github.com/repos/marioforpro/super-downloads/releases/latest', {
     headers: { 'User-Agent': 'superdownloads-web', Accept: 'application/vnd.github+json' },
