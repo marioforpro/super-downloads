@@ -537,12 +537,12 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   /* The hero window: a 1 px LED edge (bright at two corners, dim along the sides) and a soft blue halo */
   .hero-window {
     position: relative;
-    box-shadow: 0 0 0 1px rgba(140, 208, 255, 0.12), 0 0 36px rgba(48, 167, 255, 0.16), 0 40px 120px -30px rgba(48, 167, 255, .38), 0 30px 60px -30px rgba(0,0,0,.8);
+    box-shadow: 0 0 0 1px rgba(140, 208, 255, 0.18), 0 0 46px rgba(48, 167, 255, 0.26), 0 40px 120px -30px rgba(48, 167, 255, .44), 0 30px 60px -30px rgba(0,0,0,.8);
   }
   .hero-window::after {
     content: ''; position: absolute; inset: 0; z-index: 2; pointer-events: none;
     border-radius: inherit; padding: 1px;
-    background: linear-gradient(135deg, rgba(213, 235, 255, 0.85), rgba(140, 208, 255, 0.25) 22%, rgba(48, 167, 255, 0.08) 50%, rgba(140, 208, 255, 0.25) 78%, rgba(140, 208, 255, 0.7));
+    background: linear-gradient(135deg, rgba(225, 242, 255, 1), rgba(140, 208, 255, 0.42) 22%, rgba(48, 167, 255, 0.16) 50%, rgba(140, 208, 255, 0.42) 78%, rgba(140, 208, 255, 0.9));
     -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
