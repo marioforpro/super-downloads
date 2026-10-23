@@ -184,6 +184,21 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
       </div>
     </section>
 
+    <!-- Demo: 24 s film (marketing/demo, HyperFrames), the whole flow in the real UI -->
+    <section id="demo" class="demo" aria-labelledby="demo-title">
+      <div class="wrap">
+        <h2 id="demo-title" class="sr-only">See it in 24 seconds</h2>
+        <figure class="demo-frame">
+          <video id="demo-video" muted loop playsinline preload="none" poster="/demo/demo-poster.webp" width="1920" height="1080"
+            aria-label="Demo: copy a video link in the browser, switch to Super Downloads, press Enter; the video downloads, converts to H.264 and lands on an editing timeline">
+            <source src="/demo/demo-1080.webm" type="video/webm" />
+            <source src="/demo/demo-1080.mp4" type="video/mp4" />
+          </video>
+          <button class="demo-sound" id="demo-sound" type="button">Play with sound</button>
+        </figure>
+      </div>
+    </section>
+
     <!-- How it works: a real three-step sequence, each step its shortcut -->
     <section id="how" class="section how">
       <div class="wrap split">
@@ -352,6 +367,27 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     </div>
   </footer>
 
+  <script is:inline>
+    // Demo: play muted only while on screen; never autoplay with «Reduce motion».
+    (function () {
+      var v = document.getElementById('demo-video');
+      var b = document.getElementById('demo-sound');
+      if (!v || !b) return;
+      var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!still && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (es) {
+          es.forEach(function (e) {
+            if (e.isIntersecting) { v.play().catch(function () {}); } else if (v.muted) { v.pause(); }
+          });
+        }, { threshold: 0.35 }).observe(v);
+      }
+      b.addEventListener('click', function () {
+        if (v.muted) { v.muted = false; v.currentTime = 0; v.play(); b.textContent = 'Mute'; }
+        else { v.muted = true; b.textContent = 'Play with sound'; }
+        if (window.posthog) window.posthog.capture('demo_sound', { on: !v.muted });
+      });
+    })();
+  </script>
   <script is:inline define:vars={{ DMG_ARM, DMG_INTEL }}>
     (function () {
       var track = function (event, props) {
@@ -560,6 +596,15 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
 
   /* Sections */
   .section { padding: 120px 0; }
+  /* Demo film, on the hero's navy so the timeline panel flows into it */
+  .demo { background: #0d1b4f; padding: 8px 0 96px; }
+  .demo-frame { position: relative; margin: 0 auto; max-width: 1120px; border-radius: 16px; overflow: hidden;
+    box-shadow: 0 0 0 1px rgba(213,235,255,.16), 0 40px 120px -30px rgba(48,167,255,.35), 0 30px 60px -30px rgba(0,0,0,.8); background: #070f30; }
+  .demo-frame video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  .demo-sound { position: absolute; right: 16px; bottom: 16px; border: 0; border-radius: 999px; padding: 10px 16px;
+    font: 500 14px/1 "Geist Variable", sans-serif; color: var(--navy-950); background: rgba(213,235,255,.92); cursor: pointer; }
+  .demo-sound:hover { background: #fff; }
+  .demo-sound:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
   .section h2 { font-size: clamp(30px, 3.6vw, 44px); line-height: 1.08; letter-spacing: -0.035em; font-weight: 600; text-wrap: balance; }
   .split { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); gap: 64px; align-items: center; }
 

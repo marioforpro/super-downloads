@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-10-23 — Super Downloads is a lead magnet: a gift that leads to Mario's other work
+**Context:** Open questions from the landing review: what happens after «Free for a limited time», and whether to keep the «Made by Mario Monteiro» line.
+**Decision (founder):**
+- **Role:** the app is a lead magnet — something Mario gives to followers, friends and clients, and that brings them to know his other projects.
+- **Maker line stays** («Made by Mario Monteiro»).
+- **Free, no end date for now.** «Free for a limited time» copy stays as is; monetization is considered only if downloads and usage grow a lot. Not now.
+**Consequence:** Success = people who download, activate (email list) and then discover Mario's other work — not revenue. Product choices favour reach and a path to Mario's work over gating. The FAQ keeps saying nothing about the end of the free period.
+**Why:** a useful free tool for editors earns attention and goodwill from exactly the audience Mario's other projects serve.
+
 ## 2026-10-23 — App CSP keeps `img-src https:` (audit T1 closed, won't-fix)
 **Context:** The 2026-03-24 audit (T1) suggested narrowing the app's `img-src 'self' https: data:` to thumbnail domains; it was the last open audit item.
 **Decision:** Keep it. Thumbnails come from many platform CDNs that rotate subdomains (TikTok, Instagram, Facebook); an allowlist would break thumbnails silently on the next CDN change. The webview runs only bundled code (`script-src 'self'`, no inline script), so an image source cannot execute anything; the audit itself rated it low risk.
