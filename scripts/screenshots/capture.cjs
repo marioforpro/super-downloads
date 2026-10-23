@@ -44,7 +44,9 @@ const SCENES = [
 
 function stage() {
   for (const f of ["index.html", "main.js", "styles.css"]) fs.copyFileSync(path.join(ROOT, "src", f), path.join(STAGE, f));
-  fs.copyFileSync(path.join(__dirname, "mock.js"), path.join(STAGE, "mock.js"));
+  // The Settings header shows the app version: use the real one.
+  const { version } = JSON.parse(fs.readFileSync(path.join(ROOT, "package.json"), "utf8"));
+  fs.writeFileSync(path.join(STAGE, "mock.js"), fs.readFileSync(path.join(__dirname, "mock.js"), "utf8").replace("__APP_VERSION__", version));
   const html = path.join(STAGE, "index.html");
   fs.writeFileSync(html, fs.readFileSync(html, "utf8").replace('<script type="module" src="main.js">', '<script src="mock.js"></script>\n    <script type="module" src="main.js">'));
   fs.mkdirSync(path.join(STAGE, "thumbs"));

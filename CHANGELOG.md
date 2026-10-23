@@ -4,7 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ---
 
-## [1.5.3] — 2026-10-23 (released)
+## [1.5.4] — 2026-10-23
+
+Reliability and polish from the known-bugs list.
+
+### Fixed
+- **A dead connection no longer freezes a download for ~8 minutes.** The engine retried silently (15 × 30 s); if no data arrives for 90 seconds the download now stops with «The connection stalled… press Retry», and Retry resumes where it left off. Merging and conversion, which are silent by nature, are never cut. The same limit bounds a sign-in retry stuck behind a hidden Keychain prompt.
+- An open ⋯ menu no longer closes when another download changes state.
+- Opening Settings moves keyboard focus into the panel (VoiceOver reads «Settings»); closing it returns focus to the Settings button.
+- The app now declares its real minimum macOS — 12 on Apple Silicon, 10.15 on Intel (measured from the bundled ffmpeg and engine). Older Macs get a clear message from macOS instead of failed downloads. It used to claim 10.13.
+
+### Changed
+- New downloads slide into the list instead of appearing abruptly (off with «Reduce motion»).
+
+
 
 GitHub Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.5.3 — anonymous DMG URLs 200 (97/109 MB); updater `latest.json` serves 1.5.3 (aarch64 + x86_64). Live E2E 9/9 + WebKit UI check 30/30 before publishing.
 

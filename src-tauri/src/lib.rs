@@ -1082,6 +1082,7 @@ fn start_download<R: Runtime>(
         if let Ok(mut map) = active_downloads().lock() {
             map.insert(download_id.clone(), child.id());
         }
+        let watchdog = StallWatchdog::start(child.id(), STALL_TIMEOUT);
 
         let stdout = child.stdout.take().expect("No stdout");
         let stderr = child.stderr.take().expect("No stderr");
@@ -1103,6 +1104,10 @@ fn start_download<R: Runtime>(
 
         // Read stdout for progress and errors
         for line in lossy_lines(stdout_reader) {
+            watchdog.touch();
+            if is_post_processing_line(&line) {
+                watchdog.pause();
+            }
             all_stdout.push_str(&line);
             all_stdout.push('\n');
             progress.observe_line(&line);
@@ -1397,8 +1402,22 @@ fn start_download<R: Runtime>(
         error_messages.extend(stdout_errors);
 
         let exit_status = child.wait();
+        let stalled = watchdog.finish();
         if let Ok(mut map) = active_downloads().lock() {
             map.remove(&download_id);
+        }
+
+        // Partial files stay: yt-dlp runs with --continue, so Retry resumes.
+        if stalled && !take_cancelled(&download_id) {
+            eprintln!(
+                "Download {} stalled: no engine output for {:?}",
+                download_id, STALL_TIMEOUT
+            );
+            let _ = window.emit(
+                "download-error",
+                (download_id.clone(), STALL_ERROR.to_string()),
+            );
+            return;
         }
 
         match exit_status {
@@ -2162,6 +2181,100 @@ fn own_process_group(cmd: &mut Command) -> &mut Command {
     cmd
 }
 
+// Stall watchdog. yt-dlp reports its retries on stderr, which is read only
+// after the download ends, so a dead connection looked like a frozen progress
+// bar for ~8 minutes (15 retries × 30 s socket timeout). When the engine prints
+// nothing on stdout for STALL_TIMEOUT, stop its process group so the row shows
+// a retryable error. Paused during merge/post-processing, which is silent.
+const STALL_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);
+const STALL_ERROR: &str =
+    "The connection stalled — no data for 90 seconds. Check your internet and press Retry.";
+
+struct StallWatchdog {
+    last_activity: std::sync::Arc<Mutex<std::time::Instant>>,
+    paused: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    finished: std::sync::Arc<std::sync::atomic::AtomicBool>,
+    fired: std::sync::Arc<std::sync::atomic::AtomicBool>,
+}
+
+impl StallWatchdog {
+    fn start(pid: u32, timeout: std::time::Duration) -> Self {
+        use std::sync::{atomic::AtomicBool, atomic::Ordering, Arc};
+        let watchdog = Self {
+            last_activity: Arc::new(Mutex::new(std::time::Instant::now())),
+            paused: Arc::new(AtomicBool::new(false)),
+            finished: Arc::new(AtomicBool::new(false)),
+            fired: Arc::new(AtomicBool::new(false)),
+        };
+        let (last, paused, finished, fired) = (
+            watchdog.last_activity.clone(),
+            watchdog.paused.clone(),
+            watchdog.finished.clone(),
+            watchdog.fired.clone(),
+        );
+        thread::spawn(move || {
+            while !finished.load(Ordering::Relaxed) {
+                thread::sleep(std::time::Duration::from_millis(250));
+                let idle = last.lock().map(|t| t.elapsed()).unwrap_or_default();
+                if !paused.load(Ordering::Relaxed)
+                    && idle >= timeout
+                    && !finished.load(Ordering::Relaxed)
+                {
+                    fired.store(true, Ordering::Relaxed);
+                    // own_process_group made the engine a group leader: stop it
+                    // and the ffmpeg it spawned.
+                    let _ = Command::new("kill")
+                        .args(["-TERM", "--", &format!("-{}", pid)])
+                        .status();
+                    break;
+                }
+            }
+        });
+        watchdog
+    }
+
+    fn touch(&self) {
+        if let Ok(mut t) = self.last_activity.lock() {
+            *t = std::time::Instant::now();
+        }
+    }
+
+    fn pause(&self) {
+        self.paused
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+    }
+
+    // Stops the watchdog; true when it had to kill the engine.
+    fn finish(&self) -> bool {
+        self.finished
+            .store(true, std::sync::atomic::Ordering::Relaxed);
+        self.fired.load(std::sync::atomic::Ordering::Relaxed)
+    }
+}
+
+impl Drop for StallWatchdog {
+    fn drop(&mut self) {
+        self.finish();
+    }
+}
+
+// Silent phases after the download itself: merge, re-encode, audio extraction.
+fn is_post_processing_line(line: &str) -> bool {
+    [
+        "[Merger]",
+        "Merging",
+        "[ExtractAudio]",
+        "[VideoConvertor]",
+        "[VideoRemuxer]",
+        "[Fixup",
+        "[ffmpeg]",
+        "[EmbedThumbnail]",
+        "[Metadata]",
+    ]
+    .iter()
+    .any(|tag| line.contains(tag))
+}
+
 fn probe_video_codec_and_duration(path: &str, ffmpeg_dir: &str) -> (Option<String>, Option<f64>) {
     let ffprobe =
         find_bundled_binary("ffprobe").unwrap_or_else(|| format!("{}/ffprobe", ffmpeg_dir));
@@ -2322,6 +2435,8 @@ fn run_streaming_attempt<R: Runtime>(
     if let Ok(mut map) = active_downloads().lock() {
         map.insert(download_id.to_string(), child.id());
     }
+    // Also bounds a cookie retry stuck behind a hidden Keychain prompt.
+    let watchdog = StallWatchdog::start(child.id(), STALL_TIMEOUT);
     // Drain stderr on its own thread so a chatty stderr can never block stdout.
     let stderr_handle = child.stderr.take().map(|err| {
         thread::spawn(move || {
@@ -2334,6 +2449,10 @@ fn run_streaming_attempt<R: Runtime>(
     let mut progress = ProgressTracker::default();
     if let Some(out) = child.stdout.take() {
         for line in lossy_lines(out) {
+            watchdog.touch();
+            if is_post_processing_line(&line) {
+                watchdog.pause();
+            }
             progress.observe_line(&line);
             if let Some((raw, speed)) = parse_progress(&line) {
                 let pct = progress.overall(raw);
@@ -2353,6 +2472,12 @@ fn run_streaming_attempt<R: Runtime>(
         }
     }
     let ok = child.wait().map(|s| s.success()).unwrap_or(false);
+    if watchdog.finish() {
+        eprintln!(
+            "Attempt for {} stalled: no engine output for {:?}",
+            download_id, STALL_TIMEOUT
+        );
+    }
     if let Ok(mut map) = active_downloads().lock() {
         map.remove(download_id);
     }
@@ -2451,6 +2576,59 @@ mod e2e_tests;
 
 #[cfg(test)]
 mod tests {
+    fn spawn_sleeper() -> std::process::Child {
+        let mut cmd = std::process::Command::new("sleep");
+        cmd.arg("30");
+        super::own_process_group(&mut cmd)
+            .spawn()
+            .expect("spawn sleep")
+    }
+
+    #[test]
+    fn stall_watchdog_stops_a_silent_engine() {
+        let mut child = spawn_sleeper();
+        let watchdog =
+            super::StallWatchdog::start(child.id(), std::time::Duration::from_millis(500));
+        let started = std::time::Instant::now();
+        let status = child.wait().expect("wait");
+        assert!(!status.success(), "sleep should have been killed");
+        assert!(started.elapsed() < std::time::Duration::from_secs(5));
+        assert!(watchdog.finish(), "watchdog should report it fired");
+    }
+
+    #[test]
+    fn stall_watchdog_spares_an_engine_that_talks_or_is_post_processing() {
+        let mut child = spawn_sleeper();
+        let watchdog =
+            super::StallWatchdog::start(child.id(), std::time::Duration::from_millis(600));
+        for _ in 0..6 {
+            std::thread::sleep(std::time::Duration::from_millis(200));
+            watchdog.touch();
+        }
+        watchdog.pause();
+        std::thread::sleep(std::time::Duration::from_millis(1200));
+        assert!(
+            child.try_wait().expect("try_wait").is_none(),
+            "engine must still run"
+        );
+        assert!(!watchdog.finish());
+        let _ = child.kill();
+        let _ = child.wait();
+    }
+
+    #[test]
+    fn post_processing_lines_are_recognised() {
+        assert!(super::is_post_processing_line(
+            "[Merger] Merging formats into \"a.mp4\""
+        ));
+        assert!(super::is_post_processing_line(
+            "[ExtractAudio] Destination: a.mp3"
+        ));
+        assert!(!super::is_post_processing_line(
+            "[download]  42.0% of 10.00MiB at 2.00MiB/s"
+        ));
+    }
+
     #[test]
     fn url_host_is_matches_host_not_substring() {
         assert!(super::url_host_is("https://x.com/user/status/1", "x.com"));

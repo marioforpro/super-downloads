@@ -121,9 +121,25 @@ ASSETS=(
 
 echo
 if [[ "$PUBLISH" == "1" ]]; then
-  echo "▶ Publishing ${TAG} to GitHub…"
-  gh release create "$TAG" --repo "$REPO" --title "Super Downloads ${TAG}" \
-    --notes "See CHANGELOG.md" "${ASSETS[@]}"
+  # Provenance gate: the DMGs must be newer than the last release-critical commit.
+  ./scripts/check-release-artifacts.sh dist/Super-Downloads_aarch64.dmg dist/Super-Downloads_x64.dmg
+
+  # Tag exactly the commit that was built, which must already be on GitHub.
+  TARGET="$(git rev-parse HEAD)"
+  git fetch -q origin
+  if ! git merge-base --is-ancestor "$TARGET" origin/main; then
+    echo "FAIL: HEAD ${TARGET:0:7} is not on origin/main — push it first" >&2
+    exit 1
+  fi
+
+  # Release notes = this version's CHANGELOG section (the landing links to them).
+  NOTES="$(awk -v v="## [${VERSION}]" 'index($0, v) == 1 { on = 1; next } on && /^## / { exit } on' CHANGELOG.md)"
+  [[ -n "${NOTES//[[:space:]]/}" ]] || NOTES="See CHANGELOG.md"
+
+  echo "▶ Publishing ${TAG} (${TARGET:0:7}) to GitHub…"
+  gh release create "$TAG" --repo "$REPO" --target "$TARGET" --title "Super Downloads ${TAG}" \
+    --notes "$NOTES" "${ASSETS[@]}"
+  git fetch -q --tags origin
   echo "✓ Published. Updater endpoint will serve dist/latest.json via releases/latest."
 else
   echo "Artifacts ready in dist/. To publish:"

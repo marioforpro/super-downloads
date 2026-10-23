@@ -57,7 +57,7 @@
   window.__TAURI__ = {
     core: { invoke, convertFileSrc: (p) => p },
     event: { listen: async () => () => {} },
-    app: { getVersion: async () => "1.5.2" },
+    app: { getVersion: async () => "__APP_VERSION__" }, // filled in by capture.cjs
     opener: { openUrl: async () => {}, openPath: async () => {} },
   };
 })();

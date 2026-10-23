@@ -71,7 +71,7 @@ Free for now, unsigned, for content you own or are authorized to download. Feedb
 - [ ] Unas semanas de uso propio + amigos sin bugs críticos (fase actual).
 - [ ] Screenshots (3-5) y GIF/vídeo demo con la v1.4.0 (Settings nuevo).
 - [ ] Canal de soporte decidido (support@superdownloads.app ya existe).
-- [ ] Probado en un macOS antiguo (la app declara 10.13+; nunca probado por debajo del actual).
+- [ ] Probado en un macOS antiguo (mínimo real medido 2026-10-23: Intel 10.15 por el motor, Apple Silicon 12 por ffmpeg; nunca probado por debajo del actual).
 - [ ] Instagram: re-verificar el fallback sin login con `scripts/platform-health-check.sh --ig-fallback` (sus URLs de prueba estaban muertas el 2026-10-03).
 - [ ] Repo público **sin licencia** (código visible, no open source): decidir si se menciona el repo y con qué licencia antes de enlazarlo en HN.
 - [ ] Normas de r/macapps (flair/disclosure de autor) revisadas el día.

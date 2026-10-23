@@ -924,6 +924,13 @@ async function clearDownloadList() {
 }
 
 // Render download list
+// Rows present at the last render; rows not in it get an entry animation.
+// null until the first render, so history loaded at launch doesn't animate.
+// A re-render mid-animation resumes it (negative delay) instead of restarting.
+let renderedRowIds = null;
+const ROW_ENTER_MS = 280;
+const rowEnterStarts = new Map();
+
 function renderDownloadList() {
   syncMinimumWindowHeight();
   if (clearListBtn) {
@@ -942,11 +949,28 @@ function renderDownloadList() {
         <div class="empty-state-hint">YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn</div>
       </div>
     `;
+    renderedRowIds = new Set();
     scheduleWindowResize();
     return;
   }
 
+  // A status change in one row re-renders the whole list; keep a ⋯ menu that
+  // is open on another row open across it.
+  const openMenuId = downloadList.querySelector(".download-item-menu.visible")?.id.replace(/^menu-/, "");
   downloadList.innerHTML = downloads.map(download => createDownloadItemHTML(download)).join("");
+  const now = performance.now();
+  downloadList.querySelectorAll(".download-item").forEach(row => {
+    const id = row.dataset.downloadId;
+    if (renderedRowIds && !renderedRowIds.has(id)) rowEnterStarts.set(id, now);
+    const elapsed = now - (rowEnterStarts.get(id) ?? -Infinity);
+    if (elapsed < ROW_ENTER_MS) {
+      row.classList.add("is-entering");
+      row.style.animationDelay = `-${Math.round(elapsed)}ms`;
+    } else {
+      rowEnterStarts.delete(id);
+    }
+  });
+  renderedRowIds = new Set(downloads.map(d => d.id));
   attachThumbnailFallbackHandlers();
   
   // Add event listeners for menu buttons
@@ -968,6 +992,9 @@ function renderDownloadList() {
       closeAllContextMenus();
     });
   });
+  if (openMenuId && document.getElementById(`menu-${openMenuId}`)) {
+    toggleContextMenu(openMenuId);
+  }
 
   scheduleWindowResize();
 }
@@ -2047,6 +2074,7 @@ function setSettingsGuideOpen(isOpen) {
 }
 
 function setSettingsOpen(isOpen) {
+  const wasOpen = settingsPanel.classList.contains("open");
   settingsPanel.classList.toggle("open", isOpen);
   appRoot?.classList.toggle("settings-open", isOpen);
   if (!isOpen) {
@@ -2056,6 +2084,13 @@ function setSettingsOpen(isOpen) {
     settingsBtn.classList.toggle("open", isOpen);
     settingsBtn.setAttribute("aria-pressed", isOpen ? "true" : "false");
     settingsBtn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+  }
+  // Keyboard and VoiceOver users land in the panel, and back on the button.
+  if (isOpen && !wasOpen) {
+    document.querySelector("#settings-title")?.focus({ preventScroll: true });
+  } else if (!isOpen && wasOpen &&
+             (settingsPanel.contains(document.activeElement) || document.activeElement === document.body)) {
+    settingsBtn?.focus({ preventScroll: true });
   }
 }
 

@@ -24,6 +24,15 @@
 - **Landing page**: `cd web && npm run build`. Deployed on Vercel (auto-deploy on push to main).
 - **Cross-arch builds**: Homebrew `rust` ships only the host stdlib. To build the non-host target, prepend the rustup toolchain to PATH: `PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH" npm run tauri build -- --target x86_64-apple-darwin --bundles dmg`.
 
+## Release pipeline
+
+1. **Tests** — `npm run check`, then the live E2E on the real `download_video`: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture` (9 platform cases; the metadata-only health check once said Vimeo PASS while every download failed).
+2. **Version + CHANGELOG** — bump `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml` (+ `cargo update -p super-downloads --offline` for `Cargo.lock`); write the `## [x.y.z]` CHANGELOG section — it becomes the GitHub release notes.
+3. **Commit + push first** — the provenance gate compares DMG mtimes with the last release-critical commit, and the tag must point at a commit already on `origin/main`.
+4. **Build** — `source ~/.secrets && ./scripts/make-release.sh` builds both arches, signs the updater artifacts (Ed25519 key `src-tauri/.tauri-update-key`, password `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in `~/.secrets`; public key in `tauri.conf.json` = the `.pub` file verbatim) and writes `dist/latest.json`.
+5. **Publish** — `./scripts/make-release.sh --no-build --publish`: runs the provenance gate, tags HEAD (`--target`), uses the CHANGELOG section as notes, uploads both DMGs + both `.app.tar.gz` + `latest.json`. The in-app updater polls `releases/latest/download/latest.json`, so `latest.json` must always be an asset. Auto mode cannot publish: the founder runs this line.
+6. **After** — check the DMG + updater URLs return 200 and `latest.json` shows the new version; set the fallback `release` in `web/src/pages/index.astro` and push (Vercel rebuilds the landing, which reads version + sizes from the GitHub API).
+
 ## Release verification
 
 > **Why:** Session 161 (2026-05-06) caught a false invariant before publish — `dist/` contained DMGs whose mtime was 7 weeks older than the LS-URL fix commit (`cba5d29`, 2026-04-27). The 2026-04-28 pre-flight had verified file presence, not freshness. "Artifact exists" ≠ "artifact valid"; provenance is what proves a release. Rule below codifies that lesson.

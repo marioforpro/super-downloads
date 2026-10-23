@@ -50,7 +50,15 @@ updated: 2026-10-23
   - added: 2026-10-23
   - moved: 2026-10-23
   - why: SD-F-009 (2026-08-16) said «revisit at >100 downloads or install complaints». DMG downloads across releases are now **113** (GitHub API, 2026-10-23). Unsigned builds make macOS 15 hide «Open Anyway» deep in System Settings, the single biggest drop-off for non-technical friends. Apple Developer Program = 99 USD/year; notarization is free with it (Apple: «Notarizing macOS software before distribution»).
-  - next: founder decides yes/no. If yes: enroll → Developer ID cert → `tauri.conf.json` signing identity + `notarytool` in `make-release.sh` → drop the xattr FAQ.
+  - decided: 2026-10-23 — founder: yes, in December (Christmas break). App Store is out (guideline 5.2.3 bans downloaders); Developer ID + notarization is an automated malware/signing check, not App Review.
+  - target: 2026-12-20
+  - next: founder enrolls in the Apple Developer Program (marioforpro@gmail.com) and creates a Developer ID Application cert → Claude: sign every engine dylib/.so + hardened-runtime entitlements, `notarytool` + staple in `make-release.sh`, drop the xattr / «Open Anyway» install guide from landing + FAQ.
+- **R-SD-010** · P1 · active · v1.5.4 — reliability + polish from the known-bugs list
+  - added: 2026-10-23
+  - moved: 2026-10-23
+  - scope: stall watchdog (90 s without engine output → retryable «connection stalled» error, also bounds the Keychain-prompt cookie retry) · ⋯ menu survives re-renders · Settings focus management · real minimum macOS declared (Info.plist per arch) + landing aligned · row entry animation · release script hardening (tag = built commit, provenance gate, CHANGELOG notes).
+  - progress: 2026-10-23 · code + docs done; `npm run check` green (36 Rust tests incl. 3 watchdog tests on a real process); WebKit UI check 39/39; landing build green.
+  - next: live E2E → build → founder publishes.
 
 - **R-SD-001** · P1 · dropped · Submit Super Downloads to LemonSqueezy for approval
   - dropped: 2026-07-21
@@ -108,7 +116,7 @@ updated: 2026-10-23
 - Analytics telemetry opt-in (from Phase 2 deferred list)
 - Windows/Linux expansion
 - Browser extension (was Phase 8 in prior roadmap — legitimately future work)
-- Verify the real minimum macOS (Tauri 2 targets 10.15; `tauri.conf.json` + JSON-LD claim 10.13) and align the landing
+- ~~Verify the real minimum macOS~~ — done 2026-10-23 (measured with `otool` on the built bundles): **Intel 10.15** (engine), **Apple Silicon 12** (ffmpeg/ffprobe arm64). App declares it (`minimumSystemVersion` 10.15 + `src-tauri/Info.plist` `LSMinimumSystemVersionByArchitecture`); landing download buttons, FAQ and JSON-LD aligned. Ships in v1.5.4.
 - MacUpdate / AlternativeTo directory submissions — bundle with R-SD-002 when promotion is decided
 - Product Hunt launch (timing TBD) — needs R-SD-009 first: an unsigned app on launch day turns the comment thread into install support
 - **Founder comp license via LemonSqueezy** — **void 2026-10-03** (no LemonSqueezy account; app is free). ~~— issue real comp license through Lemon dashboard (Product → Licenses → Issue License Key, comp/free) for `supermariomonteiro@gmail.com`, replace local `FOUNDER-MARIO-001` stop-gap (Session 201 inject, see `docs/SECURITY-NOTES.md`). Validates the full activation flow end-to-end with a real Lemon-tracked record. Depends on: Lemon product live (linked to R-SD-001 Phase 4 LS-verify). **Sequencing constraint** (surfaced 2026-08-03 from `docs/SECURITY-NOTES.md` prose, SD-F-014): replace the FOUNDER-MARIO-001 stop-gap before/with the license-hardening review below, so any revalidation layer doesn't lock the founder's injected keys out.~~
@@ -118,7 +126,7 @@ updated: 2026-10-23
 - **Runtime yt-dlp self-update** — ✅ shipping in **v1.2.0** (2026-07-16, R-SD-004 Track A). Pendings closed: (1) in the v1.2.0 build ✅; (3) Settings "Update engine" button wired to `update_ytdlp` + `get_ytdlp_version` ✅; (4) version-comparison guard implemented (`prune_stale_managed_ytdlp`) ✅. Still open: (2) runtime E2E verify of the self-update network path on a real app run — do at v1.2.0 smoke test.
 - ~~**Cockpit state wiring** — after the 2026-06-16 frontmatter reconciliation (ROADMAP + HEALTH → parked), regenerate + publish `state.super-downloads.json` via the LifeOS engine (`/lifeos-publish`) so the cockpit stops rendering SD as an active Phase-4 project. The doc edits are the inputs; the shard regen is the engine-facing surface. (cross-department: 00_System/LIFEOS-COCKPIT + Vercel)~~ [killed: premise reversed on 2026-07-21 — SD was reopened 2026-07-16 and should render as active; the shard regenerates unattended (state.super-downloads.json refreshed daily by reconstruction-engine) so there is no wiring left to do]
 - **Reconcile stale product audits** — `docs/APP-AUDIT.md` (14 items) + `docs/DIAGNOSTIC.md` are frozen at 2026-03-24/v1.1.0; many flagged items shipped across Phases 0–3 + v1.1.1. Add a "Reconciled" banner, strike shipped items, and lift the still-open debt into this backlog. Residue list re-verified 2026-08-03 (SD-F-012): the only genuinely open item is **landing CSP `img-src`**. Resolved since the list was written — history-persistence README contradiction (fixed 2026-08-03, SD-F-007: invoke key + catch logging + README re-word), hardcoded version P8 (dynamic `getVersion()` overwrite ships; only a pre-JS placeholder remains), stray `console.log`s T3 (0 exist).
-- **Release-ops hardening (dept)** — (a) backfill local annotated git tags for v1.1.0/v1.1.1 (none exist; `git show <tag>` history hints don't resolve) and add a tag-push step to `scripts/make-release.sh`; (b) lift the release pipeline (`make-release.sh`, required `latest.json` asset, `check-release-artifacts.sh` provenance gate, Ed25519 key rotation) from MEMORY.md into `docs/OPS.md` (the authoritative ops doc per Doc Ownership).
+- ~~**Release-ops hardening**~~ — done 2026-10-23: tags v1.1.0…v1.5.3 exist (gh creates them; now fetched locally); `make-release.sh --publish` tags the built commit (`--target`), refuses an unpushed HEAD, runs the provenance gate itself and uses the CHANGELOG section as release notes; pipeline documented in `docs/OPS.md` § Release pipeline.
 
 ## Prior Phases — history (one-line summary)
 

@@ -736,6 +736,17 @@ body.theme-light .app.auto-add-active::after {
 }
 
 /* Download Item */
+.download-item.is-entering {
+  animation: rowEnter 0.28s ease-out;
+}
+
+@keyframes rowEnter {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
 .download-item {
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
@@ -1176,6 +1187,11 @@ body.theme-light .download-item {
   padding: 0 10px 0 14px;
   border-bottom: 1px solid var(--border-color);
   flex-shrink: 0;
+}
+
+/* Focus target for screen readers only; not interactive. */
+#settings-title:focus {
+  outline: none;
 }
 
 .settings-panel-header h2 {

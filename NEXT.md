@@ -2,7 +2,7 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
-> **NEXT (2026-10-23):** v1.5.3 publicada («Report a problem» + bienvenida nueva). «Report a problem» probado por el founder en la app instalada (abre Apple Mail listo para enviar). Pendiente: pegar `superdownloads.app` en WhatsApp/X para ver la preview). Decisiones abiertas: firma/notarización (R-SD-009) · qué pasa al acabar «Free for a limited time» · frase «Made by Mario Monteiro». Después: arreglar lo que reporten los amigos.
+> **NEXT (2026-10-23):** v1.5.3 publicada y probada por el founder. **v1.5.4 preparada** (descargas colgadas → error con Retry a los 90 s, menú ⋯ estable, foco en Settings, macOS mínimo real, animación de filas): falta publicarla — comando en el paso 6. Decisiones abiertas: qué pasa al acabar «Free for a limited time» · frase «Made by Mario Monteiro». Firma Apple: diciembre (R-SD-009, objetivo 2026-12-20).
 
 ## Dónde estamos (2026-10-23)
 
@@ -17,7 +17,8 @@
 2. ~~v1.5.2 de mantenimiento~~ — **publicada 2026-10-23** (E2E 9/9). Pendiente founder: actualizar la app instalada con el banner «Update». E2E antes: `cd src-tauri && cargo test e2e_downloads_live -- --ignored --nocapture`. Release: `load-secrets && ./scripts/make-release.sh`.
 3. ~~Motor que se actualiza solo~~ — **ya existía** desde v1.2.0 (refresco semanal en segundo plano). Lo que faltaba era verificar el checksum: hecho, va en la v1.5.2 (R-SD-007).
 4. ~~«Report a problem» dentro de la app~~ — **publicado en la v1.5.3** (2026-10-23; E2E 9/9, UI 30/30). Probado por el founder: abre Apple Mail con el correo listo. Los reportes de amigos llegan a support@ — de ahí salen los siguientes arreglos.
-5. **Decidir firma + notarización de Apple** (R-SD-009): el disparador acordado (>100 descargas) ya se cumplió. 99 USD/año.
+5. **Firma + notarización de Apple** (R-SD-009): **decidido — sí, en diciembre (Navidad, objetivo 2026-12-20).** Tu paso: alta en Apple Developer (99 USD/año, `marioforpro@gmail.com`) + certificado Developer ID. El resto lo hago yo. App Store no (norma 5.2.3).
+6. **v1.5.4** (R-SD-010) — publicar con `! source ~/.secrets && ./scripts/make-release.sh --no-build --publish` cuando esté compilada.
 
 ## Regenerar screenshots de la landing
 
@@ -25,11 +26,11 @@ Cuando cambie la UI de la app: ver `scripts/screenshots/README.md` (renderiza el
 
 ## Bugs menores conocidos (QA 2026-10-03, ninguno bloquea)
 
-1. Un cambio de estado re-renderiza toda la lista → cierra un menú ⋯ abierto en otra fila.
-2. Sin watchdog si la red se cuelga sin error (yt-dlp puede esperar ~8 min con `--retries 15`).
-3. Un prompt oculto del Llavero (cookies) puede dejar el reintento esperando — cancelable, sin timeout.
-4. Al abrir Settings el foco no entra en el panel.
-5. Las filas nuevas no tienen animación de entrada.
+1. ~~Un cambio de estado cerraba un menú ⋯ abierto en otra fila~~ → arreglado en v1.5.4.
+2. ~~Sin watchdog si la red se cuelga~~ → v1.5.4: 90 s sin datos = error «connection stalled» con Retry.
+3. ~~Prompt oculto del Llavero sin timeout~~ → v1.5.4: el mismo límite de 90 s.
+4. ~~Al abrir Settings el foco no entraba en el panel~~ → arreglado en v1.5.4.
+5. ~~Las filas nuevas no tenían animación de entrada~~ → v1.5.4.
 6. ~~`url.contains("x.com")` casaba con dropbox.com~~ → arreglado en v1.5.2.
 7. ~~Sin verificación SHA256 del motor auto-actualizado~~ → arreglado en v1.5.2.
 8. Las URLs de prueba del fallback de Instagram están muertas (`--ig-fallback` da WARN).

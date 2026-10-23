@@ -4,6 +4,11 @@
 
 ---
 
+## 2026-10-23 — Apple signing + notarization: yes, in December
+**Context:** R-SD-009 trigger reached (113 DMG downloads > 100). Founder asked whether Apple could refuse a downloader app.
+**Decision (founder):** Sign with Developer ID and notarize, during the Christmas break (target 2026-12-20). Not the Mac App Store: guideline 5.2.3 forbids apps that download media from third-party sources, so the app stays distributed from the website/GitHub. Notarization is Apple's automated malware + signing check, not App Review.
+**Consequence:** Until then the install guide (Gatekeeper «Open Anyway», `xattr`) stays on the landing. Residual risk accepted: Apple can revoke a Developer ID certificate (in practice for malware); worst case = back to unsigned.
+
 ## 2026-10-23 — Landing shows the real app; screenshots generated from the frontend
 **Context:** Founder: the web needed to be more complete — «faltan screenshots de la aplicación». The landing had no image at all; `og.png` was referenced in the meta tags but did not exist, so every shared link showed no preview.
 **Decision:** Redesign the landing around real app screenshots. They are produced by rendering the app's own frontend in WebKit with a fake Tauri API and staged downloads (`scripts/screenshots/`), so they always match the shipped UI and can be regenerated in one command. Demo content = Blender Studio open movies (CC BY 4.0, credited in the footer), consistent with the "content you have rights to" positioning. One signature element: the hero shows the app window over an editing timeline (the editor's world). Geist becomes the web typeface. The Pricing section goes (a single €0 card added nothing); «Free for a limited time» lives in the hero and the download section.

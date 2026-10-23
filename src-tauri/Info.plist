@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Merged into the app's Info.plist by Tauri. Real minimums, measured from the
+     bundled binaries (otool minos): ffmpeg/ffprobe arm64 need macOS 12, the
+     engine needs 10.15. macOS refuses to launch below these with a clear message. -->
+<plist version="1.0">
+<dict>
+  <key>LSMinimumSystemVersionByArchitecture</key>
+  <dict>
+    <key>arm64</key>
+    <string>12.0</string>
+    <key>x86_64</key>
+    <string>10.15</string>
+  </dict>
+</dict>
+</plist>

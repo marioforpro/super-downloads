@@ -97,7 +97,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   },
   {
     q: 'Is there a Windows or Linux version?',
-    a: 'Not yet. Super Downloads is Mac only, for Apple Silicon and Intel.',
+    a: 'Not yet. Super Downloads is Mac only: Apple Silicon with macOS 12 Monterey or later, and Intel with macOS 10.15 Catalina or later.',
   },
 ];
 ---
@@ -291,10 +291,10 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         <p class="download-sub">Free for a limited time. Unlimited downloads, every feature. Enter your email once in the app to activate.</p>
         <div class="download-buttons">
           <a href={DMG_ARM} class="btn btn-blue btn-dl js-dmg" data-arch="arm" data-place="download">
-            <span>Apple Silicon</span><small>M1 or later · {release.arm} MB</small>
+            <span>Apple Silicon</span><small>M1 or later · macOS 12+ · {release.arm} MB</small>
           </a>
           <a href={DMG_INTEL} class="btn btn-ghost btn-dl js-dmg" data-arch="intel" data-place="download">
-            <span>Intel</span><small>Macs with an Intel chip · {release.intel} MB</small>
+            <span>Intel</span><small>Intel chip · macOS 10.15+ · {release.intel} MB</small>
           </a>
         </div>
         <p class="download-help">Not sure which? Apple menu › About This Mac shows your chip.</p>
