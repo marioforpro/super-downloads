@@ -2,12 +2,14 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
+> **NEXT (2026-10-23):** v1.5.2 publicada + landing pulida tras revisión de 4 expertos (en producción). Primer paso founder: actualizar la app instalada con el banner «Update» y pegar `superdownloads.app` en WhatsApp/X para ver la preview. Decisiones abiertas: qué pasa al acabar «Free for a limited time» (el FAQ calla a propósito) · frase «Made by Mario Monteiro» · firma/notarización (R-SD-009). Siguiente build: «Report a problem» en la app (R-SD-008).
+
 ## Dónde estamos (2026-10-23)
 
 - **App gratis, v1.5.2 publicada** (2026-10-23: motor 2026.10.21, checksum en el auto-update, fixes). Fase: uso propio + amigos testeando, sin anuncio público (`docs/DECISIONS.md` 2026-10-03).
 - **113 descargas de DMG** en total (GitHub API). La más bajada: v1.2.0 (60).
 - **Health check diario:** 7/7 PASS. El DEGRADED (motor viejo) de 2026-10-22 queda resuelto con la v1.5.2 (motor empaquetado 2026.10.21).
-- **Landing nueva en producción** (R-SD-005): screenshots reales de la app, hero con timeline de edición, `og.png` (antes faltaba), tipografía Geist.
+- **Landing nueva en producción** (R-SD-005), pulida tras revisión de diseño (visual, UX, copy, accesibilidad): descarga directa según chip, guía de instalación tras el clic, móvil «Send this page to your Mac», FAQ ampliado, WCAG AA.
 
 ## Próximos pasos, en orden
 
