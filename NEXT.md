@@ -2,7 +2,7 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
-> **NEXT (2026-10-23):** v1.5.4 publicada. **Demo de 24 s hecha** (R-SD-011): en la landing (`superdownloads.app/#demo`) y renderizada en 16:9 y 9:16 (`marketing/demo*/renders/`). Falta: **elegir música** (pista de 120 BPM) para la versión de redes y publicarla en Instagram/X. «Watch demo» en Settings sale en la próxima versión de la app. Decidido hoy: lead magnet, free sin fecha, frase de autor. Firma Apple: diciembre (R-SD-009).
+> **NEXT (2026-10-23):** v1.5.4 publicada. **Demo v7 lista para revisar** (R-SD-011): en el trabajo de STUDIO `clients/super-downloads/demo-film/motion/` (`demo/renders/demo_v7b.mp4` 16:9 · `demo-vertical/renders/demo_vertical_v7b.mp4` 9:16) — sin fundidos, desenfoque de movimiento real, cámara continua, sonido nuevo, sin «Made by». Falta: **música original en Suno** (en curso); después cambio los vídeos de la landing (ya codificados con mejor calidad) y se publica en Instagram/X. Firma Apple: diciembre (R-SD-009).
 
 ## Dónde estamos (2026-10-23)
 

@@ -4,6 +4,10 @@
 
 ---
 
+## 2026-10-23 — The demo film carries no «Made by Mario Monteiro»
+**Context:** Founder review of the demo v5: «no es necesario tenerlo tan visible en la demo».
+**Decision (founder):** the end card is the product alone — icon, «Super Downloads», «Free for Mac · superdownloads.app», the film credit. The maker line stays on the landing and in the app (decision below); only the demo drops it.
+
 ## 2026-10-23 — Super Downloads is a lead magnet: a gift that leads to Mario's other work
 **Context:** Open questions from the landing review: what happens after «Free for a limited time», and whether to keep the «Made by Mario Monteiro» line.
 **Decision (founder):**
