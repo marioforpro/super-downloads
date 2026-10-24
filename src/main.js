@@ -411,7 +411,7 @@ function showOnboarding() {
       <p class="onboarding-tagline">The video downloader built for editors.</p>
       <div class="onboarding-free-note">${FREE_MODE ? "Free for a limited time · unlimited downloads" : `${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited`}</div>
       <div class="onboarding-features">
-        ${onboardingFeatureHtml("copy", "Copy. Switch. Enter.", "Copy a video link, come back and press Enter. Batch mode grabs many at once.")}
+        ${onboardingFeatureHtml("copy", "Copy. Paste. Done.", "Copy a video link and paste it here. Batch mode grabs many at once.")}
         ${onboardingFeatureHtml("timeline", "Ready for your timeline", "H.264 MP4, straight into Premiere, Resolve or Final Cut.")}
         ${onboardingFeatureHtml("globe", "Seven platforms", "YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn.")}
       </div>
@@ -947,7 +947,7 @@ function renderDownloadList() {
           <path d="M7 12l5 5 5-5"></path>
           <path d="M5 19h14"></path>
         </svg>
-        <div class="empty-state-title">Copy a video link and come back</div>
+        <div class="empty-state-title">Copy a video link and paste it here</div>
         <div class="empty-state-hint">YouTube, TikTok, X, Vimeo, Instagram, Facebook, LinkedIn</div>
       </div>
     `;
