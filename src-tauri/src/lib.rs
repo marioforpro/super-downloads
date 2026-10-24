@@ -96,6 +96,18 @@ fn is_vimeo_oauth_401_error(error_text: &str) -> bool {
     old_signature || new_signature
 }
 
+// When the first Vimeo attempt (the vimeo.com page) should move on to the embed
+// player: the login wall above, or a page that is a 404. Owners can hide a
+// video from vimeo.com and keep it embeddable ("Hide from Vimeo"); its page is
+// then a 404 while player.vimeo.com still plays it (1024192767, 2026-10-25).
+fn vimeo_direct_needs_embed(error_text: &str) -> bool {
+    let lower = error_text.to_lowercase();
+    let hidden_page = lower.contains("[vimeo")
+        && lower.contains("unable to download webpage")
+        && lower.contains("http error 404");
+    hidden_page || is_vimeo_oauth_401_error(error_text)
+}
+
 // `https://vimeo.com/76979871` → `https://player.vimeo.com/video/76979871`
 // (`vimeo.com/<id>/<hash>` unlisted links keep their hash as `?h=<hash>`).
 // Returns None when the URL is already an embed URL or carries no numeric id.
@@ -1586,7 +1598,7 @@ fn start_download<R: Runtime>(
                 // again with the browser session. See VimeoStep.
                 if is_vimeo && !combined_error_text.contains("DRM protected") {
                     let next = match &vimeo_step {
-                        VimeoStep::Direct if is_vimeo_oauth_401_error(&combined_error_text) => {
+                        VimeoStep::Direct if vimeo_direct_needs_embed(&combined_error_text) => {
                             vimeo_embed_url(&url).map(|embed| {
                                 (
                                     embed,
@@ -2752,6 +2764,31 @@ mod tests {
         assert!(!super::is_vimeo_oauth_401_error(
             "ERROR: [vimeo] 1: This video is private"
         ));
+    }
+
+    #[test]
+    fn vimeo_hidden_page_404_goes_to_embed_player() {
+        // 1024192767 is hidden from vimeo.com: its page is a 404, the embed
+        // player still plays it (founder report 2026-10-25).
+        let err = "ERROR: [vimeo+superdownloads] 1024192767: Unable to download webpage: \
+                   HTTP Error 404: Not Found (caused by <HTTPError 404: Not Found>)";
+        assert!(super::vimeo_direct_needs_embed(err));
+        // The login wall still routes there too.
+        assert!(super::vimeo_direct_needs_embed(
+            "ERROR: [vimeo] 1: The web client only works when logged-in."
+        ));
+        // A 404 elsewhere is not this case.
+        assert!(!super::vimeo_direct_needs_embed(
+            "ERROR: [youtube] x: Unable to download webpage: HTTP Error 404: Not Found"
+        ));
+        assert!(!super::vimeo_direct_needs_embed(
+            "ERROR: [vimeo] 1: This video is private"
+        ));
+        // Share links carry tracking params (?fl=pl&fe=sh); the embed URL drops them.
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/1024192767?fl=pl&fe=sh").as_deref(),
+            Some("https://player.vimeo.com/video/1024192767")
+        );
     }
 
     #[test]
