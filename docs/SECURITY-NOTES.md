@@ -93,12 +93,12 @@ For a €29 one-time consumer app, full DRM is overkill and a tarpit. Three tier
 Three keys were injected directly into the localStorage SQLite file on the founder's Mac, as a 60s workaround until a real Lemon comp license can be issued:
 
 ```
-proLicenseKey      = FOUNDER-MARIO-001
-proLicenseName     = Mario Monteiro
+proLicenseKey      = FOUNDER-<owner>-001
+proLicenseName     = <owner name>
 proLicenseInstance = founder-local
 ```
 
-**Action item:** Once Lemon Squeezy product is live + checkout E2E-verified (R-SD-001), issue a real comp license through the Lemon dashboard for `supermariomonteiro@gmail.com`, activate it through the in-app flow (which will overwrite these keys), and confirm `proLicenseKey` now contains the real Lemon key + `proLicenseInstance` is a real Lemon instance ID.
+**Action item:** Once Lemon Squeezy product is live + checkout E2E-verified (R-SD-001), issue a real comp license through the Lemon dashboard for the owner's email, activate it through the in-app flow (which will overwrite these keys), and confirm `proLicenseKey` now contains the real Lemon key + `proLicenseInstance` is a real Lemon instance ID.
 
 Tracked in `ROADMAP.md` Backlog → "Founder comp license via LemonSqueezy".
 
