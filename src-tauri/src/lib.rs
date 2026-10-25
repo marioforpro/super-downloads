@@ -12,6 +12,7 @@ use std::{
 use tauri::{AppHandle, Emitter, LogicalSize, Manager, Runtime, Size, Window};
 use tauri_plugin_updater::UpdaterExt;
 
+mod active_ping;
 mod instagram_fallback;
 
 const WINDOW_LOGICAL_WIDTH: f64 = 480.0;
@@ -3271,6 +3272,41 @@ async fn register_activation(
     }
 }
 
+/// Sends the anonymous daily `app_active` event (see `active_ping.rs`) and
+/// returns the install id it used, so the frontend can keep it. The frontend
+/// decides when (once a day, only with «Share anonymous usage stats» on).
+#[tauri::command]
+async fn send_active_ping(
+    app: tauri::AppHandle,
+    install_id: Option<String>,
+) -> Result<String, String> {
+    let install_id = active_ping::install_id_or_new(install_id.as_deref());
+    let os_version = tauri::async_runtime::spawn_blocking(activation_os_version)
+        .await
+        .unwrap_or_else(|_| "unknown".to_string());
+    let body = active_ping::body(
+        &install_id,
+        &app.package_info().version.to_string(),
+        activation_arch(),
+        &os_version,
+    );
+    let client = reqwest::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| format!("Client error: {}", e))?;
+    let resp = client
+        .post(active_ping::CAPTURE_URL)
+        .json(&body)
+        .send()
+        .await
+        .map_err(|e| format!("Network error: {}", e))?;
+    if resp.status().is_success() {
+        Ok(install_id)
+    } else {
+        Err(format!("Ping failed: HTTP {}", resp.status()))
+    }
+}
+
 #[tauri::command]
 async fn activate_license(key: String) -> Result<LicenseResult, String> {
     let instance_name = get_instance_name();
@@ -3778,6 +3814,7 @@ pub fn run() {
             show_notification,
             activate_license,
             register_activation,
+            send_active_ping,
             validate_license,
             deactivate_license,
             check_for_update,

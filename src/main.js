@@ -74,6 +74,7 @@ const autoAddRibbon = document.querySelector("#auto-add-ribbon");
 const autoAddRibbonLabel = document.querySelector("#auto-add-ribbon-label");
 const clearListBtn = document.querySelector("#clear-list-btn");
 const keepHistoryEnabled = document.querySelector("#keep-history-enabled");
+const usageStatsEnabled = document.querySelector("#usage-stats-enabled");
 
 // State
 let downloads = [];
@@ -268,6 +269,9 @@ function hasSeenOnboarding() {
 
 function markOnboardingSeen() {
   localStorage.setItem(FIRST_RUN_KEY, "true");
+  // The welcome screen carries the usage-stats line, so the user has been told.
+  localStorage.setItem(USAGE_NOTICE_KEY, "1");
+  maybeSendActivePing();
   // Clicking "Get Started" is the user's acceptance of the Terms of Service
   // and Privacy Policy (linked in the onboarding card).
   if (!localStorage.getItem("termsAcceptedAt")) {
@@ -282,6 +286,46 @@ async function openExternal(url) {
     console.warn("Opener plugin failed for external URL:", err);
     window.open(url, "_blank");
   }
+}
+
+// Anonymous daily "active" ping (payload: src-tauri/src/active_ping.rs).
+// Once per calendar day, only with «Share anonymous usage stats» on, and never
+// before the user has been told (welcome screen line, or the one-time notice).
+const INSTALL_ID_KEY = "installId";
+const LAST_ACTIVE_PING_KEY = "lastActivePingDay";
+const USAGE_NOTICE_KEY = "usageStatsNoticeShown";
+const ACTIVE_PING_RECHECK_MS = 3 * 60 * 60 * 1000; // the app can stay open for days
+let activePingInFlight = false;
+
+function localDay() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+async function maybeSendActivePing() {
+  if (activePingInFlight || usageStatsEnabled?.checked === false) return;
+  if (localStorage.getItem(USAGE_NOTICE_KEY) !== "1") return;
+  const today = localDay();
+  if (localStorage.getItem(LAST_ACTIVE_PING_KEY) === today) return;
+  activePingInFlight = true;
+  try {
+    const installId = await window.__TAURI__.core.invoke("send_active_ping", {
+      installId: localStorage.getItem(INSTALL_ID_KEY),
+    });
+    localStorage.setItem(INSTALL_ID_KEY, installId);
+    localStorage.setItem(LAST_ACTIVE_PING_KEY, today);
+  } catch (err) {
+    console.warn("Active ping failed (will retry later):", err);
+  } finally {
+    activePingInFlight = false;
+  }
+}
+
+// Installs that saw the welcome screen before this line existed get told once.
+function showUsageStatsNoticeOnce() {
+  if (!hasSeenOnboarding() || localStorage.getItem(USAGE_NOTICE_KEY) === "1") return;
+  localStorage.setItem(USAGE_NOTICE_KEY, "1");
+  showToast("Super Downloads now sends one anonymous ping a day to count active installs. Turn it off in Settings.", 9000);
 }
 
 // Email activation (the user list is the asset; usage is never blocked by a server failure)
@@ -420,6 +464,7 @@ function showOnboarding() {
       <button class="onboarding-start-btn" disabled>Get Started</button>
       ${isProUser() ? '<a href="#" class="activation-skip-link">Skip</a>' : ""}
       <p class="onboarding-terms">By clicking Get Started you agree to the <a href="#" id="onboarding-terms-link">Terms of Service</a> and <a href="#" id="onboarding-privacy-link">Privacy Policy</a></p>
+      <p class="onboarding-terms">One anonymous ping a day (app version, Mac type) tells us how many people use Super Downloads. You can turn it off in Settings.</p>
     </div>
   `;
   document.body.appendChild(overlay);
@@ -1702,6 +1747,9 @@ function loadSettings() {
   if (keepHistoryEnabled) {
     keepHistoryEnabled.checked = settings.keepHistory === true;
   }
+  if (usageStatsEnabled) {
+    usageStatsEnabled.checked = settings.usageStats !== false; // on by default
+  }
   // Keep user preferences but force safety defaults OFF on each launch.
   saveSettings();
   syncSettingsControls();
@@ -1766,6 +1814,7 @@ function saveSettings() {
     audioOnlyEnabled: audioOnlyEnabled?.checked === true,
     theme: themeSelect?.value || "dark",
     keepHistory: keepHistoryEnabled?.checked === true,
+    usageStats: usageStatsEnabled ? usageStatsEnabled.checked : true,
     outputFormat: "mp4" // Always use MP4 for best compatibility
   };
   localStorage.setItem("appSettings", JSON.stringify(settings));
@@ -2282,6 +2331,9 @@ if (!hasSeenOnboarding()) {
   setTimeout(() => showActivationCard(), 300);
 }
 retryActivationSync();
+showUsageStatsNoticeOnce();
+setTimeout(maybeSendActivePing, 15000);
+setInterval(maybeSendActivePing, ACTIVE_PING_RECHECK_MS);
 
 // Initialize download counter & license UI
 updateDownloadCounterUI();
@@ -2437,6 +2489,19 @@ if (keepHistoryEnabled) {
     saveSettings();
     if (keepHistoryEnabled.checked) {
       scheduleSaveDownloads();
+    }
+  });
+}
+
+if (usageStatsEnabled) {
+  usageStatsEnabled.addEventListener("change", () => {
+    saveSettings();
+    if (usageStatsEnabled.checked) {
+      maybeSendActivePing();
+    } else {
+      // Off means forgotten: a later opt-in starts with a new random id.
+      localStorage.removeItem(INSTALL_ID_KEY);
+      localStorage.removeItem(LAST_ACTIVE_PING_KEY);
     }
   });
 }

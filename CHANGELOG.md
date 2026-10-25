@@ -12,6 +12,7 @@ Vimeo fix and the new «Copy. Paste. Done.» wording.
 
 ### Added
 - Settings › Help › **Watch demo** opens the 24-second demo on superdownloads.app/#demo.
+- **Anonymous daily active ping** (`app_active` → PostHog): random install UUID, app version, arch, macOS major; `$ip` 0.0.0.0, GeoIP off, no person profile (`src-tauri/src/active_ping.rs`, command `send_active_ping`). Once per calendar day, never before the user was told (welcome-screen line, or a one-time toast for existing installs). Settings › **Share anonymous usage stats** (on by default); off deletes the install id. Privacy §2 updated. Behaviour test: `node scripts/test-active-ping.cjs`.
 
 ### Fixed
 - **Vimeo videos hidden from vimeo.com now download.** Owners can hide a video from vimeo.com and keep it embeddable; its page is a 404 while the embed player plays it. The app now falls back to the embed player on that 404 too, not only on the login wall (e.g. `vimeo.com/1024192767`, a share link with `?fl=pl&fe=sh`). New live E2E case `vimeo-hidden-page`.
