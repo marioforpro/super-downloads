@@ -8,6 +8,17 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+const pageUrl = new URL(Astro.url.pathname, 'https://superdownloads.app').href;
+
+// Share preview (WhatsApp / X / LinkedIn). Swap the file here only; give a new
+// image a new filename so the platforms' caches pick it up. Keep it JPG/PNG < 300 KB.
+const OG_IMAGE = {
+  url: 'https://superdownloads.app/og/sd-og-home.jpg',
+  type: 'image/jpeg',
+  width: 1200,
+  height: 630,
+  alt: 'Super Downloads — the video downloader built for editors. Free for Mac.',
+};
 ---
 
 <!doctype html>
@@ -20,18 +31,23 @@ const { title, description } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#0a163f" />
     <meta name="color-scheme" content="light only" />
-    <link rel="canonical" href={new URL(Astro.url.pathname, 'https://superdownloads.app').href} />
+    <link rel="canonical" href={pageUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://superdownloads.app" />
-    <meta property="og:image" content="https://superdownloads.app/og.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:site_name" content="Super Downloads" />
+    <meta property="og:image" content={OG_IMAGE.url} />
+    <meta property="og:image:secure_url" content={OG_IMAGE.url} />
+    <meta property="og:image:type" content={OG_IMAGE.type} />
+    <meta property="og:image:width" content={String(OG_IMAGE.width)} />
+    <meta property="og:image:height" content={String(OG_IMAGE.height)} />
+    <meta property="og:image:alt" content={OG_IMAGE.alt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content="https://superdownloads.app/og.png" />
+    <meta name="twitter:image" content={OG_IMAGE.url} />
+    <meta name="twitter:image:alt" content={OG_IMAGE.alt} />
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
@@ -72,12 +88,24 @@ const { title, description } = Astro.props;
     </script>
     <script>
       !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
-      // Cookieless, anonymous analytics (EU/GDPR): no cookies or localStorage,
-      // no person profiles, no session recording — aggregated pageviews only,
-      // so no consent banner is required.
+      // Cookieless, anonymous analytics (EU/GDPR): PostHog's cookieless mode
+      // stores nothing in the browser and counts unique visitors per day with a
+      // server-side hash whose salt changes daily. No person profiles, no session
+      // recording, so no consent banner is required.
+      // Only the production hosts send. `?internal=1` turns capture off in this
+      // browser (our own visits), `?internal=0` turns it back on.
+      var sdInternal = false;
+      try {
+        var sdFlag = new URLSearchParams(location.search).get('internal');
+        if (sdFlag === '1') localStorage.setItem('sd_internal', '1');
+        if (sdFlag === '0') localStorage.removeItem('sd_internal');
+        sdInternal = localStorage.getItem('sd_internal') === '1';
+      } catch (e) {}
+      var sdProdHost = /^(www\.)?superdownloads\.app$/.test(location.hostname);
+      if (sdProdHost && !sdInternal) {
       posthog.init('phc_5nkW8LyRDxnxAZxqxOYVqXdOqWHbZ8G9SP1cMy0iAx7', {
         api_host: 'https://us.i.posthog.com',
-        persistence: 'memory',
+        cookieless_mode: 'always',
         person_profiles: 'never',
         disable_session_recording: true,
         // Pageviews + the few custom events the page sends; nothing else loads.
@@ -85,6 +113,9 @@ const { title, description } = Astro.props;
         disable_surveys: true,
         capture_performance: false
       });
+      // Every event says which product it came from (one PostHog project for the family).
+      posthog.register({ product: 'super-downloads' });
+      }
     </script>
   </head>
   <body>
