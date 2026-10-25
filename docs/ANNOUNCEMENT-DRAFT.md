@@ -2,6 +2,8 @@
 
 > **Estado:** R-SD-002 **en pausa**. Mario usa la app él mismo y con amigos para testearla; la promoción pública se decide más adelante (`docs/DECISIONS.md` 2026-10-03). Este copy se mantiene al día para ese momento — no es un plan activo.
 >
+> **Voz de marca (Mario, 2026-10-25):** habla «Super Downloads» o «we» — sin «I», sin firma, sin historia del fundador, sin el nombre de Mario. Las versiones en primera persona («I'm Mario, the developer…») quedan RECHAZADAS.
+>
 > Actualizado 2026-10-03 contra la **v1.4.0** publicada. Hechos verificados en la sesión de QA de ese día (E2E real en 7 plataformas).
 
 ---
@@ -9,14 +11,14 @@
 ## 1. r/macapps
 
 **Título, opción A**
-Super Downloads: a free macOS video downloader for editors — outputs Premiere-ready H.264/MP4 [I'm the dev]
+Super Downloads: a free macOS video downloader for editors — outputs Premiere-ready H.264/MP4 [developer post]
 
 **Título, opción B**
-I built a native Mac app that saves web video as edit-ready H.264/MP4 for Premiere Pro. Free, feedback wanted
+A native Mac app that saves web video as edit-ready H.264/MP4 for Premiere Pro. Free, feedback wanted
 
 **Cuerpo (~240 palabras)**
 
-Hi r/macapps, I'm Mario, the developer of Super Downloads. Disclosure: it's my own app. It's free for now (no end date set, and I'll say so here before anything changes).
+Hi r/macapps — we make Super Downloads. Disclosure: this is our own app. It's free for now (no end date set, and we'll say so here before anything changes).
 
 **What it does**
 - Paste a video URL, it joins a queue with live progress, speed and time remaining.
@@ -26,7 +28,7 @@ Hi r/macapps, I'm Mario, the developer of Super Downloads. Disclosure: it's my o
 
 **What it doesn't do**
 - It's for content you own, have licensed, or are authorized to download. It never circumvents DRM — Vimeo videos whose owner turned on Vimeo's DRM can't be downloaded, and the app says so.
-- Instagram/Facebook/X/LinkedIn can break when those sites change. I'd rather say that up front.
+- Instagram/Facebook/X/LinkedIn can break when those sites change. We'd rather say that up front.
 - macOS only (Apple Silicon and Intel).
 
 **Heads-up:** the build isn't signed with an Apple Developer ID yet. On first launch use System Settings → Privacy & Security → "Open Anyway", or run `xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"`.
@@ -49,14 +51,14 @@ Show HN: A native Mac app that saves web video as Premiere-ready H.264/MP4
 
 **Primer comentario (~230 palabras)**
 
-Hi HN, I'm the author. Super Downloads is a macOS app (Apple Silicon and Intel) that saves video for offline editing and guarantees H.264/AAC/MP4, so Premiere Pro opens it directly.
+Hi HN — we make Super Downloads. It is a macOS app (Apple Silicon and Intel) that saves video for offline editing and guarantees H.264/AAC/MP4, so Premiere Pro opens it directly.
 
 Stack: Tauri 2, a Rust backend and a vanilla JS frontend with no framework. The backend runs bundled yt-dlp and ffmpeg, maps yt-dlp's per-stream progress onto one bar, and emits events to the UI. The landing is Astro on Vercel.
 
-Things I learned that might interest you:
+Things we learned that might interest you:
 - The single-file macOS build of yt-dlp unpacks itself into a fresh temp dir on every run, and macOS scans those new files each time: ~7 s per call, before any work. Switching to the "onedir" build made it ~0.2 s.
 - Pick the format by resolution first and prefer H.264 only at equal resolution; then check the real codec of the downloaded file with ffprobe and convert only what isn't H.264. TikTok's 1080p is HEVC; YouTube's 4K is VP9/AV1. 4K→H.264 on VideoToolbox runs about real time on an M4 Pro — hardware decode or parallel sessions don't help.
-- Vimeo DRM is opt-in per owner. My first test videos happened to be Vimeo's own (DRM on), which nearly convinced me "all of Vimeo" was encrypted.
+- Vimeo DRM is opt-in per owner. Our first test videos happened to be Vimeo's own (DRM on), which nearly convinced us "all of Vimeo" was encrypted.
 - A metadata-only health check said "Vimeo PASS" while every download failed. Now there's a live end-to-end test on the real download command before each release.
 
 Free for now, unsigned, for content you own or are authorized to download. Feedback welcome.

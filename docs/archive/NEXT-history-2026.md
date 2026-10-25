@@ -60,7 +60,7 @@ Release: https://github.com/marioforpro/super-downloads/releases/tag/v1.2.0 — 
   >
   > Comparable tools (4K Video Downloader, Downie, PullTube) are sold via Stripe/FastSpring today. Could you confirm whether Super Downloads is acceptable to sell via Lemon Squeezy, so I have it on record?
   >
-  > Thanks! — Mario Monteiro, supermariomonteiro@gmail.com
+  > Thanks! — *[sender name and personal email removed 2026-10-25 — public repo; still in git history]*
 
 - [ ] **C1-b · Export periódico de licencias** — LS Dashboard → Store → Licenses → export CSV (o vía API). Guardar fuera de LS (carpeta local + backup). Repetir tras cada venta significativa; añadir a la rutina mensual.
 - [ ] **C1-c · Vigilar chargebacks** — el detonante típico de un review no es el tipo de producto sino descargas rotas → refunds/chargebacks. El health-check v2 + v1.2.0 son la mitigación real; revisar el dashboard de LS semanalmente tras el relanzamiento.
@@ -151,9 +151,8 @@ Adjunto los dos items que pediste:
    checkout en LemonSqueezy y flow de activación de licencia.
 
 2) Perfiles para verificación:
-   - LinkedIn:  https://linkedin.com/in/mariomonteirotv
-   - X:         https://x.com/mariomonteiro
-   - Portfolio: https://mariomonteiro.tv
+   - [personal LinkedIn / X / portfolio links removed 2026-10-25 —
+     public repo; still in git history]
 
 Quedamos a la espera del approval para activar la store en producción.
 
