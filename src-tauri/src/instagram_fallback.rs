@@ -179,6 +179,23 @@ struct EndpointCandidate {
 fn build_endpoint_candidates(parsed: &ParsedShortcode) -> Vec<EndpointCandidate> {
     let mut endpoints = Vec::with_capacity(3);
 
+    // (c) GraphQL doc_id query — the modern web client's own endpoint for
+    // fetching a single post by shortcode. Tried first: on 2026-10-25 it was
+    // the only shape that answered anonymously (200 with `video_versions`),
+    // while (a) returned a 404 HTML page and (b) a 403 login_required.
+    let variables = format!(
+        "{{\"shortcode\":\"{}\",\"__relay_internal__pv__PolarisAIGMMediaWebLabelEnabledrelayprovider\":false}}",
+        parsed.shortcode
+    );
+    endpoints.push(EndpointCandidate {
+        label: "graphql doc_id",
+        url: "https://www.instagram.com/graphql/query/".to_string(),
+        form: Some(vec![
+            ("doc_id", GRAPHQL_DOC_ID.to_string()),
+            ("variables", variables),
+        ]),
+    });
+
     // (a) Legacy AJAX-style post page endpoint.
     endpoints.push(EndpointCandidate {
         label: "www __a=1",
@@ -197,22 +214,6 @@ fn build_endpoint_candidates(parsed: &ParsedShortcode) -> Vec<EndpointCandidate>
             form: None,
         });
     }
-
-    // (c) GraphQL doc_id query — the modern web client's own endpoint for
-    // fetching a single post by shortcode. Last resort: it is the most
-    // likely to be rate-limited/blocked for a non-browser client.
-    let variables = format!(
-        "{{\"shortcode\":\"{}\",\"__relay_internal__pv__PolarisAIGMMediaWebLabelEnabledrelayprovider\":false}}",
-        parsed.shortcode
-    );
-    endpoints.push(EndpointCandidate {
-        label: "graphql doc_id",
-        url: "https://www.instagram.com/graphql/query/".to_string(),
-        form: Some(vec![
-            ("doc_id", GRAPHQL_DOC_ID.to_string()),
-            ("variables", variables),
-        ]),
-    });
 
     endpoints
 }
@@ -493,14 +494,32 @@ pub fn fetch_instagram_direct_video_url(url: &str) -> Result<String, IgFallbackE
 
     let endpoints = build_endpoint_candidates(&parsed);
 
+    resolve_from_endpoints(&endpoints, |endpoint| {
+        backoff_before_request();
+        fetch_json_from_endpoint(&client, endpoint)
+    })
+}
+
+/// Try each endpoint shape in order and return the first video URL found.
+/// A fatal answer from one shape (404 page, 403 login wall) does not stop
+/// the others: each shape is blocked or retired independently, and a post
+/// one of them calls «deleted» may play fine through another. The fatal
+/// message is reported only if no shape succeeds.
+fn resolve_from_endpoints<F>(
+    endpoints: &[EndpointCandidate],
+    mut fetch: F,
+) -> Result<String, IgFallbackError>
+where
+    F: FnMut(&EndpointCandidate) -> Result<serde_json::Value, IgFallbackError>,
+{
     let mut last_err = IgFallbackError::Transient(
         "Instagram did not return a usable video from any known endpoint.".to_string(),
     );
+    let mut first_fatal: Option<String> = None;
     let mut saw_photo_only = false;
 
-    for endpoint in &endpoints {
-        backoff_before_request();
-        match fetch_json_from_endpoint(&client, endpoint) {
+    for endpoint in endpoints {
+        match fetch(endpoint) {
             Ok(json) => match extract_best_video_url(&json) {
                 Some(video_url) => return Ok(video_url),
                 None => {
@@ -513,7 +532,9 @@ pub fn fetch_instagram_direct_video_url(url: &str) -> Result<String, IgFallbackE
                     ));
                 }
             },
-            Err(IgFallbackError::Fatal(msg)) => return Err(IgFallbackError::Fatal(msg)),
+            Err(IgFallbackError::Fatal(msg)) => {
+                first_fatal.get_or_insert(msg);
+            }
             Err(err @ IgFallbackError::Transient(_)) => {
                 last_err = err;
             }
@@ -525,6 +546,9 @@ pub fn fetch_instagram_direct_video_url(url: &str) -> Result<String, IgFallbackE
             "This Instagram post doesn't contain a video (photo-only post) — nothing to download."
                 .to_string(),
         ));
+    }
+    if let Some(msg) = first_fatal {
+        return Err(IgFallbackError::Fatal(msg));
     }
     Err(last_err)
 }
@@ -758,10 +782,67 @@ mod tests {
         };
         let endpoints = build_endpoint_candidates(&parsed);
         assert_eq!(endpoints.len(), 3);
-        assert!(endpoints[0].url.contains("__a=1"));
-        assert!(endpoints[1].url.contains("i.instagram.com/api/v1/media/"));
-        assert!(endpoints[2].url.contains("graphql/query"));
-        assert!(endpoints[2].form.is_some());
+        // GraphQL first: it is the only shape that answers anonymously
+        // (measured 2026-10-25: __a=1 → 404 HTML, media info → 403).
+        assert!(endpoints[0].url.contains("graphql/query"));
+        assert!(endpoints[0].form.is_some());
+        assert!(endpoints[1].url.contains("__a=1"));
+        assert!(endpoints[2].url.contains("i.instagram.com/api/v1/media/"));
+    }
+
+    // ---- endpoint loop --------------------------------------------------------
+
+    fn candidates(labels: &[&'static str]) -> Vec<EndpointCandidate> {
+        labels
+            .iter()
+            .map(|l| EndpointCandidate {
+                label: l,
+                url: String::new(),
+                form: None,
+            })
+            .collect()
+    }
+
+    fn video_json() -> serde_json::Value {
+        serde_json::json!({"items": [{"video_versions": [{"url": "https://cdn/v.mp4", "width": 720, "height": 1280}]}]})
+    }
+
+    #[test]
+    fn a_404_on_one_endpoint_does_not_stop_the_next() {
+        // 2026-10-25: __a=1 answered 404 for a live reel and the old loop
+        // returned «unavailable or deleted» without trying GraphQL.
+        let eps = candidates(&["a", "b", "c"]);
+        let got = resolve_from_endpoints(&eps, |ep| match ep.label {
+            "a" => classify_response(reqwest::StatusCode::NOT_FOUND, "<html>", "a"),
+            "b" => classify_response(reqwest::StatusCode::FORBIDDEN, "{}", "b"),
+            _ => Ok(video_json()),
+        });
+        assert_eq!(got, Ok("https://cdn/v.mp4".to_string()));
+    }
+
+    #[test]
+    fn a_fatal_answer_is_reported_when_no_endpoint_succeeds() {
+        let eps = candidates(&["a", "b"]);
+        let got = resolve_from_endpoints(&eps, |ep| match ep.label {
+            "a" => classify_response(reqwest::StatusCode::NOT_FOUND, "<html>", "a"),
+            _ => Err(IgFallbackError::Transient("b: HTTP 500".to_string())),
+        });
+        assert!(matches!(got, Err(IgFallbackError::Fatal(m)) if m.contains("unavailable")));
+    }
+
+    #[test]
+    fn transient_errors_only_stay_transient() {
+        let eps = candidates(&["a", "b"]);
+        let got = resolve_from_endpoints(&eps, |ep| {
+            Err(IgFallbackError::Transient(format!(
+                "{}: HTTP 500",
+                ep.label
+            )))
+        });
+        assert_eq!(
+            got,
+            Err(IgFallbackError::Transient("b: HTTP 500".to_string()))
+        );
     }
 
     // ---- backoff --------------------------------------------------------------

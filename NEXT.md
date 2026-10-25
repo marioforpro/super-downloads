@@ -35,7 +35,7 @@ Cuando cambie la UI de la app: ver `scripts/screenshots/README.md` (renderiza el
 5. ~~Las filas nuevas no tenían animación de entrada~~ → v1.5.4.
 6. ~~`url.contains("x.com")` casaba con dropbox.com~~ → arreglado en v1.5.2.
 7. ~~Sin verificación SHA256 del motor auto-actualizado~~ → arreglado en v1.5.2.
-8. ~~URLs de prueba del fallback de Instagram muertas~~ → cambiadas al reel vivo (2026-10-23). **Hallazgo:** el fallback propio ya no resuelve ni ese reel (dice «unavailable or deleted» mientras yt-dlp lo baja bien). Está dormido — solo entra si yt-dlp falla con el HTTP 400 — así que hoy no afecta. Si Instagram vuelve a romperse, primer paso: poner al día sus endpoints o quitarlo.
+8. ~~El fallback propio de Instagram ya no resolvía~~ → arreglado 2026-10-25 (sale en la v1.5.5): probaba primero dos endpoints que hoy dan 404/403 y paraba ahí; ahora va primero el que funciona (GraphQL) y un 404 ya no corta los demás. Test en vivo: resuelve el reel.
 9. Intel: la primera ejecución del motor tras instalar tarda ~10 s (Rosetta; el calentamiento en segundo plano lo absorbe).
 
 ## Claves y secretos
