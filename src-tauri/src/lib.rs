@@ -3245,7 +3245,19 @@ async fn register_activation(
     app: tauri::AppHandle,
     email: String,
     marketing_opt_in: bool,
+    marketing_consent_text: Option<String>,
 ) -> Result<(), String> {
+    // The server counts consent only when the box's wording comes with it.
+    let consent_text = if marketing_opt_in {
+        marketing_consent_text
+            .unwrap_or_default()
+            .trim()
+            .chars()
+            .take(300)
+            .collect::<String>()
+    } else {
+        String::new()
+    };
     let body = serde_json::json!({
         "email": email.trim(),
         "appVersion": app.package_info().version.to_string(),
@@ -3253,6 +3265,7 @@ async fn register_activation(
         "osVersion": activation_os_version(),
         "instance": get_instance_name(),
         "marketingOptIn": marketing_opt_in,
+        "marketingConsentText": consent_text,
         "source": "app",
     });
     let client = reqwest::Client::builder()
