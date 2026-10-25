@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [1.5.5] — unreleased (prepared 2026-10-25, waiting for the founder to publish)
+## [1.5.5] — 2026-10-25
 
 Vimeo fix and the new «Copy. Paste. Done.» wording.
 

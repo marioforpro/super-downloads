@@ -4,7 +4,7 @@
 export const releases = [
   {
     version: '1.5.5',
-    date: '2026-10-26',
+    date: '2026-10-25',
     notes: [
       'Vimeo videos hidden from vimeo.com but shared by link now download.',
       'The backup route for Instagram works again, for the days the main one fails.',
