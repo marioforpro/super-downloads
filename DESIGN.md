@@ -147,7 +147,10 @@ Max line length ~30–32 em for copy, 40 em for FAQ answers.
 | **Spec list** `.specs` | `dt` 104 px column, hairlines between rows | — |
 | **FAQ** `details` | 17 px/600 summary, chevron rotates 45° → −135° | Opens from `#hash` links |
 | **Install card** `.install` | Translucent pale-blue card on navy, numbered steps, codebox with Copy | Copy → «Copied» for 2 s |
-| **Status line** `.install-started` | `role="status"`, blue tint, appears after a DMG click | — |
+| **Status line** `.install-started` | `role="status"`, blue tint, appears after a DMG click | Rises in (300 ms) |
+| **Verify disclosure** `.verify` | `details` under the download buttons: SHA-256 per DMG from the GitHub release digest; VirusTotal links behind `VT_SCANNED` | Summary underlined, ≥ 29 px target |
+| **Family footer** `.family` | «More from Super»: three siblings, name + literal tagline, UTM `utm_source=superdownloads&utm_medium=footer&utm_campaign=family` | 3 columns → 1 at 640 px |
+| **Known issues** `.known` (changelog) | Mist card above the releases, data in `knownIssues` (`releases.js`) | — |
 | **Footer** | Brand, links (≥32 px tap height), legal fine print | Links underline on hover |
 | **Badges** | Changelog «Latest» pill: green tint `rgba(31,201,128,.14)`, text `#0b7a4e` | — |
 | **Launch-price badge** | **None.** Super Downloads is free; no price, seat or countdown badges | — |
@@ -167,6 +170,9 @@ progress bar and ⋯ menu; slide-in Settings panel; welcome/activation card (`.o
 | Nav underline grow | 250 ms | `ease` |
 | FAQ chevron | 200 ms | `ease` |
 | Install-step scroll after a download click | smooth (instant with reduced motion) | browser |
+| Hero: one pass of LED light across «editors.» on load | 1.4 s, 0.5 s delay, once | `cubic-bezier(.4,0,.2,1)` |
+| How it works: ⌘C → ⌘V → ✓ keys pressed in order when in view; ✓ stays lit | 420 ms each, 380 ms apart, once | `ease` |
+| «Your download has started» status rises in | 300 ms | `ease` |
 | Demo film | plays muted only while ≥35 % on screen; never with reduced motion | — |
 | App: row enter | 280 ms | `ease-out` |
 | App: progress fill | 300 ms | `cubic-bezier(.4,0,.2,1)` |
@@ -240,6 +246,8 @@ Rules:
 | Landing sections, buttons, nav, windows, FAQ, install guide | `web/src/pages/index.astro` (scoped `<style>`) |
 | Release notes page + known issues | `web/src/pages/changelog.astro` + `web/src/data/releases.js` |
 | Legal pages | `web/src/pages/{privacy,terms,copyright}.astro` |
+| Press kit (noindex) + logos | `web/src/pages/press.astro`, `web/public/press/` (`node scripts/press/render-logos.cjs`) |
+| Support reply templates | `docs/support/MACROS.md` |
 | Security / cache headers | `web/vercel.json` |
 | App tokens, themes, components, motion | `src/styles.css` |
 | App markup / UI copy | `src/index.html`, `src/main.js` |

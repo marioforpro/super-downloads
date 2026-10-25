@@ -98,6 +98,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
 ---
 
 <Layout
+  version={release.version}
   title="Super Downloads: The video downloader built for editors"
   description="Free Mac app for video editors. Paste a YouTube, Vimeo or TikTok link and get an H.264 MP4 that opens in Premiere Pro, Resolve or Final Cut."
 >
@@ -127,7 +128,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     <section class="hero">
       <div class="wrap hero-grid">
         <div class="hero-copy">
-          <h1>The video downloader built for editors.</h1>
+          <h1>The video downloader built for <span class="hl">editors.</span></h1>
           <p class="lede">Paste a link from YouTube, Vimeo, TikTok and more. Get an H.264 MP4 that drops straight into Premiere Pro, Resolve or Final Cut. No transcoding.</p>
           <div class="hero-actions">
             <a href={DMG_ARM} class="btn btn-blue btn-lg js-dmg" id="hero-dl" data-arch="arm" data-place="hero">Download for Mac</a>
@@ -167,7 +168,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
       <div class="wrap split">
         <div>
           <h2>Copy. Paste. Done.</h2>
-          <ol class="steps">
+          <ol class="steps" id="steps">
             <li><kbd class="key"><span aria-hidden="true">⌘C</span><span class="sr-only">Command C</span></kbd><span><strong>Copy a link</strong> in your browser: a YouTube video, a Vimeo reference, a client’s Instagram reel.</span></li>
             <li><kbd class="key"><span aria-hidden="true">⌘V</span><span class="sr-only">Command V</span></kbd><span><strong>Paste it into Super Downloads.</strong> The download starts right away.</span></li>
             <li><span class="key" aria-hidden="true">✓</span><span><strong>Done.</strong> The MP4 lands in your save folder, ready to import.</span></li>
@@ -176,7 +177,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         </div>
         <figure class="window window-dark on-light">
           <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-          <img src="/shots/empty-dark.webp" srcset="/shots/empty-dark-560.webp 560w, /shots/empty-dark.webp 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="500" alt="A copied YouTube link already in the field, with the Download button highlighted" loading="lazy" />
+          <img src="/shots/empty-dark.webp?v=1.5.5" srcset="/shots/empty-dark-560.webp?v=1.5.5 560w, /shots/empty-dark.webp?v=1.5.5 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="500" alt="A copied YouTube link already in the field, with the Download button highlighted" loading="lazy" />
         </figure>
       </div>
     </section>
@@ -230,7 +231,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
           </div>
           <figure class="window window-light">
             <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-            <img src="/shots/settings-light.webp" srcset="/shots/settings-light-560.webp 560w, /shots/settings-light.webp 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="740" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme, and the engine version with an Update button" loading="lazy" />
+            <img src="/shots/settings-light.webp?v=1.5.5" srcset="/shots/settings-light-560.webp?v=1.5.5 560w, /shots/settings-light.webp?v=1.5.5 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="862" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme, usage stats switch, the engine version with an Update button, and Help" loading="lazy" />
           </figure>
         </div>
       </div>
@@ -375,6 +376,15 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
       var track = function (event, props) {
         try { window.posthog && window.posthog.capture(event, props); } catch (e) {}
       };
+
+      // Delight: press the step keys once when the steps scroll into view.
+      var steps = document.getElementById('steps');
+      if (steps && 'IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        var io = new IntersectionObserver(function (es) {
+          if (es.some(function (e) { return e.isIntersecting; })) { steps.classList.add('play'); io.disconnect(); }
+        }, { threshold: 0.6 });
+        io.observe(steps);
+      }
 
       // Open an FAQ item when linked by hash (e.g. #faq-macos).
       function openFaqFromHash() {
@@ -534,6 +544,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   .btn-sm.btn-blue { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.55), 0 0 0 1px rgba(140, 208, 255, 0.85), 0 0 14px rgba(48, 167, 255, 0.35); }
   .btn-lg { font-size: 17px; padding: 15px 28px; }
   @media (prefers-reduced-motion: reduce) {
+    .hl, .steps.play .key, .install-started:not([hidden]) { animation: none !important; }
     .btn, .nav-links a:not(.btn)::after { transition: none; }
     .btn-blue:hover, .btn-ghost:hover { transform: none; }
   }
@@ -546,6 +557,16 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     font-size: clamp(40px, 5.2vw, 64px); line-height: 1.02; letter-spacing: -0.04em; font-weight: 600;
     margin-bottom: 24px; text-wrap: balance;
   }
+  /* Delight: one pass of LED light across the last word, then plain white */
+  @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+    .hl {
+      background: linear-gradient(100deg, #fff 0%, #fff 38%, var(--blue-200) 47%, #fff 50%, var(--blue-200) 53%, #fff 62%, #fff 100%);
+      background-size: 260% 100%; background-position: 100% 0;
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      animation: hl-sweep 1.4s cubic-bezier(.4, 0, .2, 1) .5s both;
+    }
+  }
+  @keyframes hl-sweep { from { background-position: 100% 0; } to { background-position: 0 0; } }
   .lede { font-size: 19px; line-height: 1.55; color: var(--blue-50); opacity: 0.84; max-width: 32em; margin-bottom: 36px; }
   .hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
   .hero-meta { display: flex; flex-direction: column; gap: 3px; font-size: 13px; line-height: 1.45; color: rgba(213, 235, 255, 0.72); }
@@ -615,6 +636,15 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     color: var(--navy-800); background: var(--mist); border-color: #cfd8e6;
   }
   .steps strong { color: var(--ink); font-weight: 600; }
+  /* Delight: when the steps come into view, the three keys are pressed in order; ✓ stays lit */
+  .steps.play .key { animation: key-press .42s ease both; }
+  .steps.play li:nth-child(2) .key { animation-delay: .38s; }
+  .steps.play li:nth-child(3) .key { animation: key-press .42s ease .76s both, key-done .3s ease 1.1s forwards; }
+  @keyframes key-press {
+    0%, 100% { transform: none; border-bottom-width: 2px; }
+    40% { transform: translateY(1px); border-bottom-width: 1px; background: var(--blue-50); border-color: var(--blue-200); }
+  }
+  @keyframes key-done { to { background: var(--blue-50); border-color: var(--blue-200); color: var(--navy-950); } }
   .aside { margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 15px; color: var(--slate); max-width: 31em; }
 
   .features { background: var(--mist); }
@@ -654,7 +684,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   .download-meta a, .install a { color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
 
   .verify { width: 100%; max-width: 640px; margin-top: 14px; font-size: 13px; color: rgba(213, 235, 255, 0.76); text-align: left; }
-  .verify summary { cursor: pointer; width: fit-content; margin: 0 auto; color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
+  .verify summary { cursor: pointer; width: fit-content; margin: 0 auto; padding: 6px 4px; color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
   .verify p { margin-top: 12px; line-height: 1.6; }
   .verify dl { margin-top: 10px; display: grid; gap: 8px; }
   .verify dl div { display: grid; grid-template-columns: 104px 1fr; gap: 12px; align-items: baseline; }
@@ -666,6 +696,8 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     width: 100%; max-width: 640px; margin-top: 56px; padding: 28px 32px; text-align: left;
     background: rgba(213, 235, 255, 0.05); border: 1px solid rgba(213, 235, 255, 0.14); border-radius: 14px;
   }
+  .install-started:not([hidden]) { animation: rise .3s ease both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } }
   .install-started { margin-bottom: 16px; padding: 10px 14px; border-radius: 8px; background: rgba(48,167,255,.16); color: var(--white); font-size: 15px; font-weight: 500; }
   .install h3 { font-size: 19px; font-weight: 600; letter-spacing: -0.015em; }
   .install-steps { margin: 18px 0 0 20px; display: grid; gap: 12px; font-size: 15px; line-height: 1.6; color: rgba(213, 235, 255, 0.84); }
@@ -732,8 +764,6 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     .nav-links a:not(.btn) { display: none; }
     .hero-actions { flex-direction: column; align-items: stretch; }
     .hero-actions .btn-lg { width: 100%; }
-    .ruler span:not(:first-child):not(:last-child) { display: none; }
-    .clip span { display: none; }
     .lede { font-size: 17px; }
     .facts { grid-template-columns: 1fr; gap: 24px; }
     .family ul { grid-template-columns: 1fr; gap: 12px; }
