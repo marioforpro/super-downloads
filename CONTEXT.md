@@ -20,6 +20,7 @@ macOS video downloader for editors (H.264/MP4 ready for Premiere/Resolve/Final C
 
 ## Key files
 - `CLAUDE.md` — project agent context
+- `DESIGN.md` — design reference (web + app + STUDIO pieces): tokens, type, components, motion, copy
 - `HEALTH.md` — health card (reopened status + last activity)
 - `ROADMAP.md` — relaunch checklist
 - `PROGRESS.md` — historical pre-launch progress notes

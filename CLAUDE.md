@@ -57,5 +57,6 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 | Architecture | `docs/ARCHITECTURE.md` |
 | Development guide | `docs/DEVELOPMENT.md` |
 | Brand guidelines | `docs/BRAND.md` |
+| Design system (tokens, type, components, motion, copy patterns) | `DESIGN.md` |
 | Launch checklist | `docs/LAUNCH.md` |
 | Marketing plan | `docs/MARKETING.md` |
