@@ -6,11 +6,19 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.5] — unreleased (prepared 2026-10-25, waiting for the founder to publish)
+
+Vimeo fix and the new «Copy. Paste. Done.» wording.
+
 ### Added
 - Settings › Help › **Watch demo** opens the 24-second demo on superdownloads.app/#demo.
 
 ### Fixed
 - **Vimeo videos hidden from vimeo.com now download.** Owners can hide a video from vimeo.com and keep it embeddable; its page is a 404 while the embed player plays it. The app now falls back to the embed player on that 404 too, not only on the login wall (e.g. `vimeo.com/1024192767`, a share link with `?fl=pl&fe=sh`). New live E2E case `vimeo-hidden-page`.
+- **The built-in Instagram backup route works again.** When the engine fails on Instagram with its known HTTP-400 error, the app asks Instagram directly. The first two endpoint shapes it tried now answer 404 / 403 and the app gave up there («unavailable or deleted»); it now asks GraphQL first — the shape that still answers anonymously — and a 404 from one shape no longer stops the others.
+
+### Changed
+- Welcome, empty state and Settings › Help now say «Copy. Paste. Done.» — paste a link and it downloads; the copy-and-come-back shortcut is still there. Same wording as the landing.
 
 ## [1.5.4] — 2026-10-23 (released)
 
