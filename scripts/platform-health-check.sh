@@ -238,6 +238,17 @@ for entry in "${PROBES[@]}"; do
              --user-agent "$UA" "${COOKIE_ARGS[@]}" "$url" 2>/tmp/sd_hc_err)"
     rc=$?
   fi
+  # One retry before calling it a failure: a single transient error (Facebook
+  # «Cannot parse data» on 2026-10-24, fine on the next run) otherwise flips
+  # the failing set and fires two notifications — break, then recover.
+  # Vimeo's anonymous 401 is permanent and has its own embed retry below.
+  if [[ $rc -ne 0 ]] && ! grep -qiE "only works when logged.?in|macos api json|oauth token" /tmp/sd_hc_err 2>/dev/null; then
+    sleep "${SD_HC_RETRY_DELAY:-15}"
+    json="$("$YTDLP" -J --simulate --no-warnings --socket-timeout 30 \
+             --user-agent "$UA" ${PROBE_COOKIES[@]+"${PROBE_COOKIES[@]}"} \
+             ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"} "$url" 2>/tmp/sd_hc_err)"
+    rc=$?
+  fi
   err="$(cat /tmp/sd_hc_err 2>/dev/null)"
 
   if [[ $rc -eq 0 && -n "$json" ]]; then
