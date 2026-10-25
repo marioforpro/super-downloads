@@ -6,6 +6,9 @@
 //! app version, the CPU architecture and the macOS major version. No email,
 //! no computer name, no IP address (sent as 0.0.0.0, GeoIP off), no person
 //! profile, nothing about what the user downloads.
+//!
+//! The frontend (src/main.js) renews the install id every 12 months and
+//! deletes it when the switch is turned off.
 
 use serde_json::{json, Value};
 

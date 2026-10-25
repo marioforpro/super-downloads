@@ -466,6 +466,20 @@ body.theme-light .app.auto-add-active::after {
   pointer-events: auto;
 }
 
+.toast.usage-notice {
+  max-width: 340px;
+  padding: 10px 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.usage-notice-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
 .toast.visible {
   opacity: 1;
   transform: translateY(0);
@@ -696,6 +710,13 @@ body.theme-light .app.auto-add-active::after {
 
 .onboarding-start-btn:hover {
   filter: brightness(1.1);
+}
+
+.onboarding-usage-note {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 12px;
+  line-height: 1.45;
 }
 
 .onboarding-terms {

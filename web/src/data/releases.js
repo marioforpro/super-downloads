@@ -10,7 +10,7 @@ export const releases = [
       'The backup route for Instagram works again, for the days the main one fails.',
       'Copy a link, paste it, done — the app now explains it the same way as the website.',
       'Settings › Help › Watch demo shows the app in 24 seconds.',
-      'New: one anonymous ping a day tells us how many people use the app — no email, no IP, nothing about your downloads. Turn it off in Settings › Share anonymous usage stats.',
+      'New: one anonymous ping a day counts how many people use the app. It carries the app version, your Mac type and a random number renewed every year; no email, no IP, nothing about your downloads. Turn it off anytime in Settings › Share anonymous usage stats.',
     ],
   },
   {
