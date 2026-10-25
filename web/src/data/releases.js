@@ -3,6 +3,17 @@
 // release (docs/OPS.md § Release pipeline).
 export const releases = [
   {
+    version: '1.5.5',
+    date: '2026-10-26',
+    notes: [
+      'Vimeo videos hidden from vimeo.com but shared by link now download.',
+      'The backup route for Instagram works again, for the days the main one fails.',
+      'Copy a link, paste it, done — the app now explains it the same way as the website.',
+      'Settings › Help › Watch demo shows the app in 24 seconds.',
+      'New: one anonymous ping a day counts how many people use the app. It carries the app version, your Mac type and a random number renewed every year; no email, no IP, nothing about your downloads. Turn it off anytime in Settings › Share anonymous usage stats.',
+    ],
+  },
+  {
     version: '1.5.4',
     date: '2026-10-23',
     notes: [

@@ -74,6 +74,7 @@ const autoAddRibbon = document.querySelector("#auto-add-ribbon");
 const autoAddRibbonLabel = document.querySelector("#auto-add-ribbon-label");
 const clearListBtn = document.querySelector("#clear-list-btn");
 const keepHistoryEnabled = document.querySelector("#keep-history-enabled");
+const usageStatsEnabled = document.querySelector("#usage-stats-enabled");
 
 // State
 let downloads = [];
@@ -268,6 +269,9 @@ function hasSeenOnboarding() {
 
 function markOnboardingSeen() {
   localStorage.setItem(FIRST_RUN_KEY, "true");
+  // The welcome screen carries the usage-stats line, so the user has been told.
+  localStorage.setItem(USAGE_NOTICE_KEY, "1");
+  maybeSendActivePing();
   // Clicking "Get Started" is the user's acceptance of the Terms of Service
   // and Privacy Policy (linked in the onboarding card).
   if (!localStorage.getItem("termsAcceptedAt")) {
@@ -282,6 +286,112 @@ async function openExternal(url) {
     console.warn("Opener plugin failed for external URL:", err);
     window.open(url, "_blank");
   }
+}
+
+// Anonymous daily "active" ping (payload: src-tauri/src/active_ping.rs).
+// Audience measurement only (counting active installs), on by default, under
+// the CNIL/AEPD exemption: one purpose, anonymous, the random install id is
+// renewed every 12 months (limit: 13), the user is told before the first ping
+// (welcome screen, or the one-time notice) and can turn it off in Settings.
+const INSTALL_ID_KEY = "installId";
+const INSTALL_ID_CREATED_KEY = "installIdCreated";
+const LAST_ACTIVE_PING_KEY = "lastActivePingDay";
+const USAGE_NOTICE_KEY = "usageStatsNoticeShown";
+const INSTALL_ID_MAX_AGE_DAYS = 365;
+const ACTIVE_PING_RECHECK_MS = 3 * 60 * 60 * 1000; // the app can stay open for days
+const USAGE_NOTICE_TEXT =
+  "One anonymous ping a day (app version, Mac type, a random number) helps us count how many people use Super Downloads. Turn it off anytime in Settings.";
+let activePingInFlight = false;
+
+function localDay(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function usageStatsOn() {
+  return usageStatsEnabled ? usageStatsEnabled.checked : true;
+}
+
+function forgetInstallId() {
+  localStorage.removeItem(INSTALL_ID_KEY);
+  localStorage.removeItem(INSTALL_ID_CREATED_KEY);
+  localStorage.removeItem(LAST_ACTIVE_PING_KEY);
+}
+
+// The stored id, or null when there is none or it is due for renewal (the
+// backend then creates a new random one). An id without a creation day is
+// treated as due.
+function currentInstallId() {
+  const id = localStorage.getItem(INSTALL_ID_KEY);
+  const created = Date.parse(localStorage.getItem(INSTALL_ID_CREATED_KEY) || "");
+  if (!id || Number.isNaN(created)) return null;
+  const ageDays = (Date.now() - created) / 86400000;
+  return ageDays >= 0 && ageDays < INSTALL_ID_MAX_AGE_DAYS ? id : null;
+}
+
+async function maybeSendActivePing() {
+  if (activePingInFlight || !usageStatsOn()) return;
+  if (localStorage.getItem(USAGE_NOTICE_KEY) !== "1") return;
+  const today = localDay();
+  if (localStorage.getItem(LAST_ACTIVE_PING_KEY) === today) return;
+  activePingInFlight = true;
+  try {
+    const sentId = currentInstallId();
+    const installId = await window.__TAURI__.core.invoke("send_active_ping", { installId: sentId });
+    // Turned off while the ping was on its way: keep nothing.
+    if (!usageStatsOn()) return;
+    if (installId !== sentId) localStorage.setItem(INSTALL_ID_CREATED_KEY, today);
+    localStorage.setItem(INSTALL_ID_KEY, installId);
+    localStorage.setItem(LAST_ACTIVE_PING_KEY, today);
+  } catch (err) {
+    console.warn("Active ping failed (will retry later):", err);
+  } finally {
+    activePingInFlight = false;
+  }
+}
+
+function setUsageStats(on) {
+  if (!usageStatsEnabled) return;
+  usageStatsEnabled.checked = on;
+  saveSettings();
+  if (on) {
+    maybeSendActivePing();
+  } else {
+    // Off means forgotten: a later opt-in starts with a new random id.
+    forgetInstallId();
+  }
+}
+
+// Installs that saw the welcome screen before this line existed are told once.
+// The notice stays until answered, and nothing is sent before that.
+function showUsageStatsNoticeOnce() {
+  if (!hasSeenOnboarding() || localStorage.getItem(USAGE_NOTICE_KEY) === "1") return;
+  let container = document.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  const notice = document.createElement("div");
+  notice.className = "toast usage-notice";
+  notice.innerHTML = `
+    <p></p>
+    <div class="usage-notice-actions">
+      <button class="confirm-btn confirm-cancel" data-usage="off">Turn off</button>
+      <button class="confirm-btn confirm-cancel" data-usage="ok">OK</button>
+    </div>`;
+  notice.querySelector("p").textContent = USAGE_NOTICE_TEXT;
+  notice.addEventListener("click", (e) => {
+    const choice = e.target.closest("[data-usage]")?.dataset.usage;
+    if (!choice) return;
+    localStorage.setItem(USAGE_NOTICE_KEY, "1");
+    notice.classList.remove("visible");
+    setTimeout(() => notice.remove(), 300);
+    setUsageStats(choice === "ok");
+    if (choice === "off") showToast("Usage stats off.");
+  });
+  container.appendChild(notice);
+  void notice.offsetWidth; // commit the hidden state so the fade-in runs
+  notice.classList.add("visible");
 }
 
 // Email activation (the user list is the asset; usage is never blocked by a server failure)
@@ -419,6 +529,7 @@ function showOnboarding() {
       ${activationFieldsHtml()}
       <button class="onboarding-start-btn" disabled>Get Started</button>
       ${isProUser() ? '<a href="#" class="activation-skip-link">Skip</a>' : ""}
+      <p class="onboarding-usage-note">${USAGE_NOTICE_TEXT}</p>
       <p class="onboarding-terms">By clicking Get Started you agree to the <a href="#" id="onboarding-terms-link">Terms of Service</a> and <a href="#" id="onboarding-privacy-link">Privacy Policy</a></p>
     </div>
   `;
@@ -1702,6 +1813,9 @@ function loadSettings() {
   if (keepHistoryEnabled) {
     keepHistoryEnabled.checked = settings.keepHistory === true;
   }
+  if (usageStatsEnabled) {
+    usageStatsEnabled.checked = settings.usageStats !== false; // on by default
+  }
   // Keep user preferences but force safety defaults OFF on each launch.
   saveSettings();
   syncSettingsControls();
@@ -1766,6 +1880,7 @@ function saveSettings() {
     audioOnlyEnabled: audioOnlyEnabled?.checked === true,
     theme: themeSelect?.value || "dark",
     keepHistory: keepHistoryEnabled?.checked === true,
+    usageStats: usageStatsEnabled ? usageStatsEnabled.checked : true,
     outputFormat: "mp4" // Always use MP4 for best compatibility
   };
   localStorage.setItem("appSettings", JSON.stringify(settings));
@@ -2282,6 +2397,9 @@ if (!hasSeenOnboarding()) {
   setTimeout(() => showActivationCard(), 300);
 }
 retryActivationSync();
+showUsageStatsNoticeOnce();
+setTimeout(maybeSendActivePing, 15000);
+setInterval(maybeSendActivePing, ACTIVE_PING_RECHECK_MS);
 
 // Initialize download counter & license UI
 updateDownloadCounterUI();
@@ -2438,6 +2556,15 @@ if (keepHistoryEnabled) {
     if (keepHistoryEnabled.checked) {
       scheduleSaveDownloads();
     }
+  });
+}
+
+if (usageStatsEnabled) {
+  usageStatsEnabled.addEventListener("change", () => {
+    // Choosing in Settings answers the one-time notice too.
+    localStorage.setItem(USAGE_NOTICE_KEY, "1");
+    document.querySelector(".usage-notice")?.remove();
+    setUsageStats(usageStatsEnabled.checked);
   });
 }
 

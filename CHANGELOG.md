@@ -6,11 +6,20 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.5.5] — unreleased (prepared 2026-10-25, waiting for the founder to publish)
+
+Vimeo fix and the new «Copy. Paste. Done.» wording.
+
 ### Added
 - Settings › Help › **Watch demo** opens the 24-second demo on superdownloads.app/#demo.
+- **Anonymous daily active ping** (`app_active` → PostHog), on by default under the CNIL/AEPD audience-measurement exemption: one purpose (counting active installs), random install UUID renewed every 12 months (`installIdCreated`; limit 13), app version, arch, macOS major; `$ip` 0.0.0.0, GeoIP off, no person profile (`src-tauri/src/active_ping.rs`, command `send_active_ping`). Once per calendar day, never before the user was told: a note on the welcome screen, or for existing installs a one-time notice that stays until answered (OK / Turn off). Settings › **Share anonymous usage stats**; off deletes the install id at once, including when a ping is in flight. Privacy §2 says what is sent, why, how long the id lives and how to turn it off. Behaviour test: `node scripts/test-active-ping.cjs` (22 checks, fake clock).
 
 ### Fixed
 - **Vimeo videos hidden from vimeo.com now download.** Owners can hide a video from vimeo.com and keep it embeddable; its page is a 404 while the embed player plays it. The app now falls back to the embed player on that 404 too, not only on the login wall (e.g. `vimeo.com/1024192767`, a share link with `?fl=pl&fe=sh`). New live E2E case `vimeo-hidden-page`.
+- **The built-in Instagram backup route works again.** When the engine fails on Instagram with its known HTTP-400 error, the app asks Instagram directly. The first two endpoint shapes it tried now answer 404 / 403 and the app gave up there («unavailable or deleted»); it now asks GraphQL first — the shape that still answers anonymously — and a 404 from one shape no longer stops the others.
+
+### Changed
+- Welcome, empty state and Settings › Help now say «Copy. Paste. Done.» — paste a link and it downloads; the copy-and-come-back shortcut is still there. Same wording as the landing.
 
 ## [1.5.4] — 2026-10-23 (released)
 
