@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-10-25 — No Mario Monteiro on any public surface; the brand speaks
+**Context:** Founder decision for all products (SP, SD, SPC, SG), relayed by the orchestrator: «Yo no quiero referencias a Mario Monteiro… no a mi cara y mi voz. Sí a demos, pero no con mi cara y mi voz. Lo que quiero es que estos sean empresas.»
+**Decision (founder):**
+- No name, face, voice, signature or founder story anywhere a user or a search engine sees it: landing (footer, legal), JSON-LD, app texts, README, release notes, prepared social copy, demos. The voice is «Super Downloads» or «we».
+- Landing footer drops «Made by Mario Monteiro» (and its link to mariomonteiro.tv). Privacy names the controller as «Super Downloads ("we"), based in Spain» + support@superdownloads.app — same as SP/SPC/SG; the founder accepted the GDPR art. 13 risk of not naming a person (2026-10-23).
+- Super Downloads stays a free gift, but it no longer points to «Mario's other work»: no maker line, no portfolio cross-link.
+**Supersedes:** the 2026-10-23 entries below where they keep the maker line on the landing/app and frame the app as a path to Mario's work.
+**Not changed:** the GitHub account `marioforpro` (download and changelog URLs) — an account matter, handled by the orchestrator.
+
 ## 2026-10-23 — Landing: no timeline strip under the hero; demo not posted on social yet
 **Context:** Founder review of the live landing: «elimina esto de la web… creo que confunde un timeline ahí».
 **Decision (founder):** the hero shows the app window only (the editing-timeline strip is gone; the demo film right below
@@ -18,7 +27,7 @@ The v8 demo goes on the landing; **nothing is posted on Instagram/X for now**. D
 **Context:** Open questions from the landing review: what happens after «Free for a limited time», and whether to keep the «Made by Mario Monteiro» line.
 **Decision (founder):**
 - **Role:** the app is a lead magnet — something Mario gives to followers, friends and clients, and that brings them to know his other projects.
-- **Maker line stays** («Made by Mario Monteiro»).
+- ~~**Maker line stays** («Made by Mario Monteiro»).~~ *Superseded 2026-10-25: removed everywhere.*
 - **Free, no end date for now.** «Free for a limited time» copy stays as is; monetization is considered only if downloads and usage grow a lot. Not now.
 **Consequence:** Success = people who download, activate (email list) and then discover Mario's other work — not revenue. Product choices favour reach and a path to Mario's work over gating. The FAQ keeps saying nothing about the end of the free period.
 **Why:** a useful free tool for editors earns attention and goodwill from exactly the audience Mario's other projects serve.

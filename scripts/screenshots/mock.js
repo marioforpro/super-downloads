@@ -7,17 +7,17 @@
   localStorage.clear();
   if (scene !== "onboarding") localStorage.setItem("hasSeenOnboarding", "true");
   if (scene !== "onboarding" && scene !== "activation") {
-    localStorage.setItem("activationEmail", "mario@superdownloads.app");
+    localStorage.setItem("activationEmail", "you@yourstudio.com");
     localStorage.setItem("activationSynced", "1");
   }
   localStorage.setItem("appSettings", JSON.stringify({
     theme, keepHistory: scene !== "empty", videoQuality: "best",
-    downloadLocation: "/Users/mario/Movies/Super Downloads"
+    downloadLocation: "/Users/editor/Movies/Super Downloads"
   }));
 
   const t = (id) => `thumbs/${id}.jpg`;
   const base = { conversionProgress: 0, speed: "", eta: "", completed: false, error: null, filePath: "" };
-  const done = (o) => ({ ...base, progress: 100, status: "completed", completed: true, filePath: "/Users/mario/Movies/x.mp4", ...o });
+  const done = (o) => ({ ...base, progress: 100, status: "completed", completed: true, filePath: "/Users/editor/Movies/x.mp4", ...o });
 
   const lists = {
     list: [

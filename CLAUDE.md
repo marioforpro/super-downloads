@@ -13,7 +13,9 @@ Stack: Tauri 2.x (Rust backend + Vanilla JS frontend). Bundled yt-dlp + ffmpeg +
 Landing: Astro v6 in `web/` subfolder. Deploy on Vercel.
 Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 
-## Current State (updated 2026-10-23)
+## Current State (updated 2026-10-25)
+
+- **v1.5.5 prepared, unpublished** on local branch `release/v1.5.5` (Vimeo hidden pages, Instagram backup route fixed, «Copy. Paste. Done.», Watch demo; E2E 10/10). The founder publishes. See `NEXT.md`.
 
 - **State:** FREE app, live — **v1.5.4 published 2026-10-23** (GitHub Release + updater; DMGs 97/109 MB).
 - **Active plan:** private use + friends testing (no public launch for now — `docs/DECISIONS.md` 2026-10-03). Fix what testers find; run the live E2E before each release. Payments track closed.
