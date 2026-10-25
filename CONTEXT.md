@@ -1,7 +1,7 @@
 # SUPER-DOWNLOADS — Context
 
 ## Purpose
-macOS video downloader for editors (H.264/MP4 ready for Premiere/Resolve/Final Cut). FREE app, live — v1.5.1 (2026-10-20); private use + friends testing, no public announcement yet. No payments provider (Track C closed 2026-10-03, `docs/DECISIONS.md`). Work plan 2026-10-23 in `ROADMAP.md` (R-SD-005…009). [Superseded: Track C2 (six Lemon Squeezy E2E gates) was the next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03). *(Status line said "Paused pre-launch" until 2026-08-03 — stale through the 2026-06-15 park and the 2026-07-16 reopen; corrected per SD-F-003/PROJ-F-014.)*]
+macOS video downloader for editors (H.264/MP4 ready for Premiere/Resolve/Final Cut). FREE app, live — v1.5.4 (2026-10-23); private use + friends testing, no public announcement yet. No payments provider (Track C closed 2026-10-03, `docs/DECISIONS.md`). Work plan 2026-10-23 in `ROADMAP.md` (R-SD-005…009). [Superseded: Track C2 (six Lemon Squeezy E2E gates) was the next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03). *(Status line said "Paused pre-launch" until 2026-08-03 — stale through the 2026-06-15 park and the 2026-07-16 reopen; corrected per SD-F-003/PROJ-F-014.)*]
 
 ## Belongs here
 - Tauri app code (`src/` frontend, `src-tauri/` Rust backend)
