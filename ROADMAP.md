@@ -4,7 +4,7 @@
 scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: active
-current_phase: Free app, private use + friends testing (v1.5.4 live) — work plan 2026-10-23 below
+current_phase: Free app, private use + friends testing (v1.5.5 live) — work plan 2026-10-23 below
 next_milestone: Developer ID signing + notarization in December (R-SD-009, target 2026-12-20) + fixes from tester reports
 updated: 2026-10-25
 ---
@@ -18,6 +18,14 @@ updated: 2026-10-25
 > **Work plan (2026-10-23).** Order = what moves the product most for the least founder time. Now → Next → Later.
 > References behind each call are cited inline (yt-dlp release cadence, Apple notarization, competitor apps).
 
+- **R-SD-014** · P1 · next · v1.5.6 — marketing consent unticked, share notice, dependency refresh
+  - added: 2026-10-25
+  - scope: branch `release/v1.5.6` (built, not published): marketing consent unticked with its wording (Planet49) · one-time «share it» notice after the 10th download · Tauri 2.12 + cargo/npm refresh · turn on the welcome email (Resend) · release pipeline adds a VirusTotal upload + `VT_SCANNED` before publishing.
+  - next: founder's yes to publish → `make-release.sh` from the branch.
+- **R-SD-013** · P1 · shipped · v1.5.5 — Vimeo + Instagram fixes, «Copy. Paste. Done.», anonymous daily active ping
+  - added: 2026-10-25
+  - scope: Vimeo hidden-copy fix · Instagram fallback refreshed · «Copy. Paste. Done.» app + landing copy · `app_active` daily ping on by default with a Settings switch (docs/DECISIONS.md 2026-10-25) · SHA-256 on the landing.
+  - shipped: 2026-10-25 — v1.5.5 published (founder's yes in chat); final round 29/29 live checks.
 - **R-SD-012** · P1 · next · Go-to-market — big launch Tue 2027-01-26, after signing (plan: private, LifeOS `08_Growth/super-downloads/GTM-2026-10-25.md`)
   - added: 2026-10-25
   - moved: 2026-10-25

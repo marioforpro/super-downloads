@@ -4,6 +4,11 @@
 
 ---
 
+## 2026-10-25 — Anonymous daily «active» ping: on by default, with a switch
+**Context:** Founder, on the first plan (opt-in, off by default): «puede ser al revés no? turned on, y si el user quiere que haga turn off».
+**Decision (founder):** the app sends one anonymous `app_active` event a day (PostHog, cookieless, no person profile, no IP), **on by default (opt-out)**, under the CNIL/AEPD audience-measurement exemption. The conditions are part of the decision: one purpose (counting active installs) · anonymous data · a random install id that lives at most 13 months · a clear notice before the first ping · an easy switch in Settings · a privacy text that explains all of it. Shipped in v1.5.5.
+**Supersedes:** «the App has no telemetry» in the privacy text before v1.5.5.
+
 ## 2026-10-25 — No Mario Monteiro on any public surface; the brand speaks
 **Context:** Founder decision for all products (SP, SD, SPC, SG), relayed by the orchestrator: «Yo no quiero referencias a Mario Monteiro… no a mi cara y mi voz. Sí a demos, pero no con mi cara y mi voz. Lo que quiero es que estos sean empresas.»
 **Decision (founder):**
