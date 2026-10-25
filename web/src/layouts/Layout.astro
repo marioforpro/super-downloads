@@ -6,9 +6,10 @@ interface Props {
   title: string;
   description: string;
   noindex?: boolean;
+  version?: string;
 }
 
-const { title, description, noindex = false } = Astro.props;
+const { title, description, noindex = false, version = '1.5.5' } = Astro.props;
 const pageUrl = new URL(Astro.url.pathname, 'https://superdownloads.app').href;
 
 // Share preview (WhatsApp / X / LinkedIn). Swap the file here only; give a new
@@ -19,6 +20,42 @@ const OG_IMAGE = {
   width: 1200,
   height: 630,
   alt: 'Super Downloads — the video downloader built for editors. Free for Mac.',
+};
+const SOFTWARE_LD = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Super Downloads",
+  "description": "macOS video downloader for editors. Save your own, licensed, or authorized videos from YouTube, TikTok and Vimeo — plus Instagram, Facebook, X and LinkedIn using your browser login. Every video is Premiere Pro ready — H.264/MP4.",
+  "applicationCategory": "MultimediaApplication",
+  "operatingSystem": "macOS 12+ (Apple Silicon), macOS 10.15+ (Intel)",
+  "offers": [
+    {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "name": "Free",
+      "description": "Free — no download limit, all platforms, all quality options"
+    }
+  ],
+  "featureList": [
+    "Works out of the box with YouTube, TikTok and Vimeo",
+    "Supports Instagram, Facebook, X/Twitter and LinkedIn using your browser login",
+    "Auto-convert to H.264/AAC/MP4 for editing",
+    "Hardware accelerated with VideoToolbox",
+    "Audio-only MP3 extraction",
+    "Copy a link and press Enter; Batch mode for many links",
+    "Drag and drop support",
+    "Dark and light themes",
+    "Apple Silicon and Intel support"
+  ],
+  "url": "https://superdownloads.app",
+  "downloadUrl": "https://superdownloads.app/#download",
+  "softwareVersion": "__VERSION__",
+  "creator": {
+    "@type": "Organization",
+    "name": "Super Downloads",
+    "url": "https://superdownloads.app"
+  }
 };
 ---
 
@@ -50,44 +87,7 @@ const OG_IMAGE = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={OG_IMAGE.url} />
     <meta name="twitter:image:alt" content={OG_IMAGE.alt} />
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
-      "name": "Super Downloads",
-      "description": "macOS video downloader for editors. Save your own, licensed, or authorized videos from YouTube, TikTok and Vimeo — plus Instagram, Facebook, X and LinkedIn using your browser login. Every video is Premiere Pro ready — H.264/MP4.",
-      "applicationCategory": "MultimediaApplication",
-      "operatingSystem": "macOS 12+ (Apple Silicon), macOS 10.15+ (Intel)",
-      "offers": [
-        {
-          "@type": "Offer",
-          "price": "0",
-          "priceCurrency": "EUR",
-          "name": "Free",
-          "description": "Free — no download limit, all platforms, all quality options"
-        }
-      ],
-      "featureList": [
-        "Works out of the box with YouTube, TikTok and Vimeo",
-        "Supports Instagram, Facebook, X/Twitter and LinkedIn using your browser login",
-        "Auto-convert to H.264/AAC/MP4 for editing",
-        "Hardware accelerated with VideoToolbox",
-        "Audio-only MP3 extraction",
-        "Copy a link and press Enter; Batch mode for many links",
-        "Drag and drop support",
-        "Dark and light themes",
-        "Apple Silicon and Intel support"
-      ],
-      "url": "https://superdownloads.app",
-      "downloadUrl": "https://superdownloads.app/#download",
-      "softwareVersion": "1.5.1",
-      "creator": {
-        "@type": "Organization",
-        "name": "Super Downloads",
-        "url": "https://superdownloads.app"
-      }
-    }
-    </script>
+    <script type="application/ld+json" set:html={JSON.stringify(SOFTWARE_LD).replace('__VERSION__', version)} />
     <script>
       !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister unregister_for_session getFeatureFlag getFeatureFlagPayload isFeatureEnabled reloadFeatureFlags updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures on onFeatureFlags onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep identify setPersonProperties group resetGroups setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags reset get_distinct_id getGroups get_session_id get_session_replay_url alias set_config startSessionRecording stopSessionRecording sessionRecordingStarted captureException loadToolbar get_property getSessionProperty createPersonProfile opt_in_capturing opt_out_capturing has_opted_in_capturing has_opted_out_capturing clear_opt_in_out_capturing debug".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
       // Cookieless, anonymous analytics (EU/GDPR): PostHog's cookieless mode
