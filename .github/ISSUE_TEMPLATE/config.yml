@@ -1,0 +1,10 @@
+# Support goes to email, where we answer fastest. Code contributions and
+# reproducible bugs with a link are still welcome as issues.
+blank_issues_enabled: false
+contact_links:
+  - name: Get help or report a link that fails
+    url: mailto:support@superdownloads.app
+    about: Email support@superdownloads.app with the link (in the app, Settings › Help › Report a problem fills it in for you).
+  - name: Known issues
+    url: https://superdownloads.app/changelog#known-issues
+    about: Check here first. Most site problems fix themselves with the weekly engine update.

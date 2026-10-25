@@ -135,6 +135,11 @@ if [[ "$PUBLISH" == "1" ]]; then
   # Release notes = this version's CHANGELOG section (the landing links to them).
   NOTES="$(awk -v v="## [${VERSION}]" 'index($0, v) == 1 { on = 1; next } on && /^## / { exit } on' CHANGELOG.md)"
   [[ -n "${NOTES//[[:space:]]/}" ]] || NOTES="See CHANGELOG.md"
+  # Checksums so anyone can verify the unsigned DMGs (`shasum -a 256 <file>`).
+  NOTES+=$'\n\n### Verify your download (SHA-256)\n'
+  for a in "${ASSETS[@]}"; do
+    [[ "$a" == *.dmg ]] && NOTES+=$'\n'"\`$(shasum -a 256 "$a" | cut -d' ' -f1)\`  $(basename "$a")"
+  done
 
   echo "▶ Publishing ${TAG} (${TARGET:0:7}) to GitHub…"
   gh release create "$TAG" --repo "$REPO" --target "$TARGET" --title "Super Downloads ${TAG}" \

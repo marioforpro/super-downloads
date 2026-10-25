@@ -1,6 +1,15 @@
 // User-facing release notes for /changelog, newest first. Plain language for
 // editors; the technical detail lives in CHANGELOG.md. Add an entry with every
 // release (docs/OPS.md § Release pipeline).
+// Known issues shown at the top of /changelog (#known-issues). Plain language,
+// each with what to do. Remove an entry in the same commit that fixes it.
+export const knownIssues = [
+  'The first time you open the app, macOS says it can’t verify it, because Apple notarization is still in progress. Open it once, click Done, then System Settings › Privacy & Security › Open Anyway. Signed builds are planned.',
+  'On Intel Macs the very first download after installing can take about 10 seconds to start while macOS prepares the download engine. Later downloads start right away.',
+  'Instagram, Facebook, X and LinkedIn change how they serve video often and work on a best-effort basis. When one stops working, the weekly engine update usually fixes it; Settings › Update next to Engine checks right away.',
+  'Copy-protected (DRM) video can’t be downloaded. The app tells you and stops.',
+];
+
 export const releases = [
   {
     version: '1.5.5',

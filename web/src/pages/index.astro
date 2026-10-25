@@ -7,7 +7,10 @@ const DMG_INTEL = `${REPO}/releases/latest/download/Super-Downloads_x64.dmg`;
 
 // Version and DMG sizes, read from the latest GitHub release at build time.
 // Fallbacks keep the build working offline or when the API rate-limits.
-const release = { version: '1.5.5', arm: 97, intel: 109 };
+const release = { version: '1.5.5', arm: 97, intel: 109, shaArm: '', shaIntel: '' };
+// Flip to true once both DMGs of the current release are scanned on virustotal.com
+// (upload them there by hand after each release; links go to the hash pages).
+const VT_SCANNED = false;
 try {
   const res = await fetch('https://api.github.com/repos/marioforpro/super-downloads/releases/latest', {
     headers: { 'User-Agent': 'superdownloads-web', Accept: 'application/vnd.github+json' },
@@ -21,8 +24,22 @@ try {
     release.version = String(data.tag_name || '').replace(/^v/, '') || release.version;
     release.arm = mb('Super-Downloads_aarch64.dmg') ?? release.arm;
     release.intel = mb('Super-Downloads_x64.dmg') ?? release.intel;
+    // GitHub stores a SHA-256 digest per asset ("sha256:<hex>").
+    const sha = (name: string) => {
+      const d = data.assets?.find((a: { name: string }) => a.name === name)?.digest;
+      return typeof d === 'string' && d.startsWith('sha256:') ? d.slice(7) : '';
+    };
+    release.shaArm = sha('Super-Downloads_aarch64.dmg');
+    release.shaIntel = sha('Super-Downloads_x64.dmg');
   }
 } catch {}
+
+// Sibling apps in the footer (same block on all four sites, literal taglines).
+const FAMILY = [
+  { name: 'Super Prompts', url: 'https://superprompts.pro/', line: 'Visual library of AI image and video prompts.' },
+  { name: 'Super Podcatch', url: 'https://superpodcatch.com/', line: 'Any podcast, in your language.' },
+  { name: 'Super Guides', url: 'https://superguides.pro/', line: 'Social safe zones and your client’s post, inside Premiere.' },
+];
 
 const XATTR = 'xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"';
 
@@ -47,8 +64,8 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   },
   {
     q: 'What do you do with my email?',
-    a: 'It activates the app and lets us tell you about important changes, such as security fixes or the end of the free period. If you leave the “updates and new products” box ticked, we may also email you about updates and our other products; untick it and we won’t. Every email has a one-click unsubscribe.',
-    html: 'It activates the app and lets us tell you about important changes, such as security fixes or the end of the free period. If you leave the “updates and new products” box ticked, we may also email you about updates and our other products; untick it and we won’t. Every email has a one-click unsubscribe. Details in the <a href="/privacy">Privacy Policy</a>.',
+    a: 'It activates the app and lets us tell you about important changes, such as security fixes or the end of the free period. Emails about updates and our other apps are optional: you get them only if you tick that box, and every one has a one-click unsubscribe.',
+    html: 'It activates the app and lets us tell you about important changes, such as security fixes or the end of the free period. Emails about updates and our other apps are optional: you get them only if you tick that box, and every one has a one-click unsubscribe. Details in the <a href="/privacy">Privacy Policy</a>.',
   },
   {
     q: 'Why do some platforms need my browser login?',
@@ -260,6 +277,16 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         </div>
         <p class="download-help">Not sure which? Apple menu › About This Mac shows your chip.</p>
         <p class="download-meta">Version {release.version} · <a href="/changelog">Release notes</a> · <a href={REPO}>Source on GitHub</a></p>
+        {release.shaArm && release.shaIntel && (
+          <details class="verify">
+            <summary>Verify the download</summary>
+            <p>Each file’s SHA-256 fingerprint. In Terminal, <code>shasum -a 256 ~/Downloads/Super-Downloads_aarch64.dmg</code> should print the same string.</p>
+            <dl>
+              <div><dt>Apple Silicon</dt><dd><code>{release.shaArm}</code>{VT_SCANNED && <a href={`https://www.virustotal.com/gui/file/${release.shaArm}`}>VirusTotal scan</a>}</dd></div>
+              <div><dt>Intel</dt><dd><code>{release.shaIntel}</code>{VT_SCANNED && <a href={`https://www.virustotal.com/gui/file/${release.shaIntel}`}>VirusTotal scan</a>}</dd></div>
+            </dl>
+          </details>
+        )}
 
         <div class="install" id="install">
           <p class="install-started" id="install-started" role="status" hidden>Your download has started. Three steps and you’re in.</p>
@@ -306,6 +333,15 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         <a href="/terms">Terms</a>
         <a href="/privacy">Privacy</a>
         <a href="/copyright">Copyright</a>
+        <a href="/press">Press</a>
+      </nav>
+      <nav class="family" aria-label="More from Super">
+        <p class="family-title">More from Super</p>
+        <ul>
+          {FAMILY.map((f) => (
+            <li><a href={`${f.url}?utm_source=superdownloads&utm_medium=footer&utm_campaign=family`}>{f.name}</a><span>{f.line}</span></li>
+          ))}
+        </ul>
       </nav>
       <p class="footer-fine">Super Downloads does not host, store, or distribute any copyrighted content. Download only content you own, have licensed, that’s shared under Creative Commons, or that you’re otherwise authorized to use.</p>
       <p class="footer-fine">Screenshots show Blender Studio open movies (Spring, WING IT!, Coffee Run, CHARGE, Sprite Fright, Agent 327, HERO, Cosmos Laundromat), licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> by the Blender Foundation.</p>
@@ -617,6 +653,15 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   .download-meta { margin-top: 6px; font-size: 13px; color: rgba(213, 235, 255, 0.72); }
   .download-meta a, .install a { color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
 
+  .verify { width: 100%; max-width: 640px; margin-top: 14px; font-size: 13px; color: rgba(213, 235, 255, 0.76); text-align: left; }
+  .verify summary { cursor: pointer; width: fit-content; margin: 0 auto; color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
+  .verify p { margin-top: 12px; line-height: 1.6; }
+  .verify dl { margin-top: 10px; display: grid; gap: 8px; }
+  .verify dl div { display: grid; grid-template-columns: 104px 1fr; gap: 12px; align-items: baseline; }
+  .verify dt { color: var(--white); font-weight: 600; }
+  .verify dd { display: flex; flex-wrap: wrap; gap: 4px 12px; min-width: 0; }
+  .verify code { font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; color: var(--blue-50); word-break: break-all; }
+  .verify a { color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
   .install {
     width: 100%; max-width: 640px; margin-top: 56px; padding: 28px 32px; text-align: left;
     background: rgba(213, 235, 255, 0.05); border: 1px solid rgba(213, 235, 255, 0.14); border-radius: 14px;
@@ -655,6 +700,11 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
   .footer-links { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 15px; }
   .footer-links a { color: var(--slate); display: inline-flex; align-items: center; min-height: 32px; }
+  .family { width: 100%; padding: 20px 0 4px; border-top: 1px solid var(--line); }
+  .family-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+  .family ul { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 32px; }
+  .family li { display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.5; color: #5b6b80; }
+  .family a { font-size: 15px; font-weight: 500; color: var(--ink); width: fit-content; }
   .footer-fine { width: 100%; font-size: 13px; line-height: 1.6; color: #5b6b80; }
   .footer-fine a { color: inherit; text-decoration: underline; }
 
@@ -686,8 +736,10 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     .clip span { display: none; }
     .lede { font-size: 17px; }
     .facts { grid-template-columns: 1fr; gap: 24px; }
+    .family ul { grid-template-columns: 1fr; gap: 12px; }
     .btn-dl { width: 100%; }
     .install { padding: 22px 18px; }
     .link-btn { width: 100%; }
+    .verify dl div { grid-template-columns: 1fr; gap: 2px; }
   }
 </style>

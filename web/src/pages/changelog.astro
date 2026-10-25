@@ -1,6 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { releases } from '../data/releases.js';
+import { releases, knownIssues } from '../data/releases.js';
 
 const REPO = 'https://github.com/marioforpro/super-downloads';
 const fmt = (iso) =>
@@ -12,6 +12,14 @@ const fmt = (iso) =>
     <a href="/" class="back">&larr; Back</a>
     <h1>What’s new</h1>
     <p class="updated">The app updates itself — a banner appears when a new version is out. <a href="/#download">Download the latest version</a>.</p>
+
+    <section class="known" id="known-issues" aria-labelledby="known-title">
+      <h2 id="known-title">Known issues</h2>
+      <ul>
+        {knownIssues.map((k) => <li>{k}</li>)}
+      </ul>
+      <p class="known-help">Something else not working? Write to <a href="mailto:support@superdownloads.app">support@superdownloads.app</a> with the link, or use Settings › Help › Report a problem in the app.</p>
+    </section>
 
     {releases.map((r, i) => (
       <section class="release" id={`v${r.version}`}>
@@ -91,6 +99,26 @@ const fmt = (iso) =>
 
   ul {
     padding-left: 20px;
+  }
+
+  .known {
+    padding: 18px 20px 6px;
+    margin-bottom: 8px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--mist);
+  }
+
+  .known h2 {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+
+  .known-help {
+    font-size: 13px;
+    color: var(--slate);
+    line-height: 1.6;
+    margin: 4px 0 14px;
   }
 
   li {
