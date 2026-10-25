@@ -13,8 +13,8 @@ const pageUrl = new URL(Astro.url.pathname, 'https://superdownloads.app').href;
 // Share preview (WhatsApp / X / LinkedIn). Swap the file here only; give a new
 // image a new filename so the platforms' caches pick it up. Keep it JPG/PNG < 300 KB.
 const OG_IMAGE = {
-  url: 'https://superdownloads.app/og.png',
-  type: 'image/png',
+  url: 'https://superdownloads.app/og/sd-og-home.jpg',
+  type: 'image/jpeg',
   width: 1200,
   height: 630,
   alt: 'Super Downloads — the video downloader built for editors. Free for Mac.',
@@ -91,6 +91,17 @@ const OG_IMAGE = {
       // Cookieless, anonymous analytics (EU/GDPR): no cookies or localStorage,
       // no person profiles, no session recording — aggregated pageviews only,
       // so no consent banner is required.
+      // Only the production hosts send. `?internal=1` turns capture off in this
+      // browser (our own visits), `?internal=0` turns it back on.
+      var sdInternal = false;
+      try {
+        var sdFlag = new URLSearchParams(location.search).get('internal');
+        if (sdFlag === '1') localStorage.setItem('sd_internal', '1');
+        if (sdFlag === '0') localStorage.removeItem('sd_internal');
+        sdInternal = localStorage.getItem('sd_internal') === '1';
+      } catch (e) {}
+      var sdProdHost = /^(www\.)?superdownloads\.app$/.test(location.hostname);
+      if (sdProdHost && !sdInternal) {
       posthog.init('phc_5nkW8LyRDxnxAZxqxOYVqXdOqWHbZ8G9SP1cMy0iAx7', {
         api_host: 'https://us.i.posthog.com',
         persistence: 'memory',
@@ -101,6 +112,9 @@ const OG_IMAGE = {
         disable_surveys: true,
         capture_performance: false
       });
+      // Every event says which product it came from (one PostHog project for the family).
+      posthog.register({ product: 'super-downloads' });
+      }
     </script>
   </head>
   <body>

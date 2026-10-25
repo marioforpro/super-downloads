@@ -334,7 +334,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
       });
     })();
   </script>
-  <script is:inline define:vars={{ DMG_ARM, DMG_INTEL }}>
+  <script is:inline define:vars={{ DMG_ARM, DMG_INTEL, VERSION: release.version }}>
     (function () {
       var track = function (event, props) {
         try { window.posthog && window.posthog.capture(event, props); } catch (e) {}
@@ -397,7 +397,11 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
       // After a DMG click the file downloads in place: point straight at the install steps.
       document.querySelectorAll('.js-dmg').forEach(function (a) {
         a.addEventListener('click', function () {
-          track('dmg_click', { arch: a.dataset.arch, place: a.dataset.place });
+          track('download_clicked', {
+            platform: a.dataset.arch === 'intel' ? 'macos-x64' : 'macos-arm64',
+            version: VERSION,
+            place: a.dataset.place
+          });
           document.getElementById('install-started').hidden = false;
           setTimeout(function () {
             document.getElementById('install').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'center' });
