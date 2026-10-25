@@ -24,10 +24,10 @@ import Layout from '../layouts/Layout.astro';
     <p>The one exception is <strong>activation</strong> (see section 4): when you activate the App, it sends the email address you enter once, together with the App version, your Mac's architecture and macOS version, and the computer name used to tell your devices apart. Nothing about what you download is ever sent.</p>
 
     <h2>3. The Website — Anonymous, Cookieless Analytics</h2>
-    <p>This website (superdownloads.app) uses PostHog to understand aggregate traffic — page views, referrers, approximate country, browser and device type. This analytics setup is deliberately privacy-first:</p>
+    <p>This website (superdownloads.app) uses PostHog to understand aggregate traffic — page views, referrers, browser and device type. This analytics setup is deliberately privacy-first:</p>
     <ul>
       <li><strong>Cookieless:</strong> no cookies or local storage are used for analytics, so no consent banner is shown.</li>
-      <li><strong>Anonymous:</strong> no user profiles are created and events are not linked to an identified person.</li>
+      <li><strong>Anonymous:</strong> no user profiles are created and events are not linked to an identified person. To count unique visitors per day, PostHog computes an irreversible hash on its servers from your IP address, browser and a random value that changes every day and is then deleted; the hash cannot be traced back to you, and nothing is stored on your device.</li>
       <li><strong>No session recording:</strong> we do not record your screen, mouse movements, or keystrokes.</li>
       <li><strong>Aggregated only:</strong> we look at totals and trends, not individuals.</li>
     </ul>
