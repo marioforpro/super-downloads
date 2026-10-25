@@ -6,7 +6,7 @@ prefix: SD
 lifecycle: active
 current_phase: Free app, private use + friends testing (v1.5.4 live) — work plan 2026-10-23 below
 next_milestone: Developer ID signing + notarization in December (R-SD-009, target 2026-12-20) + fixes from tester reports
-updated: 2026-10-23
+updated: 2026-10-25
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -18,6 +18,15 @@ updated: 2026-10-23
 > **Work plan (2026-10-23).** Order = what moves the product most for the least founder time. Now → Next → Later.
 > References behind each call are cited inline (yt-dlp release cadence, Apple notarization, competitor apps).
 
+- **R-SD-012** · P1 · next · Go-to-market — big launch Tue 2027-01-26, after signing (plan: private, LifeOS `08_Growth/super-downloads/GTM-2026-10-25.md`)
+  - added: 2026-10-25
+  - moved: 2026-10-25
+  - why: GTM brief 2026-10-25 (`08_Growth/GTM-BRIEF-2026-10-25.md`). Measured: 183 landing views/30 d (~75 % search), 39 DMGs since free mode → 3 email activations (2 founder tests): the unsigned install is where the funnel breaks, so the launch waits for R-SD-009. Portfolio order (orchestrator, 2026-10-25): SPC 10-nov · SG 17-nov · SP 24-nov · SD 26-ene.
+  - scope: 5 channels (SEO/GEO pages · directories as the launch moment · r/macapps «App Pile» megathread + editor threads · partner emails to editor blogs/newsletters · brand Instagram + Threads via Buffer free) · 12 drafts in `08_Growth/super-downloads/drafts-2027-01-launch` (private)/` · STUDIO briefs S1–S5 (GTM §8). Product Hunt and Show HN out (personal maker account / personal post required).
+  - open_decision: D1–D5 in GTM §10 (launch date, Apple identity, PH, Uneed 29,99 USD, SD→SG cross-promo) — founder.
+  - depends_on: R-SD-009
+  - target: 2027-01-26
+  - next: Claude: AlternativeTo + Uneed listings ready to submit in November, SEO pages 1–3 + `llms.txt`, open STUDIO jobs S1–S4 · Mario: decide D1–D5, create the brand profiles (Instagram, Threads, Reddit) and connect Buffer.
 - **R-SD-005** · P0 · shipped · Landing refresh — real app screenshots, OG image, editor-first design
   - added: 2026-10-23
   - moved: 2026-10-23
@@ -81,7 +90,10 @@ updated: 2026-10-23
   - target: re-baseline at LS-verify session start
   - source: docs/LAUNCH.md, NEXT.md, docs/OPS.md
   - moved: 2026-05-06
-- **R-SD-002** · P2 · backlog · Publish launch announcement (Reddit r/macapps + HN Show HN)
+- **R-SD-002** · P2 · dropped · Publish launch announcement (Reddit r/macapps + HN Show HN)
+  - dropped: 2026-10-25
+  - dropped_reason: merged into R-SD-012 (GTM plan). The old form no longer works: r/macapps rule 8 limits non-qualifying developers to the monthly megathread, and Show HN asks for a personal, handwritten post with no email gate.
+  - merged_into: R-SD-012
   - deferral: 2026-10-03 (on hold) — founder: no announcement for now; the app is for Mario + friends to test first, promotion decided later (`docs/DECISIONS.md` 2026-10-03). Draft kept current for v1.4.0 in `docs/ANNOUNCEMENT-DRAFT.md`.
   - note: 2026-10-03 (was «unblocked») — v1.3.0 free-mode build published and the landing is live with free-mode copy; the announcement can go out (`docs/ANNOUNCEMENT-DRAFT.md`). Founder posts.
   - next: none while on hold — when promotion is decided, start from the checklist in `docs/ANNOUNCEMENT-DRAFT.md` §3. [Historical: copy DRAFTED (OOO-auto 2026-10-02) → `docs/ANNOUNCEMENT-DRAFT.md` (r/macapps + Show HN + pre-post checklist); post only after the free-mode build ships and `web/src/pages/index.astro` drops «5 downloads per day» / «€29 Pro»]
@@ -127,8 +139,8 @@ updated: 2026-10-23
 - Windows/Linux expansion
 - Browser extension (was Phase 8 in prior roadmap — legitimately future work)
 - ~~Verify the real minimum macOS~~ — done 2026-10-23 (measured with `otool` on the built bundles): **Intel 10.15** (engine), **Apple Silicon 12** (ffmpeg/ffprobe arm64). App declares it (`minimumSystemVersion` 10.15 + `src-tauri/Info.plist` `LSMinimumSystemVersionByArchitecture`); landing download buttons, FAQ and JSON-LD aligned. Ships in v1.5.4.
-- MacUpdate / AlternativeTo directory submissions — bundle with R-SD-002 when promotion is decided
-- Product Hunt launch (timing TBD) — needs R-SD-009 first: an unsigned app on launch day turns the comment thread into install support
+- ~~MacUpdate / AlternativeTo directory submissions~~ — now in R-SD-012 (GTM §4 channel 2)
+- ~~Product Hunt launch~~ — out of R-SD-012: Product Hunt forbids company accounts, so the maker would be a personal profile (GTM §10 D3)
 - **Founder comp license via LemonSqueezy** — **void 2026-10-03** (no LemonSqueezy account; app is free). ~~— issue real comp license through Lemon dashboard (Product → Licenses → Issue License Key, comp/free) for the founder's email, replace local `FOUNDER-MARIO-001` stop-gap (Session 201 inject, see `docs/SECURITY-NOTES.md`). Validates the full activation flow end-to-end with a real Lemon-tracked record. Depends on: Lemon product live (linked to R-SD-001 Phase 4 LS-verify). **Sequencing constraint** (surfaced 2026-08-03 from `docs/SECURITY-NOTES.md` prose, SD-F-014): replace the FOUNDER-MARIO-001 stop-gap before/with the license-hardening review below, so any revalidation layer doesn't lock the founder's injected keys out.~~
 - ~~**LinkedIn health-probe URL**~~ — done 2026-09-27 (yt-dlp's own MathWorks test post; also the E2E LinkedIn case, PASS 2026-10-23).
 - ~~**Instagram fallback is stale**~~ — fixed 2026-10-25 (ships in v1.5.5): the first endpoint (`__a=1`) now answers a 404 page and the second a 403, and the code treated both as final, so it never reached GraphQL — which works anonymously (200 with the video). GraphQL now goes first and a 404/403 on one shape no longer stops the others; 3 new unit tests, live test resolves the reel. Was: «unavailable or deleted» for a live public reel that yt-dlp downloads fine.

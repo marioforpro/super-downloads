@@ -1,5 +1,8 @@
 # Launch Plan: Super Downloads
 
+> **RETIRED 2026-10-25, superseded by the private GTM plan (LifeOS `08_Growth/super-downloads/GTM-2026-10-25.md`, kept out of this public repo)** (R-SD-012). Kept for history: it still describes
+> the paid model (€29, LemonSqueezy, LAUNCH30) and channels that no longer apply. Do not use its copy.
+
 > First product launch in the Super ecosystem.
 > Based on Launch-Playbook.md template.
 > **Launch-day execution only** (channels · copy · metrics). For launch readiness gates, `docs/LAUNCH.md` is the single source of truth.

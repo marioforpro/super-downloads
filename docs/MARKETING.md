@@ -1,5 +1,9 @@
 # Marketing Plan — Super Downloads
 
+> **RETIRADO 2026-10-25, sustituido por the private GTM plan (LifeOS `08_Growth/super-downloads/GTM-2026-10-25.md`, kept out of this public repo)** (R-SD-012). Se conserva como historia: precios
+> viejos, anuncio desde una cuenta personal (prohibido desde el 25-oct) y canales sin métrica. El claim y el marco
+> de derechos siguen vigentes y están en el plan nuevo.
+
 > Estrategia de marketing inicial. Simplicidad máxima para un solo operador.
 >
 > **2026-10-03:** pricing/promo de este plan (5/día, €29 Pro, LAUNCH30) desfasados — la app es gratis y sin proveedor de pagos; tampoco hay promoción pública por ahora (uso propio + amigos). Ver `docs/DECISIONS.md` 2026-10-03.

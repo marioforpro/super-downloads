@@ -61,3 +61,7 @@ web/.astro/
 
 # Screenshot generator cache (downloaded thumbnails)
 scripts/screenshots/.cache/
+
+# Go-to-market plans and marketing drafts live in the private LifeOS repo (08_Growth/super-downloads/), never here.
+marketing/drafts/
+docs/GTM-*.md
