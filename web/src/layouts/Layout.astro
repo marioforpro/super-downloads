@@ -8,6 +8,17 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+const pageUrl = new URL(Astro.url.pathname, 'https://superdownloads.app').href;
+
+// Share preview (WhatsApp / X / LinkedIn). Swap the file here only; give a new
+// image a new filename so the platforms' caches pick it up. Keep it JPG/PNG < 300 KB.
+const OG_IMAGE = {
+  url: 'https://superdownloads.app/og.png',
+  type: 'image/png',
+  width: 1200,
+  height: 630,
+  alt: 'Super Downloads — the video downloader built for editors. Free for Mac.',
+};
 ---
 
 <!doctype html>
@@ -20,18 +31,23 @@ const { title, description } = Astro.props;
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#0a163f" />
     <meta name="color-scheme" content="light only" />
-    <link rel="canonical" href={new URL(Astro.url.pathname, 'https://superdownloads.app').href} />
+    <link rel="canonical" href={pageUrl} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://superdownloads.app" />
-    <meta property="og:image" content="https://superdownloads.app/og.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content={pageUrl} />
+    <meta property="og:site_name" content="Super Downloads" />
+    <meta property="og:image" content={OG_IMAGE.url} />
+    <meta property="og:image:secure_url" content={OG_IMAGE.url} />
+    <meta property="og:image:type" content={OG_IMAGE.type} />
+    <meta property="og:image:width" content={String(OG_IMAGE.width)} />
+    <meta property="og:image:height" content={String(OG_IMAGE.height)} />
+    <meta property="og:image:alt" content={OG_IMAGE.alt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
-    <meta name="twitter:image" content="https://superdownloads.app/og.png" />
+    <meta name="twitter:image" content={OG_IMAGE.url} />
+    <meta name="twitter:image:alt" content={OG_IMAGE.alt} />
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
