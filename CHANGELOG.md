@@ -6,7 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-Next app build (1.5.7), on branch `release/v1.5.7`, not published.
+## [1.5.7] — 2026-10-26
+
+No usage notice inside the app (the anonymous count is explained on the website and in Settings), «Free».
 
 - **No usage notice in the app:** the one-time «One anonymous ping a day…» box and the welcome-screen line are gone; nothing about the ping shows when the app opens. The daily anonymous ping stays on by default, now only once past the welcome screen. People are told before they install (a short line by the hero «Download for Mac» button, a line under the download buttons on superdownloads.app, /privacy#usage-stats); Settings › Share anonymous usage stats says what is sent and links to /privacy. Decision 2026-10-26 in `docs/DECISIONS.md`. Test: `node scripts/test-active-ping.cjs` (23 checks).
 - **«Free»:** the welcome and activation cards say «Free · unlimited downloads» (1.5.6 still said «Free for a limited time»).
