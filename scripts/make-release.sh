@@ -18,10 +18,18 @@
 #   export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="<password or empty>"
 # (the script sets the key from the file automatically if the env var is unset).
 #
+# Apple signing + notarization (dormant until the Developer account exists,
+# SD-F-017): set APPLE_SIGNING_IDENTITY + notary credentials in ~/.secrets
+# (docs/SIGNING.md) and this same command builds signed, notarized releases.
+# Without them it builds unsigned, as before.
+#
 # Usage:
 #   ./scripts/make-release.sh            # build + stage + latest.json (no publish)
 #   ./scripts/make-release.sh --publish  # also create the GitHub release via gh
 #   ./scripts/make-release.sh --no-build # skip build, just (re)stage + manifest
+#   ./scripts/make-release.sh --sign-dry-run  # Apple Silicon only, ad-hoc signed
+#       with the hardened runtime, verified, NOT staged: rehearses the signed
+#       pipeline without an Apple account (dist/ is left untouched)
 #
 set -euo pipefail
 
@@ -31,13 +39,20 @@ REPO="marioforpro/super-downloads"
 
 BUILD=1
 PUBLISH=0
+DRY_SIGN=0
 for arg in "$@"; do
   case "$arg" in
     --no-build) BUILD=0 ;;
     --publish)  PUBLISH=1 ;;
+    --sign-dry-run) DRY_SIGN=1; export APPLE_SIGNING_IDENTITY="-" ;;
     *) echo "Unknown flag: $arg" >&2; exit 2 ;;
   esac
 done
+
+if [[ "$DRY_SIGN" == "1" && ( "$BUILD" == "0" || "$PUBLISH" == "1" ) ]]; then
+  echo "FAIL: --sign-dry-run builds and stops; it cannot be combined with --no-build or --publish" >&2
+  exit 2
+fi
 
 VERSION="$(python3 -c "import json;print(json.load(open('src-tauri/tauri.conf.json'))['version'])")"
 TAG="v${VERSION}"
@@ -57,12 +72,59 @@ export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="${TAURI_SIGNING_PRIVATE_KEY_PASSWORD:
 # Use the rustup toolchain (has both aarch64 + x86_64 std). See docs/DEVELOPMENT.md.
 export PATH="/opt/homebrew/opt/rustup/bin:$PATH"
 
+# ── Apple signing (only when APPLE_SIGNING_IDENTITY is set) ──────────────
+SIGN=0; [[ -n "${APPLE_SIGNING_IDENTITY:-}" ]] && SIGN=1
+TARGET_DIR="src-tauri/target"
+TRIPLES=(aarch64-apple-darwin x86_64-apple-darwin)
+CONFIG_ARGS=()
+if [[ "$SIGN" == "1" ]]; then
+  ./scripts/macos-sign.sh preflight
+  # codesign refuses Finder/iCloud/Dropbox extended attributes («detritus»), and
+  # the iCloud tree stamps them on every bundle built inside it: build elsewhere.
+  export CARGO_TARGET_DIR="$HOME/Library/Caches/super-downloads/target"
+  TARGET_DIR="$CARGO_TARGET_DIR"
+  [[ "$DRY_SIGN" == "1" ]] && TRIPLES=(aarch64-apple-darwin)
+  if [[ "$BUILD" == "1" ]]; then
+    xattr -cr src-tauri/binaries/ src-tauri/icons src-tauri/ytdlp-plugins
+    # Sign a copy of the engine, never the source one, and bundle that copy.
+    ENGINE_STAGE="$TARGET_DIR/signed-engine"
+    mkdir -p "$TARGET_DIR"; rm -rf "$ENGINE_STAGE"
+    ditto --noextattr src-tauri/binaries/yt-dlp-onedir "$ENGINE_STAGE"
+    ./scripts/macos-sign.sh nested "$ENGINE_STAGE"
+    CONFIG_ARGS=(--config "{\"bundle\":{\"resources\":{\"binaries/yt-dlp-onedir/\":null,\"${ENGINE_STAGE}/\":\"yt-dlp-engine/\"}}}")
+  fi
+  echo "▶ Signing as: ${APPLE_SIGNING_IDENTITY} (Tauri signs + notarizes the app; DMGs below)"
+else
+  echo "▶ Unsigned build (no APPLE_SIGNING_IDENTITY)"
+fi
+
 # ── 1. Build ─────────────────────────────────────────────────────────────
 if [[ "$BUILD" == "1" ]]; then
-  echo "▶ Building aarch64…"
-  npm run tauri build -- --target aarch64-apple-darwin --bundles app dmg
-  echo "▶ Building x86_64…"
-  npm run tauri build -- --target x86_64-apple-darwin --bundles app dmg
+  for triple in "${TRIPLES[@]}"; do
+    echo "▶ Building ${triple}…"
+    npm run tauri build -- --target "$triple" --bundles app dmg ${CONFIG_ARGS[@]+"${CONFIG_ARGS[@]}"}
+  done
+fi
+
+if [[ "$SIGN" == "1" && "$BUILD" == "1" ]]; then
+  for triple in "${TRIPLES[@]}"; do
+    bundle_dir="${TARGET_DIR}/${triple}/release/bundle"
+    app="${bundle_dir}/macos/Super Downloads.app"
+    "$app/Contents/Resources/yt-dlp-engine/yt-dlp_macos" --version >/dev/null \
+      || { echo "FAIL: bundled engine does not start (${triple})" >&2; exit 1; }
+    if [[ "$DRY_SIGN" == "1" ]]; then
+      codesign --verify --deep --strict --verbose=2 "$app"
+      flags="$(codesign -dv "$app" 2>&1)"
+      [[ "$flags" == *runtime* ]] || { echo "FAIL: no hardened runtime" >&2; exit 1; }
+    else
+      ./scripts/macos-sign.sh dmg "$(ls "${bundle_dir}/dmg/"*.dmg | head -1)"
+      ./scripts/macos-sign.sh verify "$app"
+    fi
+  done
+  if [[ "$DRY_SIGN" == "1" ]]; then
+    echo "✓ Sign dry run OK: ${TARGET_DIR}/aarch64-apple-darwin/release/bundle (not staged)"
+    exit 0
+  fi
 fi
 
 # ── 2. Stage artifacts ───────────────────────────────────────────────────
@@ -71,7 +133,7 @@ mkdir -p dist
 stage() {
   local label="$1" triple="$2"
   local dmg_src bundle_dir tar_src sig_src
-  bundle_dir="src-tauri/target/${triple}/release/bundle"
+  bundle_dir="${TARGET_DIR}/${triple}/release/bundle"
   dmg_src="$(ls "${bundle_dir}/dmg/"*.dmg 2>/dev/null | head -1)"
   tar_src="$(ls "${bundle_dir}/macos/"*.app.tar.gz 2>/dev/null | head -1)"
   sig_src="$(ls "${bundle_dir}/macos/"*.app.tar.gz.sig 2>/dev/null | head -1)"
