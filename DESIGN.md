@@ -231,7 +231,7 @@ Rules:
 | Navy text on the blue button | White text on `#30a7ff` (2.59:1) |
 | Real screenshot in a window frame | A mock-up that differs from the shipped app |
 | Navy-tinted shadow on light bands, light glow on navy | Grey drop shadows on navy |
-| «Apple notarization is still in progress, so macOS blocks the first launch.» | «It's totally safe, ignore the warning» |
+| «The app isn't notarized by Apple, so macOS blocks the first launch. You allow it once.» | «It's totally safe, ignore the warning» |
 | One accent blue per view | A second accent colour (green is status-only, in the app and the «Latest» pill) |
 | Versioned asset filenames (`*-v8.*`, `sd-og-home.jpg`) | Replacing a cached file in place |
 

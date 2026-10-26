@@ -15,7 +15,7 @@ Subject: Opening Super Downloads for the first time
 
 Hi,
 
-macOS shows that message because the app isn't notarized by Apple yet. The app is safe to open; you only need to allow it once:
+macOS shows that message because the app isn't notarized by Apple. The app is safe to open; you only need to allow it once:
 
 1. Open Super Downloads and click **Done** on the warning.
 2. Go to System Settings › Privacy & Security, scroll down to Security and click **Open Anyway** (the button shows for about an hour after you try to open the app).

@@ -4,7 +4,7 @@
 // Known issues shown at the top of /changelog (#known-issues). Plain language,
 // each with what to do. Remove an entry in the same commit that fixes it.
 export const knownIssues = [
-  'The app isn’t notarized by Apple yet, so the first time you open it macOS says it can’t verify it. Click Done, then System Settings › Privacy & Security › Open Anyway, and confirm. You only do this once.',
+  'The app isn’t notarized by Apple, so the first time you open it macOS says it can’t verify it. Click Done, then System Settings › Privacy & Security › Open Anyway, and confirm. You only do this once.',
   'On Intel Macs the very first download after installing can take about 10 seconds to start while macOS prepares the download engine. Later downloads start right away.',
   'Instagram, Facebook, X and LinkedIn change how they serve video often and work on a best-effort basis. When one stops working, the weekly engine update usually fixes it; Settings › Update next to Engine checks right away.',
   'Copy-protected (DRM) video can’t be downloaded. The app tells you and stops.',
@@ -87,7 +87,7 @@ export const releases = [
   {
     version: '1.3.0',
     date: '2026-10-03',
-    notes: ['Super Downloads is free for a limited time, with no download limit. You activate it with your email.'],
+    notes: ['Super Downloads is free, with no download limit. You activate it with your email.'],
   },
   {
     version: '1.2.0',
