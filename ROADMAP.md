@@ -4,8 +4,8 @@
 scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: active
-current_phase: Free app, private use + friends testing (v1.5.5 live) — work plan 2026-10-23 below
-next_milestone: v1.5.6 release (R-SD-014) · Developer ID signing + notarization in early January before the 26-Jan launch (R-SD-009, target 2027-01-20) + fixes from tester reports
+current_phase: Free app, private use + friends testing (v1.5.6 live) — work plan 2026-10-23 below
+next_milestone: Developer ID signing + notarization in early January before the 26-Jan launch (R-SD-009, target 2027-01-20) — pipeline ready and rehearsed + fixes from tester reports
 updated: 2026-10-26
 ---
 
@@ -18,11 +18,11 @@ updated: 2026-10-26
 > **Work plan (2026-10-23).** Order = what moves the product most for the least founder time. Now → Next → Later.
 > References behind each call are cited inline (yt-dlp release cadence, Apple notarization, competitor apps).
 
-- **R-SD-014** · P1 · next · v1.5.6 — marketing consent unticked, share notice, dependency refresh
+- **R-SD-014** · P1 · shipped · v1.5.6 — marketing consent unticked, share notice, dependency refresh
   - added: 2026-10-25
-  - moved: 2026-10-25
+  - moved: 2026-10-26
   - scope: branch `release/v1.5.6` (built, not published): marketing consent unticked with its wording (Planet49) · one-time «share it» notice after the 10th download · Tauri 2.12 + cargo/npm refresh · turn on the welcome email (Resend) · release pipeline adds a VirusTotal upload + `VT_SCANNED` before publishing.
-  - next: founder's yes to publish → `make-release.sh` from the branch.
+  - shipped: 2026-10-26 — founder yes (SD-F-018). Tag `9155d41`; latest.json 1.5.6 verified live, updater signature valid with the 1.5.x key, web SHA-256 = binary, `test-live-site` 29/29; Dependabot 21 → 1 (glib, Linux-only). Web «Free» with no deadline (SD-F-016, `af8b6d6`+`e649dee`); the in-app activation card still says «limited time» until the next app release. One-click unsubscribe + Super Guides P.S. for consented users built (`2ca232d`), off until Mario adds the Resend + Vercel env vars. Report `_done/2026-10-26-super-downloads-v156-signing-ps.md`.
 - **R-SD-013** · P1 · shipped · v1.5.5 — Vimeo + Instagram fixes, «Copy. Paste. Done.», anonymous daily active ping
   - added: 2026-10-25
   - moved: 2026-10-25
