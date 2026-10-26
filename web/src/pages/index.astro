@@ -135,6 +135,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
             <p class="hero-meta">
               <span>Free. No card.</span>
               <span><span id="hero-arch">Apple Silicon</span> · v{release.version} · <a href="#download" id="hero-other">Intel Mac?</a></span>
+              <span>Anonymous usage count, off in Settings. <a href="/privacy#usage-stats">Privacy</a></span>
             </p>
           </div>
           <p class="mobile-note" id="mobile-note" hidden>Super Downloads is a Mac app. <button type="button" class="link-btn" id="share-link">Send this page to your Mac</button></p>
@@ -231,7 +232,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
           </div>
           <figure class="window window-light">
             <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-            <img src="/shots/settings-light.webp?v=1.5.5" srcset="/shots/settings-light-560.webp?v=1.5.5 560w, /shots/settings-light.webp?v=1.5.5 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="862" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme, usage stats switch, the engine version with an Update button, and Help" loading="lazy" />
+            <img src="/shots/settings-light.webp?v=1.5.7" srcset="/shots/settings-light-560.webp?v=1.5.7 560w, /shots/settings-light.webp?v=1.5.7 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="930" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme, the usage stats switch with what it sends, the engine version with an Update button, and Help" loading="lazy" />
           </figure>
         </div>
       </div>
@@ -278,6 +279,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         </div>
         <p class="download-help">Not sure which? Apple menu › About This Mac shows your chip.</p>
         <p class="download-meta">Version {release.version} · <a href="/changelog">Release notes</a> · <a href={REPO}>Source on GitHub</a></p>
+        <p class="download-meta">The app counts users anonymously, once a day. No personal data; turn it off in Settings. <a href="/privacy#usage-stats">Privacy</a></p>
         {release.shaArm && release.shaIntel && (
           <details class="verify">
             <summary>Verify the download</summary>

@@ -11,7 +11,7 @@ for (const f of ['index.html', 'main.js', 'styles.css']) fs.copyFileSync(path.jo
 // The fake backend behaves like send_active_ping: it keeps a valid id and makes a new one otherwise.
 // window.__pingDelay (ms) keeps a ping in flight.
 fs.writeFileSync(path.join(STAGE, 'fake.js'), `
-  window.__calls = []; window.__pingArgs = []; let n = 0;
+  window.__calls = []; window.__pingArgs = []; window.__opened = []; let n = 0;
   const invoke = async (cmd, args) => { window.__calls.push(cmd);
     if (cmd === 'send_active_ping') { window.__pingArgs.push(args);
       if (window.__pingDelay) await new Promise(r => setTimeout(r, window.__pingDelay));
@@ -20,7 +20,7 @@ fs.writeFileSync(path.join(STAGE, 'fake.js'), `
     if (cmd === 'get_ytdlp_version') return { version: 'x', source: 'bundled' };
     return null; };
   window.__TAURI__ = { core: { invoke, convertFileSrc: p => p }, event: { listen: async () => () => {} }, app: { getVersion: async () => '1.5.5' },
-    opener: { openUrl: async () => {} }, window: { getCurrentWindow: () => ({ onFocusChanged: async () => () => {}, setFocus: async () => {} }) },
+    opener: { openUrl: async (u) => { window.__opened.push(u); } }, window: { getCurrentWindow: () => ({ onFocusChanged: async () => () => {}, setFocus: async () => {} }) },
     webviewWindow: { getCurrentWebviewWindow: () => ({ onDragDropEvent: async () => () => {} }) } };`);
 const html = path.join(STAGE, 'index.html');
 fs.writeFileSync(html, fs.readFileSync(html, 'utf8').replace('<script type="module" src="main.js">', '<script src="fake.js"></script>\n    <script type="module" src="main.js">'));
@@ -31,7 +31,8 @@ const ls = (pg, k) => pg.evaluate(k => localStorage.getItem(k), k);
 const setLs = (pg, kv) => pg.evaluate(kv => Object.entries(kv).forEach(([k, v]) => localStorage.setItem(k, v)), kv);
 const daysAgo = (pg, d) => pg.evaluate(d => { const t = new Date(Date.now() - d * 86400000); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; }, d);
 const text = pg => pg.evaluate(() => document.body.innerText);
-const NOTICE = /One anonymous ping a day/;
+// Nothing about the ping is shown when the app opens (docs/DECISIONS.md 2026-10-26).
+const NOTICE = /anonymous|usage stats|ping/i;
 const switchTo = (pg, on) => pg.evaluate(on => { const c = document.querySelector('#usage-stats-enabled'); c.checked = on; c.dispatchEvent(new Event('change')); }, on);
 const existingInstall = async (b) => {
   const ctx = await b.newContext(); const pg = await ctx.newPage();
@@ -49,12 +50,11 @@ let fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); i
 
   // A: an install that saw the welcome screen before this version
   const pg = await existingInstall(b);
-  ok(NOTICE.test(await text(pg)), 'existing install: one-time notice shown');
+  ok(!NOTICE.test(await text(pg)) && !await pg.$('.toast'), 'existing install: no notice on open');
   ok(await pg.evaluate(() => document.querySelector('#usage-stats-enabled').checked) === true, 'on by default');
-  await pg.clock.runFor(60000);
-  ok(await pings(pg) === 0, 'no ping while the notice is unanswered');
-  await pg.click('.usage-notice [data-usage="ok"]'); await pg.clock.runFor(500);
-  ok(await pings(pg) === 1 && await lastSentId(pg) === null, 'one ping after OK, with no id yet (the backend makes one)');
+  ok(await pings(pg) === 0, 'no ping in the first seconds');
+  await pg.clock.runFor(15000);
+  ok(await pings(pg) === 1 && await lastSentId(pg) === null, 'one ping after 15 s, with no id yet (the backend makes one)');
   const id1 = await ls(pg, 'installId');
   ok(/^[0-9a-f-]{36}$/.test(id1 || ''), 'install id stored');
   ok(await ls(pg, 'installIdCreated') === await daysAgo(pg, 0), 'id creation day stored');
@@ -91,21 +91,25 @@ let fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); i
   await pg.reload(); await pg.clock.runFor(17000);
   ok(await pg.evaluate(() => document.querySelector('#usage-stats-enabled').checked) === false && await pings(pg) === 0, 'off survives a relaunch');
 
-  // D: existing install answers the notice with «Turn off»
+  // D: Settings shows what is sent, links to /privacy, and off before the first ping sends nothing
   const p3 = await existingInstall(b);
-  await p3.click('.usage-notice [data-usage="off"]'); await p3.clock.runFor(20000);
-  ok(await pings(p3) === 0 && await p3.evaluate(() => document.querySelector('#usage-stats-enabled').checked) === false, 'notice «Turn off»: switch off, nothing sent');
+  await p3.click('#settings-toggle'); await p3.clock.runFor(500);
+  ok(await p3.isVisible('#usage-stats-hint') && /app version, Mac type and a random number/.test(await p3.textContent('#usage-stats-hint')),
+    'Settings: the switch says what is sent');
+  await p3.click('#usage-stats-privacy-link');
+  ok(await p3.evaluate(() => window.__opened.at(-1)) === 'https://superdownloads.app/privacy', 'Settings: Privacy link opens /privacy');
+  await switchTo(p3, false); await p3.clock.runFor(20000);
+  ok(await pings(p3) === 0, 'turned off before the first ping: nothing sent');
   await p3.reload(); await p3.clock.runFor(17000);
-  ok(await pings(p3) === 0 && !NOTICE.test(await text(p3)), 'notice «Turn off»: no notice, no ping after relaunch');
+  ok(await pings(p3) === 0, 'off: no ping after relaunch');
 
   // E: brand-new install
   const ctx2 = await b.newContext(); const p2 = await ctx2.newPage(); await p2.clock.install();
   await p2.goto(url); await p2.clock.runFor(17000);
-  ok(NOTICE.test(await text(p2)), 'new install: the welcome screen says it');
+  ok(await p2.isVisible('.onboarding-overlay') && !NOTICE.test(await text(p2)), 'new install: the welcome screen says nothing about it');
   ok(await pings(p2) === 0, 'new install: no ping while the welcome screen is open');
   await p2.fill('.activation-email-input', 'new@user.co'); await p2.click('.onboarding-start-btn'); await p2.clock.runFor(500);
-  ok(await pings(p2) === 1, 'new install: ping right after Get Started');
-  ok(!await p2.$('.usage-notice'), 'new install: no extra notice (the welcome screen told them)');
+  ok(await pings(p2) === 1 && !NOTICE.test(await text(p2)) && !await p2.$('.toast'), 'new install: one ping, no notice after Get Started');
 
   await b.close(); server.close(); fs.rmSync(STAGE, { recursive: true, force: true });
   console.log(fail ? `${fail} FAILED` : 'ALL PASS'); process.exit(fail ? 1 : 0);

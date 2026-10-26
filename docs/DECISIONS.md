@@ -4,6 +4,12 @@
 
 ---
 
+## 2026-10-26 — Usage ping: told on the website, not in the app
+**Context:** Founder, on the in-app notice of v1.5.5–1.5.6 and on simpler variants of it: «quiero tenerlo, pero no quiero avisar al usuario así que abre la app; no inspira confianza». Two intermediate options were dropped the same day: a lighter in-app line, and turning the ping off until the launch.
+**Decision (founder):** the daily anonymous `app_active` ping stays **on by default**, with **no notice inside the app**: no banner, no welcome-screen line, nothing on open. People are told **before they install**: a short line by the hero «Download for Mac» button («Anonymous usage count, off in Settings. Privacy»), a line under the download buttons on superdownloads.app («The app counts users anonymously, once a day. No personal data; turn it off in Settings. Privacy») and the privacy policy (`/privacy#usage-stats`: what is sent, how often, how to turn it off). Settings › Share anonymous usage stats keeps the switch, with a one-line description of what is sent and a link to /privacy. The release notes of 1.5.7 say it once. The ping starts only once past the welcome screen. Ships in v1.5.7.
+**Residual legal judgement (not reviewed by a lawyer):** the CNIL/AEPD audience-measurement exemption needs people to be informed and able to object easily; it does not prescribe an in-app notice, and information in the privacy policy is the usual way. Weak spots, accepted: (1) someone who gets the app without passing through the website (a DMG passed on by a friend, GitHub Releases) may never read either line, so they rely on the privacy policy alone; (2) installs updating from 1.5.5–1.5.6 that never answered the old notice start sending on 1.5.7, told only by the release notes; (3) the random install id is a pseudonymous identifier, so GDPR still applies (legitimate interest, art. 6(1)(f), unchanged). Low impact (no personal content, IP dropped), but weaker than telling everyone on first launch.
+**Supersedes:** in the 2026-10-25 entry, «a clear notice before the first ping» in the app (welcome screen or one-time notice); the other conditions stand.
+
 ## 2026-10-26 — «Free», Apple signing in January, Super Guides P.S. by email, v1.5.6 out
 **Context:** Founder review of open decisions (LifeOS `10_Decisions/PENDING.md` § Resolved: SD-F-016, SD-F-017, SD-F-018, GROW-F-014).
 **Decision (founder):**

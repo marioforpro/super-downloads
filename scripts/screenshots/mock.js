@@ -6,7 +6,6 @@
 
   localStorage.clear();
   if (scene !== "onboarding") localStorage.setItem("hasSeenOnboarding", "true");
-  localStorage.setItem("usageStatsNoticeShown", "1"); // no one-time toast over the shots
   if (scene !== "onboarding" && scene !== "activation") {
     localStorage.setItem("activationEmail", "you@yourstudio.com");
     localStorage.setItem("activationSynced", "1");

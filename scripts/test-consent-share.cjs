@@ -60,7 +60,7 @@ const activations = (pg) => pg.evaluate(() => window.__calls.filter((c) => c.cmd
   const pg = await ctx.newPage();
   pg.on("pageerror", (e) => console.log("pageerror", e.message));
   await pg.goto(url);
-  await pg.evaluate(() => { localStorage.setItem("hasSeenOnboarding", "true"); localStorage.setItem("activationEmail", "a@b.co"); localStorage.setItem("activationSynced", "1"); localStorage.setItem("usageStatsNoticeShown", "1"); });
+  await pg.evaluate(() => { localStorage.setItem("hasSeenOnboarding", "true"); localStorage.setItem("activationEmail", "a@b.co"); localStorage.setItem("activationSynced", "1"); });
   await pg.reload();
   await pg.waitForFunction(() => window.__handlers["download-finished"]);
   await pg.evaluate(() => { document.hasFocus = () => true; });
