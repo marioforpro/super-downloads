@@ -9,7 +9,7 @@ blocked: false
 blocker_reason: null
 resolution_factor: 1.0
 validity_factor: 1.0
-next_milestone: Developer ID signing + notarization in December (R-SD-009, target 2026-12-20) + fixes from tester reports
+next_milestone: v1.5.6 release (R-SD-014) · Developer ID signing + notarization in early January before the 26-Jan launch (R-SD-009, target 2027-01-20)
 last_updated: 2026-10-25
 validated_end_to_end: 2026-10-03  # free-mode path: founder smoke test of the v1.3.0 DMG (activation card + YouTube download) + superdownloads.app/api/activate → Airtable SD · Users verified (200 + row; 400 on bad email). LemonSqueezy Track C2 stays deferred with free mode.
 stack: Tauri v2, Rust, vanilla JS, Astro

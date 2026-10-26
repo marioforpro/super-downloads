@@ -5,8 +5,8 @@ scope: project:SUPER-DOWNLOADS
 prefix: SD
 lifecycle: active
 current_phase: Free app, private use + friends testing (v1.5.5 live) — work plan 2026-10-23 below
-next_milestone: Developer ID signing + notarization in December (R-SD-009, target 2026-12-20) + fixes from tester reports
-updated: 2026-10-25
+next_milestone: v1.5.6 release (R-SD-014) · Developer ID signing + notarization in early January before the 26-Jan launch (R-SD-009, target 2027-01-20) + fixes from tester reports
+updated: 2026-10-26
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -66,12 +66,13 @@ updated: 2026-10-25
   - progress: 2026-10-23 · the same click also copies the report to the clipboard + a 6-s toast («paste it into Gmail or WhatsApp»): a tester on webmail has no mail app configured, so a bare `mailto:` would go nowhere silently. The copied text is marked as handled so copy & come back / Batch mode never treat it as a link.
   - progress: 2026-10-23 · verified in a WebKit harness over the real `src/` with a mocked Tauri API (30/30: menu item only on failed rows, mailto subject/body, clipboard copy, toast, copy & come back ignores the report, Settings generic report). Rides in v1.5.3 together with the redesigned welcome screen (founder feedback on the first-run card). Real-app clicks NOT done: driving the GUI while the founder used the Mac sent test keystrokes to WhatsApp (not sent) — never drive the GUI during a live session; use the harness.
   - shipped: 2026-10-23 — v1.5.3 published (DMGs 200, `latest.json` 1.5.3 both arches). Founder verified 2026-10-23 in the installed app: ⋯ › Report opens Apple Mail with the email ready to send. Known-bugs list in `NEXT.md` is worked as reports arrive.
-- **R-SD-009** · P2 · next · Signing + notarization — decided yes, December (SD-F-009 trigger reached)
+- **R-SD-009** · P2 · next · Signing + notarization — decided yes, enrol in early January before the 26-Jan launch (SD-F-017)
   - added: 2026-10-23
-  - moved: 2026-10-23
+  - moved: 2026-10-26
   - why: SD-F-009 (2026-08-16) said «revisit at >100 downloads or install complaints». DMG downloads across releases are now **113** (GitHub API, 2026-10-23). Unsigned builds make macOS 15 hide «Open Anyway» deep in System Settings, the single biggest drop-off for non-technical friends. Apple Developer Program = 99 USD/year; notarization is free with it (Apple: «Notarizing macOS software before distribution»).
   - decided: 2026-10-23 — founder: yes, in December (Christmas break). App Store is out (guideline 5.2.3 bans downloaders); Developer ID + notarization is an automated malware/signing check, not App Review.
-  - target: 2026-12-20
+  - target: 2027-01-20
+  - retimed: 2026-10-26 — founder (SD-F-017): individual Apple account **yes, but later** — «pagaré lo de apple, pero no ahora; ahora quiero construir y prepararlo todo, no empezar a tener gastos». Enrol by 2027-01-05 (task in `00_System/TASKS.md` § Projects); until then zero spend, signing pipeline prepared to receive the certs. GitHub organisation per project = study first (task, target 2026-11-30), nothing moves before.
   - decide-first: 2026-10-25 — founder: «no personal info anywhere». Before enrolling, decide the public identity: an individual Apple account shows the founder's legal name as the developer in macOS install dialogs; showing «Super Downloads» needs an organization account (legal entity + D-U-N-S). Same move: GitHub repo to a `superdownloads` organization (name free on 2026-10-25; GitHub redirects old release/updater URLs) and new commits authored «Super Downloads»; rewriting the 154 existing commits is optional (irreversible, backup first). Only SD is public — SP/SPC repos are private, SG has none.
   - next: founder enrolls in the Apple Developer Program (the founder's Apple ID) and creates a Developer ID Application cert → Claude: sign every engine dylib/.so + hardened-runtime entitlements, `notarytool` + staple in `make-release.sh`, drop the xattr / «Open Anyway» install guide from landing + FAQ.
 - **R-SD-010** · P1 · shipped · v1.5.4 — reliability + polish from the known-bugs list
