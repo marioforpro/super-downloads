@@ -60,12 +60,12 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   },
   {
     q: 'Is it free?',
-    a: 'Yes, free for a limited time, with unlimited downloads and every feature. You activate it once with your email inside the app. No card required.',
+    a: 'Yes. Free, with unlimited downloads and every feature. You activate it once with your email inside the app. No card required. If that ever changes, everyone who activated hears from us by email first.',
   },
   {
     q: 'What do you do with my email?',
-    a: 'It activates the app and lets us tell you about important changes, such as security fixes or the end of the free period. Emails about updates and our other apps are optional: you get them only if you tick that box, and every one has a one-click unsubscribe.',
-    html: 'It activates the app and lets us tell you about important changes, such as security fixes or the end of the free period. Emails about updates and our other apps are optional: you get them only if you tick that box, and every one has a one-click unsubscribe. Details in the <a href="/privacy">Privacy Policy</a>.',
+    a: 'It activates the app and lets us tell you about important changes, such as security fixes or any change to how the app is offered. Emails about updates and our other apps are optional: you get them only if you tick that box, and every one has a one-click unsubscribe.',
+    html: 'It activates the app and lets us tell you about important changes, such as security fixes or any change to how the app is offered. Emails about updates and our other apps are optional: you get them only if you tick that box, and every one has a one-click unsubscribe. Details in the <a href="/privacy">Privacy Policy</a>.',
   },
   {
     q: 'Why do some platforms need my browser login?',
@@ -133,7 +133,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
           <div class="hero-actions">
             <a href={DMG_ARM} class="btn btn-blue btn-lg js-dmg" id="hero-dl" data-arch="arm" data-place="hero">Download for Mac</a>
             <p class="hero-meta">
-              <span>Free for a limited time. No card.</span>
+              <span>Free. No card.</span>
               <span><span id="hero-arch">Apple Silicon</span> · v{release.version} · <a href="#download" id="hero-other">Intel Mac?</a></span>
             </p>
           </div>
@@ -267,7 +267,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
       <div class="wrap download-inner">
         <img src="/icon.svg" alt="" width="64" height="64" class="download-icon" />
         <h2>Get Super Downloads for Mac</h2>
-        <p class="download-sub">Free for a limited time. Unlimited downloads, every feature. Enter your email once in the app to activate.</p>
+        <p class="download-sub">Free, with unlimited downloads and every feature. Enter your email once in the app to activate.</p>
         <div class="download-buttons">
           <a href={DMG_ARM} class="btn btn-blue btn-dl js-dmg" data-arch="arm" data-place="download">
             <span>Apple Silicon</span><small>M1 or later · macOS 12+ · {release.arm} MB</small>

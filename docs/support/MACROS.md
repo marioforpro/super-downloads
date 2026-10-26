@@ -5,8 +5,7 @@
 > lines that don't apply. This repo is public: no names, addresses or real cases in this file.
 >
 > Facts to keep current: version on `/changelog`, requirements (Apple Silicon macOS 12+, Intel macOS 10.15+),
-> known issues on `/changelog#known-issues`. The price line follows the live site (currently «free for a
-> limited time»; change it here when the site changes).
+> known issues on `/changelog#known-issues`. The price line follows the live site (currently «free»; change it here when the site changes).
 
 ---
 
@@ -139,7 +138,7 @@ Subject: Price
 
 Hi,
 
-Yes: it's {free for a limited time}, with unlimited downloads and every feature, and no card. If that ever changes, everyone who activated gets an email before anything happens; nothing changes for you without notice.
+Yes: it's free, with unlimited downloads and every feature, and no card. If that ever changes, everyone who activated gets an email before anything happens; nothing changes for you without notice.
 
 The Super Downloads team
 

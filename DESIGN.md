@@ -211,8 +211,7 @@ Rules:
 - **Headlines:** a claim an editor can check, ≤ 8 words, ends with a full stop.
   «Files your NLE opens on the first try.» · «Seven platforms, one paste field.» · «Copy. Paste. Done.»
 - **CTAs:** verb + object, no «now»/«today»: «Download for Mac», «Download», «Send this page to your Mac».
-- **Price line:** the app is free. The current line «Free for a limited time» is under review: a «limited
-  time» needs a date or goes. Never a crossed-out price, a countdown or «only N left». Launch-price
+- **Price line:** «Free». No «limited time» without a date. Never a crossed-out price, a countdown or «only N left». Launch-price
   rules for the paid products (`08_Growth/LAUNCH-PRICE-2026-10-25.md`) do not apply here.
 - **Platform claims:** YouTube, Vimeo, TikTok «no login»; Instagram, Facebook, X, LinkedIn «with your
   browser login», best-effort.

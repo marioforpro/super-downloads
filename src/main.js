@@ -520,7 +520,7 @@ function showActivationCard() {
     <div class="onboarding-card">
       <h2 class="onboarding-title">Activate Super Downloads</h2>
       <p class="onboarding-tagline">The video downloader built for editors.</p>
-      <div class="onboarding-free-note">Free for a limited time · unlimited downloads</div>
+      <div class="onboarding-free-note">Free · unlimited downloads</div>
       ${activationFieldsHtml()}
       <button class="onboarding-start-btn" disabled>Activate — it's free</button>
       ${isProUser() ? '<a href="#" class="activation-skip-link">Skip</a>' : ""}
@@ -576,7 +576,7 @@ function showOnboarding() {
       </svg>
       <h2 class="onboarding-title">Welcome to Super Downloads</h2>
       <p class="onboarding-tagline">The video downloader built for editors.</p>
-      <div class="onboarding-free-note">${FREE_MODE ? "Free for a limited time · unlimited downloads" : `${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited`}</div>
+      <div class="onboarding-free-note">${FREE_MODE ? "Free · unlimited downloads" : `${FREE_DAILY_LIMIT} free downloads per day — upgrade to Pro for unlimited`}</div>
       <div class="onboarding-features">
         ${onboardingFeatureHtml("copy", "Copy. Paste. Done.", "Copy a video link and paste it here. Batch mode grabs many at once.")}
         ${onboardingFeatureHtml("timeline", "Ready for your timeline", "H.264 MP4, straight into Premiere, Resolve or Final Cut.")}
