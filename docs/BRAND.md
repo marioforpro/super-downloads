@@ -41,9 +41,12 @@ Rules:
 Super Downloads is an **independent brand**.
 
 - NOT a sub-brand of Super Prompts
-- NOT part of a brand family (yet)
 - Own visual identity, own voice, own channels
 - May share operational patterns but NEVER brand elements
+- **Family links, two only** (founder decision GROW-F-014, 2026-10-26): the «More from Super» footer on the
+  website, and a one-line P.S. about another Super app (today Super Guides) in emails — only to people whose
+  stored consent names «other Super apps» (the unticked activation box), always with the one-click
+  unsubscribe (`web/api/unsubscribe.js`). Nothing inside the app.
 
 ---
 

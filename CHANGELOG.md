@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- **Apple signing pipeline, dormant** (SD-F-017, account in January): `scripts/macos-sign.sh` + `make-release.sh` sign and notarize when `APPLE_SIGNING_IDENTITY` and the notary key are set; rehearsal without an account: `make-release.sh --sign-dry-run` (passed 2026-10-26). Guide: `docs/SIGNING.md`.
+- **Web:** «Free» with no limited time (SD-F-016); install guide says the app isn't notarized by Apple (no «in progress») and gives the full Open Anyway steps.
+- **Emails:** one-click unsubscribe `/api/unsubscribe` (signed links, List-Unsubscribe headers, Airtable `Marketing Withdrawn At`); the welcome email adds a Super Guides P.S. only for people whose stored consent names other Super apps (GROW-F-014). Both wait for the welcome email to be switched on. Test: `node scripts/test-unsubscribe.mjs` (20 checks).
+- App text «Free · unlimited downloads» (was «Free for a limited time») ships with the next app build.
+
 ## [1.5.6] — 2026-10-26
 
 Consent box unticked, a one-time share notice, Tauri 2.12.

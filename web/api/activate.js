@@ -11,9 +11,19 @@
 // Welcome email (transactional, via Resend): off until SD_WELCOME_EMAIL=on and
 // RESEND_API_KEY are set and superdownloads.app is verified in Resend.
 // Optional SD_WELCOME_FROM (default "Super Downloads <support@superdownloads.app>").
+//
+// Super Guides P.S. (GROW-F-014): only for people whose stored consent names
+// other Super apps (the unticked box), and only when an unsubscribe link can be
+// made (SD_UNSUB_SECRET) — the email then carries it in the footer and in the
+// List-Unsubscribe headers. Everyone else gets the welcome email without it.
+import { unsubUrl } from './_unsub.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ARCHS = ['aarch64', 'x86_64', 'unknown'];
+
+// Consent to hear about other Super apps = the stored box wording names them.
+export const OTHER_APPS_RE = /\bother Super (apps|tools)\b/i;
+const SG_URL = 'https://superguides.pro/?utm_source=superdownloads&utm_medium=email&utm_campaign=welcome_ps';
 
 const clamp = (v, n = 100) => (typeof v === 'string' ? v.trim().slice(0, n) : '');
 
@@ -36,7 +46,8 @@ function parseBody(req) {
   return null;
 }
 
-export function welcomeEmail() {
+export function welcomeEmail({ unsubscribe = null } = {}) {
+  const ps = Boolean(unsubscribe);
   const subject = 'Super Downloads is ready';
   const text = [
     'Super Downloads is activated. Three things worth knowing:',
@@ -52,7 +63,14 @@ export function welcomeEmail() {
     'The Super Downloads team',
     'https://superdownloads.app',
     '',
-    'You get this one email because you activated the app with this address.',
+    ...(ps
+      ? [
+          'P.S. You asked to hear about other Super apps, so here is one. If you cut for social: Super Guides puts the social safe zones and your client’s post inside Premiere.',
+          SG_URL,
+          '',
+          'You get this email because you activated the app with this address. The P.S. is there because you ticked the box for news about other Super apps. Unsubscribe: ' + unsubscribe,
+        ]
+      : ['You get this one email because you activated the app with this address.']),
   ].join('\n');
   const html = `<!doctype html><html><body style="margin:0;padding:0;background:#f4f7fc">
 <div style="max-width:520px;margin:0 auto;padding:32px 24px;font:15px/1.6 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#0f172a">
@@ -67,15 +85,20 @@ export function welcomeEmail() {
 <p style="margin:0 0 16px;color:#475569">If a site stops working, the app updates its download engine every week on its own. To check right away: Settings › <strong style="color:#0f172a">Update</strong> next to Engine.</p>
 <p style="margin:0 0 24px;color:#475569">Questions, or a link that fails? Reply to this email.</p>
 <p style="margin:0;color:#0f172a">The Super Downloads team<br><a href="https://superdownloads.app/?utm_source=welcome&amp;utm_medium=email" style="color:#0b6bcb">superdownloads.app</a></p>
-<p style="margin:28px 0 0;font-size:12px;color:#5b6b80">You get this one email because you activated Super Downloads with this address.</p>
+${ps ? `<p style="margin:24px 0 0;padding-top:16px;border-top:1px solid #e2e8f0;color:#475569"><strong style="color:#0f172a">P.S.</strong> You asked to hear about other Super apps, so here is one. If you cut for social: <a href="${SG_URL.replace(/&/g, '&amp;')}" style="color:#0b6bcb">Super Guides</a> puts the social safe zones and your client’s post inside Premiere.</p>
+<p style="margin:28px 0 0;font-size:12px;color:#5b6b80">You get this email because you activated Super Downloads with this address. The P.S. is there because you ticked the box for news about other Super apps. <a href="${unsubscribe.replace(/&/g, '&amp;')}" style="color:#5b6b80">Unsubscribe</a></p>` : `<p style="margin:28px 0 0;font-size:12px;color:#5b6b80">You get this one email because you activated Super Downloads with this address.</p>`}
 </div></body></html>`;
   return { subject, text, html };
 }
 
-async function sendWelcome(email) {
+async function sendWelcome(email, otherApps) {
   const key = process.env.RESEND_API_KEY;
   if (process.env.SD_WELCOME_EMAIL !== 'on' || !key) return false;
-  const { subject, text, html } = welcomeEmail();
+  const unsubscribe = otherApps ? unsubUrl(email) : null;
+  const { subject, text, html } = welcomeEmail({ unsubscribe });
+  const headers = unsubscribe
+    ? { 'List-Unsubscribe': `<${unsubscribe}>, <mailto:support@superdownloads.app?subject=unsubscribe>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' }
+    : undefined;
   try {
     const r = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -87,6 +110,7 @@ async function sendWelcome(email) {
         subject,
         text,
         html,
+        ...(headers ? { headers } : {}),
       }),
       signal: AbortSignal.timeout(5000),
     });
@@ -165,7 +189,7 @@ export default async function handler(req, res) {
 
   // The welcome email never blocks or fails an activation. Only real app
   // activations get it (the landing never activates), once per sync.
-  if (fields.Source === 'app' && fields['App Version'] && (await sendWelcome(email)) && recordId) {
+  if (fields.Source === 'app' && fields['App Version'] && (await sendWelcome(email, consent && OTHER_APPS_RE.test(consentText))) && recordId) {
     try {
       await airtable('PATCH', '', { records: [{ id: recordId, fields: { 'Welcome Sent At': new Date().toISOString() } }] });
     } catch {}
