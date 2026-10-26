@@ -4,6 +4,15 @@
 
 ---
 
+## 2026-10-26 — «Free», Apple signing in January, Super Guides P.S. by email, v1.5.6 out
+**Context:** Founder review of open decisions (LifeOS `10_Decisions/PENDING.md` § Resolved: SD-F-016, SD-F-017, SD-F-018, GROW-F-014).
+**Decision (founder):**
+- **Price line «Free»**, with no «limited time»: without a real date, consumer law doesn't allow the urgency. Same on the site, the directory listings and (next build) the app.
+- **Apple Developer, individual account, but later:** enrolled in January (by 2027-01-05) to ship a signed and notarized build before the 26-Jan launch. Nothing is spent until then. Everything that can be prepared without the account is ready (`docs/SIGNING.md`). Until a notarized build is published, the site says the app isn't notarized and promises nothing.
+- **Super Guides P.S. in Super Downloads emails**, only to people whose stored consent names «other Super apps» (the unticked box), always with a one-click unsubscribe. Nothing inside the app.
+- **v1.5.6 published now** (unticked consent box, share notice, Tauri 2.12).
+**Supersedes:** «Free for a limited time copy stays as is» (2026-10-23) and the December target for signing (2026-12-20) below; `docs/BRAND.md` §3 «not part of a brand family (yet)».
+
 ## 2026-10-25 — Anonymous daily «active» ping: on by default, with a switch
 **Context:** Founder, on the first plan (opt-in, off by default): «puede ser al revés no? turned on, y si el user quiere que haga turn off».
 **Decision (founder):** the app sends one anonymous `app_active` event a day (PostHog, cookieless, no person profile, no IP), **on by default (opt-out)**, under the CNIL/AEPD audience-measurement exemption. The conditions are part of the decision: one purpose (counting active installs) · anonymous data · a random install id that lives at most 13 months · a clear notice before the first ping · an easy switch in Settings · a privacy text that explains all of it. Shipped in v1.5.5.
