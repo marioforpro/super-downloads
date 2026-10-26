@@ -269,8 +269,6 @@ function hasSeenOnboarding() {
 
 function markOnboardingSeen() {
   localStorage.setItem(FIRST_RUN_KEY, "true");
-  // The welcome screen carries the usage-stats line, so the user has been told.
-  localStorage.setItem(USAGE_NOTICE_KEY, "1");
   maybeSendActivePing();
   // Clicking "Get Started" is the user's acceptance of the Terms of Service
   // and Privacy Policy (linked in the onboarding card).
@@ -291,12 +289,12 @@ async function openExternal(url) {
 // Anonymous daily "active" ping (payload: src-tauri/src/active_ping.rs).
 // Audience measurement only (counting active installs), on by default, under
 // the CNIL/AEPD exemption: one purpose, anonymous, the random install id is
-// renewed every 12 months (limit: 13), the user is told before the first ping
-// (welcome screen, or the one-time notice) and can turn it off in Settings.
+// renewed every 12 months (limit: 13). People are told outside the app, before
+// they install (the download section of superdownloads.app and /privacy), and
+// can turn it off in Settings. No notice inside the app (docs/DECISIONS.md 2026-10-26).
 const INSTALL_ID_KEY = "installId";
 const INSTALL_ID_CREATED_KEY = "installIdCreated";
 const LAST_ACTIVE_PING_KEY = "lastActivePingDay";
-const USAGE_NOTICE_KEY = "usageStatsNoticeShown";
 // The marketing box starts unticked (GDPR: consent must be an active choice).
 // Its exact wording is stored with the consent, so changing it here changes
 // what new people agree to.
@@ -308,8 +306,6 @@ const SHARE_NUDGE_AFTER = 10;
 const SHARE_URL = "https://superdownloads.app/?utm_source=app&utm_medium=share&utm_campaign=tenth_download";
 const INSTALL_ID_MAX_AGE_DAYS = 365;
 const ACTIVE_PING_RECHECK_MS = 3 * 60 * 60 * 1000; // the app can stay open for days
-const USAGE_NOTICE_TEXT =
-  "One anonymous ping a day (app version, Mac type, a random number) helps us count how many people use Super Downloads. Turn it off anytime in Settings.";
 let activePingInFlight = false;
 
 function localDay(d = new Date()) {
@@ -338,8 +334,8 @@ function currentInstallId() {
 }
 
 async function maybeSendActivePing() {
-  if (activePingInFlight || !usageStatsOn()) return;
-  if (localStorage.getItem(USAGE_NOTICE_KEY) !== "1") return;
+  // Counted once past the welcome screen.
+  if (activePingInFlight || !usageStatsOn() || !hasSeenOnboarding()) return;
   const today = localDay();
   if (localStorage.getItem(LAST_ACTIVE_PING_KEY) === today) return;
   activePingInFlight = true;
@@ -370,39 +366,6 @@ function setUsageStats(on) {
   }
 }
 
-// Installs that saw the welcome screen before this line existed are told once.
-// The notice stays until answered, and nothing is sent before that.
-function showUsageStatsNoticeOnce() {
-  if (!hasSeenOnboarding() || localStorage.getItem(USAGE_NOTICE_KEY) === "1") return;
-  let container = document.querySelector(".toast-container");
-  if (!container) {
-    container = document.createElement("div");
-    container.className = "toast-container";
-    document.body.appendChild(container);
-  }
-  const notice = document.createElement("div");
-  notice.className = "toast usage-notice";
-  notice.innerHTML = `
-    <p></p>
-    <div class="usage-notice-actions">
-      <button class="confirm-btn confirm-cancel" data-usage="off">Turn off</button>
-      <button class="confirm-btn confirm-cancel" data-usage="ok">OK</button>
-    </div>`;
-  notice.querySelector("p").textContent = USAGE_NOTICE_TEXT;
-  notice.addEventListener("click", (e) => {
-    const choice = e.target.closest("[data-usage]")?.dataset.usage;
-    if (!choice) return;
-    localStorage.setItem(USAGE_NOTICE_KEY, "1");
-    notice.classList.remove("visible");
-    setTimeout(() => notice.remove(), 300);
-    setUsageStats(choice === "ok");
-    if (choice === "off") showToast("Usage stats off.");
-  });
-  container.appendChild(notice);
-  void notice.offsetWidth; // commit the hidden state so the fade-in runs
-  notice.classList.add("visible");
-}
-
 // After the 10th finished download, once: offer the link for a colleague.
 // Shown only while the window is in front and nothing else is downloading.
 function countCompletedAndMaybeNudge() {
@@ -411,7 +374,7 @@ function countCompletedAndMaybeNudge() {
   if (n < SHARE_NUDGE_AFTER || localStorage.getItem(SHARE_NUDGE_KEY) === "1") return;
   if (!document.hasFocus() || batchModeEnabled) return;
   if (downloads.some((d) => !isTerminalStatus(d.status))) return;
-  if (document.querySelector(".usage-notice, .onboarding-overlay")) return;
+  if (document.querySelector(".onboarding-overlay")) return;
   showShareNudge();
 }
 
@@ -424,10 +387,10 @@ function showShareNudge() {
     document.body.appendChild(container);
   }
   const notice = document.createElement("div");
-  notice.className = "toast usage-notice share-nudge";
+  notice.className = "toast toast-card share-nudge";
   notice.innerHTML = `
     <p>Ten downloads in. Know an editor who’d use this? Send them the link.</p>
-    <div class="usage-notice-actions">
+    <div class="toast-card-actions">
       <button class="confirm-btn confirm-cancel" data-share="no">No thanks</button>
       <button class="confirm-btn confirm-ok" data-share="copy">Copy link</button>
     </div>`;
@@ -586,7 +549,6 @@ function showOnboarding() {
       ${activationFieldsHtml()}
       <button class="onboarding-start-btn" disabled>Get Started</button>
       ${isProUser() ? '<a href="#" class="activation-skip-link">Skip</a>' : ""}
-      <p class="onboarding-usage-note">${USAGE_NOTICE_TEXT}</p>
       <p class="onboarding-terms">By clicking Get Started you agree to the <a href="#" id="onboarding-terms-link">Terms of Service</a> and <a href="#" id="onboarding-privacy-link">Privacy Policy</a></p>
     </div>
   `;
@@ -2454,7 +2416,6 @@ if (!hasSeenOnboarding()) {
   setTimeout(() => showActivationCard(), 300);
 }
 retryActivationSync();
-showUsageStatsNoticeOnce();
 setTimeout(maybeSendActivePing, 15000);
 setInterval(maybeSendActivePing, ACTIVE_PING_RECHECK_MS);
 
@@ -2618,12 +2579,13 @@ if (keepHistoryEnabled) {
 
 if (usageStatsEnabled) {
   usageStatsEnabled.addEventListener("change", () => {
-    // Choosing in Settings answers the one-time notice too.
-    localStorage.setItem(USAGE_NOTICE_KEY, "1");
-    document.querySelector(".usage-notice")?.remove();
     setUsageStats(usageStatsEnabled.checked);
   });
 }
+document.querySelector("#usage-stats-privacy-link")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  openExternal("https://superdownloads.app/privacy");
+});
 
 // Tauri Event Listeners
 // Events can still arrive for a row the user cancelled (the backend may be

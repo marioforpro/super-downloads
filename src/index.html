@@ -127,10 +127,11 @@
                   </label>
                 </div>
                 <div class="setting-row toggle-row">
-                  <label class="checkbox-label" for="usage-stats-enabled" title="Once a day, to count active installs: app version, Mac type and a random install number, renewed every year. Nothing about you or your downloads. Off deletes the number.">
+                  <label class="checkbox-label" for="usage-stats-enabled">
                     <span>Share anonymous usage stats</span>
-                    <input type="checkbox" id="usage-stats-enabled" />
+                    <input type="checkbox" id="usage-stats-enabled" aria-describedby="usage-stats-hint" />
                   </label>
+                  <p class="setting-hint" id="usage-stats-hint">Once a day, to count active installs: app version, Mac type and a random number renewed every year. Nothing about you or your downloads. <a href="#" id="usage-stats-privacy-link">Privacy</a></p>
                 </div>
                 <div class="setting-row hidden" id="activation-row">
                   <span class="row-label">Account</span>
