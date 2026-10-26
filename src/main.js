@@ -297,6 +297,15 @@ const INSTALL_ID_KEY = "installId";
 const INSTALL_ID_CREATED_KEY = "installIdCreated";
 const LAST_ACTIVE_PING_KEY = "lastActivePingDay";
 const USAGE_NOTICE_KEY = "usageStatsNoticeShown";
+// The marketing box starts unticked (GDPR: consent must be an active choice).
+// Its exact wording is stored with the consent, so changing it here changes
+// what new people agree to.
+const MARKETING_CONSENT_TEXT = "Email me about updates and other Super apps";
+// One-time «send it to a colleague» notice after the 10th finished download.
+const SHARE_NUDGE_KEY = "shareNudgeShown";
+const COMPLETED_COUNT_KEY = "completedDownloadCount";
+const SHARE_NUDGE_AFTER = 10;
+const SHARE_URL = "https://superdownloads.app/?utm_source=app&utm_medium=share&utm_campaign=tenth_download";
 const INSTALL_ID_MAX_AGE_DAYS = 365;
 const ACTIVE_PING_RECHECK_MS = 3 * 60 * 60 * 1000; // the app can stay open for days
 const USAGE_NOTICE_TEXT =
@@ -394,6 +403,50 @@ function showUsageStatsNoticeOnce() {
   notice.classList.add("visible");
 }
 
+// After the 10th finished download, once: offer the link for a colleague.
+// Shown only while the window is in front and nothing else is downloading.
+function countCompletedAndMaybeNudge() {
+  const n = (parseInt(localStorage.getItem(COMPLETED_COUNT_KEY) || "0", 10) || 0) + 1;
+  localStorage.setItem(COMPLETED_COUNT_KEY, String(n));
+  if (n < SHARE_NUDGE_AFTER || localStorage.getItem(SHARE_NUDGE_KEY) === "1") return;
+  if (!document.hasFocus() || batchModeEnabled) return;
+  if (downloads.some((d) => !isTerminalStatus(d.status))) return;
+  if (document.querySelector(".usage-notice, .onboarding-overlay")) return;
+  showShareNudge();
+}
+
+function showShareNudge() {
+  localStorage.setItem(SHARE_NUDGE_KEY, "1");
+  let container = document.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  const notice = document.createElement("div");
+  notice.className = "toast usage-notice share-nudge";
+  notice.innerHTML = `
+    <p>Ten downloads in. Know an editor who’d use this? Send them the link.</p>
+    <div class="usage-notice-actions">
+      <button class="confirm-btn confirm-cancel" data-share="no">No thanks</button>
+      <button class="confirm-btn confirm-ok" data-share="copy">Copy link</button>
+    </div>`;
+  notice.addEventListener("click", (e) => {
+    const choice = e.target.closest("[data-share]")?.dataset.share;
+    if (!choice) return;
+    notice.classList.remove("visible");
+    setTimeout(() => notice.remove(), 300);
+    if (choice === "copy") {
+      navigator.clipboard?.writeText(SHARE_URL)
+        .then(() => showToast("Link copied. Paste it in a message."))
+        .catch(() => showToast(SHARE_URL, 6000));
+    }
+  });
+  container.appendChild(notice);
+  void notice.offsetWidth; // commit the hidden state so the fade-in runs
+  notice.classList.add("visible");
+}
+
 // Email activation (the user list is the asset; usage is never blocked by a server failure)
 function isValidEmail(value) {
   const v = (value || "").trim();
@@ -406,7 +459,11 @@ function getActivationEmail() {
 
 async function syncActivation(email, marketingOptIn) {
   try {
-    await window.__TAURI__.core.invoke("register_activation", { email, marketingOptIn });
+    await window.__TAURI__.core.invoke("register_activation", {
+      email,
+      marketingOptIn,
+      marketingConsentText: marketingOptIn ? MARKETING_CONSENT_TEXT : "",
+    });
     localStorage.setItem(ACTIVATION_SYNCED_KEY, "1");
   } catch (err) {
     console.warn("Activation sync failed (will retry next launch):", err);
@@ -433,8 +490,8 @@ function activationFieldsHtml() {
       <label class="activation-email-label" for="activation-email">Enter your email to activate</label>
       <input type="email" id="activation-email" class="activation-email-input" placeholder="you@email.com" spellcheck="false" autocomplete="email" />
       <label class="checkbox-label activation-optin">
-        <input type="checkbox" class="activation-optin-checkbox" checked />
-        <span>Send me updates and new products</span>
+        <input type="checkbox" class="activation-optin-checkbox" />
+        <span>${MARKETING_CONSENT_TEXT}</span>
       </label>`;
 }
 
@@ -2675,6 +2732,8 @@ window.__TAURI__.event.listen("download-finished", (event) => {
     eta: "",
     conversionProgress: 100
   });
+
+  countCompletedAndMaybeNudge();
 
   // Native macOS notification (only when app is not focused)
   if (!document.hasFocus() && window.__TAURI__?.core?.invoke) {
