@@ -12,6 +12,14 @@ export const knownIssues = [
 
 export const releases = [
   {
+    version: '1.5.7',
+    date: '2026-10-27',
+    notes: [
+      'The app no longer shows a notice about usage stats when it opens. It still counts users anonymously, once a day: app version, Mac type and a random number, nothing about you or your downloads. Settings › Share anonymous usage stats turns it off; details on the Privacy page.',
+      'The welcome screen says «Free», with no «limited time».',
+    ],
+  },
+  {
     version: '1.5.6',
     date: '2026-10-26',
     notes: [

@@ -6,10 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+Next app build (1.5.7), on branch `release/v1.5.7`, not published.
+
+- **No usage notice in the app:** the one-time «One anonymous ping a day…» box and the welcome-screen line are gone; nothing about the ping shows when the app opens. The daily anonymous ping stays on by default, now only once past the welcome screen. People are told before they install (a line under the download buttons on superdownloads.app + /privacy#usage-stats); Settings › Share anonymous usage stats says what is sent and links to /privacy. Decision 2026-10-26 in `docs/DECISIONS.md`. Test: `node scripts/test-active-ping.cjs` (23 checks).
+- **«Free»:** the welcome and activation cards say «Free · unlimited downloads» (1.5.6 still said «Free for a limited time»).
 - **Apple signing pipeline, dormant** (SD-F-017, account in January): `scripts/macos-sign.sh` + `make-release.sh` sign and notarize when `APPLE_SIGNING_IDENTITY` and the notary key are set; rehearsal without an account: `make-release.sh --sign-dry-run` (passed 2026-10-26). Guide: `docs/SIGNING.md`.
 - **Web:** «Free» with no limited time (SD-F-016); install guide says the app isn't notarized by Apple (no «in progress») and gives the full Open Anyway steps.
 - **Emails:** one-click unsubscribe `/api/unsubscribe` (signed links, List-Unsubscribe headers, Airtable `Marketing Withdrawn At`); the welcome email adds a Super Guides P.S. only for people whose stored consent names other Super apps (GROW-F-014). Both wait for the welcome email to be switched on. Test: `node scripts/test-unsubscribe.mjs` (20 checks).
-- App text «Free · unlimited downloads» (was «Free for a limited time») ships with the next app build.
 
 ## [1.5.6] — 2026-10-26
 

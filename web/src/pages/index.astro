@@ -278,6 +278,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         </div>
         <p class="download-help">Not sure which? Apple menu › About This Mac shows your chip.</p>
         <p class="download-meta">Version {release.version} · <a href="/changelog">Release notes</a> · <a href={REPO}>Source on GitHub</a></p>
+        <p class="download-meta">The app counts users anonymously, once a day. No personal data; turn it off in Settings. <a href="/privacy#usage-stats">Privacy</a></p>
         {release.shaArm && release.shaIntel && (
           <details class="verify">
             <summary>Verify the download</summary>
