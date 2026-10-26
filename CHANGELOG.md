@@ -6,7 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-Next app build (1.5.6), on branch `release/v1.5.6`, not published.
+## [1.5.6] — 2026-10-26
+
+Consent box unticked, a one-time share notice, Tauri 2.12.
 
 - **Marketing consent:** the activation box «Email me about updates and other Super apps» now starts unticked; its exact wording is sent with the activation and stored with the consent date (`/api/activate`, already live, ignores opt-ins from older builds' pre-ticked box).
 - **Share notice:** after the 10th finished download, once, a notice offers a link to send to a colleague (`utm_campaign=tenth_download`). Only with the window in front, nothing downloading and Batch off.
