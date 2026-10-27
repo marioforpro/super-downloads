@@ -9,7 +9,7 @@ const meta = (html, prop) => html.match(new RegExp(`<meta (?:property|name)="${p
 
 // Pages
 const pages = {};
-for (const p of ['/', '/faq', '/changelog', '/privacy', '/terms', '/copyright', '/press']) {
+for (const p of ['/', '/faq', '/guides', '/guides/premiere-pro-webm-av1', '/guides/download-video-for-premiere-pro', '/guides/codecs-by-platform', '/changelog', '/privacy', '/terms', '/copyright', '/press']) {
   const r = await get(SITE + p);
   pages[p] = await r.text();
   ok(r.status === 200, `${p} 200`);
@@ -37,7 +37,8 @@ const help = await get(SITE + '/help', { redirect: 'manual' });
 ok([301, 308].includes(help.status) && /\/faq$/.test(help.headers.get('location') || ''), '/help redirects to /faq');
 ok(/"@type":"FAQPage"/.test(pages['/faq']) && !/"@type":"FAQPage"/.test(home), 'FAQPage JSON-LD on /faq only');
 const sitemap = await (await get(SITE + '/sitemap.xml')).text();
-ok(['/faq', '/press'].every((p) => sitemap.includes(`superdownloads.app${p}<`)), 'sitemap lists /faq and /press');
+ok(['/faq', '/press', '/guides', '/guides/premiere-pro-webm-av1'].every((p) => sitemap.includes(`superdownloads.app${p}<`)), 'sitemap lists /faq, /press and the guides');
+ok(/data-place="guide-premiere-pro-webm-av1"/.test(pages['/guides/premiere-pro-webm-av1']), 'guide download buttons carry place=guide-*');
 
 // Release: landing version = GitHub latest; DMGs + updater reachable; hashes match
 const rel = await (await get(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { 'User-Agent': 'sd-live-test' } })).json();

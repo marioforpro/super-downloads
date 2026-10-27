@@ -1,0 +1,34 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import FamilyNav from '../../components/FamilyNav.astro';
+import { guides } from '../../data/guides.js';
+---
+
+<Layout title="Guides for editors — Super Downloads" description="Practical guides for video editors: getting web video into Premiere Pro and Resolve, WebM, VP9, AV1 and HEVC explained, and what each site serves.">
+  <main id="main" class="guides">
+    <a href="/" class="back">&larr; Back</a>
+    <h1>Guides for editors</h1>
+    <p class="lead">Getting video from the web into an edit, without the “unsupported format” dialog.</p>
+    <ul>
+      {guides.map((g) => (
+        <li>
+          <a href={`/guides/${g.slug}`}>{g.title}</a>
+          <p>{g.summary}</p>
+        </li>
+      ))}
+    </ul>
+    <FamilyNav />
+  </main>
+</Layout>
+
+<style>
+  .guides { max-width: 720px; margin: 0 auto; padding: 60px 24px 80px; }
+  .back { display: inline-flex; align-items: center; min-height: 32px; font-size: 13px; color: var(--gray-600); margin-bottom: 16px; }
+  h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .lead { font-size: 15px; line-height: 1.6; color: var(--slate); margin-bottom: 24px; }
+  ul { list-style: none; margin-bottom: 40px; }
+  li { padding: 18px 0; border-bottom: 1px solid var(--line); }
+  li:first-child { border-top: 1px solid var(--line); }
+  li a { font-size: 17px; font-weight: 600; line-height: 1.4; }
+  li p { margin-top: 6px; font-size: 15px; line-height: 1.6; color: var(--slate); }
+</style>
