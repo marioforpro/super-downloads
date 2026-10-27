@@ -30,7 +30,7 @@
 
 | Document | Why it is archived | Replaced by |
 |---|---|---|
-| `archive/LAUNCH-PLAN-2026-03.md` | Paid launch (€29, LemonSqueezy, LAUNCH30) — the app went free | Private go-to-market plan (LifeOS) |
+| `archive/LAUNCH-PLAN-2026-03.md` | Paid launch (LemonSqueezy, LAUNCH30) — the app went free | Private go-to-market plan (LifeOS) |
 | `archive/MARKETING-2026-03.md` | Old prices and a personal-account announcement (no person on public surfaces since 2026-10-25) | Private go-to-market plan (LifeOS) |
 | `archive/APP-AUDIT-v1.1.0.md` | UX audit of v1.1.0; items closed or reconciled 2026-10-23 | `DECISIONS.md`, `../CHANGELOG.md` |
 | `archive/DIAGNOSTIC-v1.1.0.md` | Product gaps of v1.1.0; reconciled 2026-10-23 | `DECISIONS.md`, `../CHANGELOG.md` |

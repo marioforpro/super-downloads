@@ -44,7 +44,7 @@
 ## Gate 4: Billing Ready
 
 - [~] ~~LemonSqueezy cuenta creada y producto configurado~~ — void 2026-10-03: no hay cuenta (app gratis)
-- [x] Producto "Super Downloads Pro" — €29 lifetime
+- [~] ~~Producto "Super Downloads Pro" (licencia de por vida)~~ — void 2026-10-03 (app gratis)
 - [x] License key generation habilitado (3 activaciones por key)
 - [ ] Promo code LAUNCH30 creado (30% off) — verificar en LS
 - [ ] **Flujo de compra funcional (web → checkout → license key → app activation)** ← OPEN GATE

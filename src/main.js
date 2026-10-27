@@ -108,7 +108,9 @@ const ACTIVATION_EMAIL_KEY = "activationEmail";
 const ACTIVATION_SYNCED_KEY = "activationSynced";
 const ACTIVATION_SKIPPED_KEY = "activationSkipped"; // Pro (paid) users only
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const LEMONSQUEEZY_CHECKOUT_URL = "https://superdownloads.lemonsqueezy.com/checkout/buy/21db1cfb-37f8-4371-8085-b5e30f89645f";
+// Checkout link for the dormant Pro upgrade. Empty while the app is free: there is no
+// payments provider, and the upgrade link stays hidden (FREE_MODE) or does nothing.
+const CHECKOUT_URL = "";
 let lastRequestedMinWindowHeight = 0;
 // Last clipboard text already acted on (prefilled, pasted, downloaded or
 // dismissed), so the same copy is never suggested or started twice.
@@ -210,8 +212,8 @@ function updateLicenseUI() {
     statusEl.innerHTML = `<span class="license-badge free">Free — ${FREE_DAILY_LIMIT}/day</span>`;
     inputRow.style.display = "flex";
     activeRow.style.display = "none";
-    upgradeLink.classList.toggle("hidden", FREE_MODE);
-    upgradeLink.href = LEMONSQUEEZY_CHECKOUT_URL;
+    upgradeLink.classList.toggle("hidden", FREE_MODE || !CHECKOUT_URL);
+    upgradeLink.href = CHECKOUT_URL || "#";
   }
   updateDownloadCounterUI();
 }
@@ -2428,7 +2430,7 @@ document.querySelector("#activate-license-btn")?.addEventListener("click", handl
 document.querySelector("#deactivate-license-btn")?.addEventListener("click", handleDeactivateLicense);
 document.querySelector("#upgrade-pro-link")?.addEventListener("click", (e) => {
   e.preventDefault();
-  window.__TAURI__.opener.openUrl(LEMONSQUEEZY_CHECKOUT_URL);
+  if (CHECKOUT_URL) window.__TAURI__.opener.openUrl(CHECKOUT_URL);
 });
 
 // Dynamic version from Tauri
