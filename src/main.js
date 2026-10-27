@@ -2491,6 +2491,8 @@ if (!hasSeenOnboarding()) {
   setTimeout(() => showActivationCard(), 300);
 }
 retryActivationSync();
+// After an update: what changed, once, unless the welcome screen is up.
+if (hasSeenOnboarding()) setTimeout(maybeShowWhatsNew, 1200);
 setTimeout(maybeSendActivePing, 15000);
 setInterval(maybeSendActivePing, ACTIVE_PING_RECHECK_MS);
 
@@ -2519,13 +2521,89 @@ document.querySelector("#upgrade-pro-link")?.addEventListener("click", (e) => {
 
 // ── Auto-update (one-click) ─────────────────────────────────────────
 let sdUpdateInProgress = false;
+let sdPendingUpdate = null; // { version, notes } of the update on offer
+// The notes of the version being installed, shown once after the relaunch.
+const WHATS_NEW_KEY = "whatsNew";
 
 function showUpdateBanner(info) {
   const banner = document.getElementById("update-banner");
   const text = document.getElementById("update-banner-text");
   if (!banner || !text) return;
+  sdPendingUpdate = info;
   text.textContent = `Version ${info.version} is available`;
   banner.hidden = false;
+}
+
+// "1.5.10" > "1.5.9"
+function versionAtLeast(a, b) {
+  const pa = String(a).split(".").map((n) => parseInt(n, 10) || 0);
+  const pb = String(b).split(".").map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0);
+  }
+  return true;
+}
+
+// latest.json notes are plain lines, one change per line («• …»).
+function whatsNewLines(notes) {
+  return String(notes || "")
+    .split("\n")
+    .map((l) => l.replace(/^[•\-*]\s*/, "").trim())
+    .filter((l) => l && !/^Super Downloads v?\d/.test(l))
+    .slice(0, 5);
+}
+
+async function maybeShowWhatsNew() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(WHATS_NEW_KEY) || "null"); } catch { saved = null; }
+  if (!saved?.version) return;
+  let current = "";
+  try { current = await window.__TAURI__.app.getVersion(); } catch { return; }
+  if (saved.version !== current) {
+    // The update didn't land (yet): keep it. A newer version arrived another way: drop it.
+    if (versionAtLeast(current, saved.version)) localStorage.removeItem(WHATS_NEW_KEY);
+    return;
+  }
+  localStorage.removeItem(WHATS_NEW_KEY);
+  const lines = whatsNewLines(saved.notes);
+  let container = document.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  const card = document.createElement("div");
+  card.className = "toast toast-card whats-new";
+  card.setAttribute("role", "status");
+  const title = document.createElement("p");
+  title.className = "whats-new-title";
+  title.textContent = `Updated to ${current}`;
+  card.appendChild(title);
+  if (lines.length) {
+    const list = document.createElement("ul");
+    for (const line of lines) {
+      const li = document.createElement("li");
+      li.textContent = line;
+      list.appendChild(li);
+    }
+    card.appendChild(list);
+  }
+  const actions = document.createElement("div");
+  actions.className = "toast-card-actions";
+  actions.innerHTML = `
+      <button class="confirm-btn confirm-cancel" data-whats-new="notes">All release notes</button>
+      <button class="confirm-btn confirm-ok" data-whats-new="ok">OK</button>`;
+  card.appendChild(actions);
+  card.addEventListener("click", (e) => {
+    const choice = e.target.closest("[data-whats-new]")?.dataset.whatsNew;
+    if (!choice) return;
+    card.classList.remove("visible");
+    setTimeout(() => card.remove(), 300);
+    if (choice === "notes") openExternal(`https://superdownloads.app/changelog#v${current}`);
+  });
+  container.appendChild(card);
+  void card.offsetWidth;
+  card.classList.add("visible");
 }
 
 async function checkForUpdate({ silent = true } = {}) {
@@ -2553,6 +2631,9 @@ async function startUpdate() {
     btn.textContent = "Updating…";
   }
   if (text) text.textContent = "Starting update…";
+  if (sdPendingUpdate?.version) {
+    localStorage.setItem(WHATS_NEW_KEY, JSON.stringify({ version: sdPendingUpdate.version, notes: sdPendingUpdate.notes || "" }));
+  }
   try {
     // Downloads, installs, and relaunches the app — no further user action.
     await window.__TAURI__.core.invoke("install_update");

@@ -473,6 +473,20 @@ body.theme-light .app.auto-add-active::after {
   line-height: 1.45;
 }
 
+.toast.whats-new .whats-new-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.toast.whats-new ul {
+  margin: 0;
+  padding-left: 16px;
+}
+
+.toast.whats-new li + li {
+  margin-top: 3px;
+}
+
 .toast-card-actions {
   display: flex;
   gap: 8px;
