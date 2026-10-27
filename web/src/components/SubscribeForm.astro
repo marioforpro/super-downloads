@@ -1,0 +1,117 @@
+---
+// News sign-up without installing the app → POST /api/subscribe (Airtable `SD · Users`, Source = web).
+// The box starts unticked and must be ticked to sign up; its exact wording is what gets stored as consent,
+// so change CONSENT only together with the privacy page (§4).
+// Turn every form off at once with SUBSCRIBE_ON.
+export const SUBSCRIBE_ON = true;
+export const CONSENT =
+  'Email me about new versions and news from Super Downloads. A few emails a year; every one has a one-click unsubscribe.';
+
+interface Props {
+  place: 'hero' | 'download' | 'faq';
+  tone?: 'dark' | 'light';
+  title?: string;
+}
+const { place, tone = 'light', title = 'Get Super Downloads news by email' } = Astro.props;
+const id = `sub-${place}`;
+---
+
+{SUBSCRIBE_ON && (
+  <form class={`subscribe ${tone}`} data-subscribe data-place={place} novalidate>
+    <p class="sub-title" id={`${id}-title`}>{title}</p>
+    <div class="sub-row">
+      <label class="sr-only" for={`${id}-email`}>Email address</label>
+      <input id={`${id}-email`} name="email" type="email" autocomplete="email" inputmode="email" placeholder="you@studio.com" required maxlength="254" />
+      <button type="submit">Sign up</button>
+    </div>
+    <label class="sub-consent">
+      <input type="checkbox" name="consent" />
+      <span data-consent-text>{CONSENT}</span>
+    </label>
+    <p class="sub-fine">Details in the <a href="/privacy#web-signup">Privacy Policy</a>.</p>
+    <div class="sub-hp" aria-hidden="true"><label>Website <input name="website" tabindex="-1" autocomplete="off" /></label></div>
+    <p class="sub-status" role="status" aria-live="polite"></p>
+  </form>
+)}
+
+<script>
+  const track = (event: string, props: Record<string, unknown>) => {
+    try { (window as any).posthog?.capture(event, props); } catch {}
+  };
+  document.querySelectorAll<HTMLFormElement>('form[data-subscribe]').forEach((form) => {
+    const status = form.querySelector<HTMLElement>('.sub-status')!;
+    const email = form.querySelector<HTMLInputElement>('input[name="email"]')!;
+    const box = form.querySelector<HTMLInputElement>('input[name="consent"]')!;
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    const place = form.dataset.place;
+    const say = (msg: string, kind: 'error' | 'ok' | '') => {
+      status.textContent = msg;
+      status.dataset.kind = kind;
+    };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!email.value.trim() || !email.checkValidity()) { say('Enter a valid email address.', 'error'); email.focus(); return; }
+      if (!box.checked) { say('Tick the box to get the emails.', 'error'); box.focus(); return; }
+      button.disabled = true;
+      say('Signing you up…', '');
+      try {
+        const r = await fetch('/api/subscribe', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: email.value.trim(),
+            consent: true,
+            consentText: form.querySelector('[data-consent-text]')!.textContent!.trim(),
+            place,
+            website: (form.querySelector<HTMLInputElement>('input[name="website"]')!).value,
+          }),
+        });
+        if (!r.ok) throw new Error(String(r.status));
+        form.classList.add('done');
+        say('You’re on the list. Every email has a one-click unsubscribe.', 'ok');
+        track('subscribe_submitted', { place });
+      } catch {
+        button.disabled = false;
+        say('That didn’t work. Try again in a minute, or write to support@superdownloads.app.', 'error');
+        track('subscribe_failed', { place });
+      }
+    });
+  });
+</script>
+
+<style>
+  .subscribe { width: 100%; max-width: 440px; text-align: left; }
+  .sub-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; }
+  .sub-row { display: flex; gap: 8px; }
+  .sub-row input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 10px; font: inherit; font-size: 15px; border: 1px solid var(--line); background: var(--white); color: var(--ink); }
+  .sub-row button { flex: none; height: 44px; padding: 0 18px; border: 0; border-radius: 10px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; background: var(--blue); color: var(--navy-950); }
+  .sub-row button:disabled { opacity: 0.6; cursor: default; }
+  .sub-consent { display: flex; gap: 10px; align-items: flex-start; margin-top: 12px; font-size: 13px; line-height: 1.5; cursor: pointer; }
+  .sub-consent input { flex: none; width: 18px; height: 18px; margin-top: 1px; accent-color: var(--blue); }
+  .sub-fine { margin-top: 6px; padding-left: 28px; font-size: 12px; line-height: 1.5; }
+  .sub-status { margin-top: 8px; font-size: 14px; line-height: 1.5; min-height: 1px; }
+  .sub-status:empty { margin: 0; }
+  .sub-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  .subscribe.done .sub-row, .subscribe.done .sub-consent, .subscribe.done .sub-fine { display: none; }
+
+  .light { color: var(--ink); }
+  .light .sub-consent, .light .sub-fine { color: var(--slate); }
+  .light .sub-fine a { color: var(--link); }
+  .light .sub-status[data-kind='error'] { color: #b42318; }
+  .light .sub-status[data-kind='ok'] { color: #0b7a4e; }
+
+  .dark { color: var(--white); }
+  .dark .sub-row input { border-color: rgba(140, 208, 255, 0.35); background: rgba(255, 255, 255, 0.06); color: var(--white); }
+  .dark .sub-row input::placeholder { color: rgba(213, 235, 255, 0.5); }
+  .dark .sub-consent, .dark .sub-fine { color: rgba(213, 235, 255, 0.78); }
+  .dark .sub-fine a { color: var(--blue-200); text-decoration: underline; text-underline-offset: 2px; }
+  .dark .sub-status[data-kind='error'] { color: #ffb4a8; }
+  .dark .sub-status[data-kind='ok'] { color: #8ce8b8; }
+  .dark :focus-visible { outline-color: var(--blue); }
+
+  @media (max-width: 420px) {
+    .sub-row { flex-direction: column; }
+    .sub-row input { flex: none; width: 100%; }
+    .sub-row button { width: 100%; }
+  }
+</style>

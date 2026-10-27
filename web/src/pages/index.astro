@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import FamilyNav from '../components/FamilyNav.astro';
+import SubscribeForm from '../components/SubscribeForm.astro';
 import { faqs, XATTR } from '../data/faqs.js';
 
 const REPO = 'https://github.com/marioforpro/super-downloads';
@@ -77,6 +78,7 @@ const homeFaqs = faqs.filter((f) => f.home);
             </p>
           </div>
           <p class="mobile-note" id="mobile-note" hidden>Super Downloads is a Mac app. <button type="button" class="link-btn" id="share-link">Send this page to your Mac</button></p>
+          <div class="mobile-sub" id="mobile-sub" hidden><SubscribeForm place="hero" tone="dark" title="Or get Super Downloads news by email" /></div>
         </div>
 
         <figure class="window window-dark hero-window">
@@ -245,6 +247,7 @@ const homeFaqs = faqs.filter((f) => f.home);
             </div>
           </div>
         </div>
+        <div class="download-subscribe"><SubscribeForm place="download" tone="dark" title="Not on your Mac right now? Get the news by email" /></div>
       </div>
     </section>
 
@@ -340,6 +343,8 @@ const homeFaqs = faqs.filter((f) => f.home);
         heroDl.hidden = true;
         document.querySelector('.hero-meta').hidden = true;
         document.getElementById('mobile-note').hidden = false;
+        var mobileSub = document.getElementById('mobile-sub');
+        if (mobileSub) mobileSub.hidden = false;
       }
       document.getElementById('share-link').addEventListener('click', function () {
         var url = 'https://superdownloads.app';
@@ -506,6 +511,8 @@ const homeFaqs = faqs.filter((f) => f.home);
   .hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
   .hero-meta { display: flex; flex-direction: column; gap: 3px; font-size: 13px; line-height: 1.45; color: rgba(213, 235, 255, 0.72); }
   .hero-meta a { color: var(--blue-200); }
+  .mobile-sub { margin-top: 20px; }
+  .download-subscribe { width: 100%; max-width: 440px; margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(140, 208, 255, 0.2); }
   .mobile-note { font-size: 15px; line-height: 1.5; color: rgba(213, 235, 255, 0.82); }
   .link-btn {
     display: block; margin-top: 12px; font: inherit; font-weight: 600; cursor: pointer;

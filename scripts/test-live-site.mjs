@@ -57,6 +57,9 @@ const A = SITE + '/api/activate';
 ok((await get(A, { method: 'OPTIONS' })).status === 204, 'activate OPTIONS 204');
 ok((await get(A)).status === 405, 'activate GET 405');
 ok((await get(A, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"nope"}' })).status === 400, 'activate bad email 400');
+const SUB = SITE + '/api/subscribe';
+ok((await get(SUB, { method: 'OPTIONS' })).status === 204, 'subscribe OPTIONS 204');
+ok((await get(SUB, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"a@b.co","consent":false}' })).status === 400, 'subscribe without consent 400 (nothing stored)');
 
 // Copy guards
 const text = Object.values(pages).join(' ');
