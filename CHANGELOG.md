@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- **Daily ping:** the anonymous ping also counts use since the previous ping (finished downloads, busiest day, Best / Batch / MP3 used). In main, ships with the next version.
+- **Web (live 2026-10-27):** /faq with 20 answers (/help and /support redirect to it), /llms.txt, three guides for editors on /guides, news sign-up without installing (consent box unticked), /press indexable, SHA-256 per version on /changelog and «Withdrawn» for the Apple Silicon builds before 1.5.8, IndexNow after each deploy, skip link, JSON-LD and meta fixes, «More from Super Apps» on /press.
+- **App (in main, next version):** FAQ button in Help, real release notes in the update and a «What's new» card after updating, old checkout link removed.
+
 ## [1.5.8] — 2026-10-27
 
 Apple Silicon: ffmpeg/ffprobe rebuilt from the official FFmpeg 7.1.5 source as GPL v3 (x264, LAME, dav1d), without nonfree parts; same H.264/AAC/MP4 output. Source tarballs attached to this release.

@@ -18,6 +18,17 @@ updated: 2026-10-26
 > **Work plan (2026-10-23).** Order = what moves the product most for the least founder time. Now → Next → Later.
 > References behind each call are cited inline (yt-dlp release cadence, Apple notarization, competitor apps).
 
+- **R-SD-016** · P1 · shipped · Help, guides and web sign-up — /faq, /guides, news sign-up without installing, «What's new» card
+  - added: 2026-10-27
+  - moved: 2026-10-27
+  - scope: /faq (20 answers, FAQPage) with /help and /support redirecting to it · /llms.txt · /press indexable · SHA-256 per version on /changelog · three guides for editors · /api/subscribe sign-up (unticked consent) · FAQ button in the app · real release notes in latest.json + «What's new» card · IndexNow after each deploy · usage counts in the daily ping (in main, ships with the next app version).
+  - shipped: 2026-10-27 — night branch merged (786ec96), web deployed, `test-live-site` 42/42; the app parts (FAQ button, «What's new», ping counts) are in main and ship with the next version (1.5.8 = 1.5.7 + the ffmpeg rebuild only).
+- **R-SD-015** · P0 · shipped · ffmpeg arm64 rebuilt as GPL without nonfree (licence)
+  - added: 2026-10-27
+  - moved: 2026-10-27
+  - scope: Apple Silicon ffmpeg/ffprobe rebuilt from FFmpeg 7.1.5 (x264, LAME, dav1d) with a reproducible build script; sources attached to the release; the Apple Silicon assets of 1.1.0–1.5.7 withdrawn from GitHub (private copy kept), /changelog says «Withdrawn» for them.
+  - shipped: 2026-10-27 — v1.5.8 published (latest.json 1.5.8, both DMGs live), old arm64 assets removed (25 files), /changelog 13 × «Withdrawn» (0f8887a).
+
 - **R-SD-014** · P1 · shipped · v1.5.6 — marketing consent unticked, share notice, dependency refresh
   - added: 2026-10-25
   - moved: 2026-10-26
