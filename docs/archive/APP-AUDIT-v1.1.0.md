@@ -1,3 +1,5 @@
+> **Histórico (archivado 2026-10-27).** Auditoría/diseño de una versión antigua; sus puntos están cerrados o reconciliados (ver `docs/DECISIONS.md` y `CHANGELOG.md`).
+
 # App Audit — Super Downloads v1.1.0
 
 > Auditoría completa de diseño, UX, funcionalidad y calidad técnica.

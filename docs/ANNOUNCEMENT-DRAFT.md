@@ -79,4 +79,4 @@ Free for now, unsigned, for content you own or are authorized to download. Feedb
 - [ ] Normas de r/macapps (flair/disclosure de autor) revisadas el día.
 - [ ] OK explícito de Mario.
 
-Nota: `docs/LAUNCH-PLAN.md` sigue en modo de pago (€29, LAUNCH30) y está desfasado; no usar ese copy.
+Nota: `docs/archive/LAUNCH-PLAN-2026-03.md` (archivado) sigue en modo de pago (€29, LAUNCH30) y está desfasado; no usar ese copy.

@@ -51,12 +51,12 @@ Domain: superdownloads.app (Hostinger). Email: support@superdownloads.app.
 | Roadmap & phases | `ROADMAP.md` |
 | Progress log | `PROGRESS.md` |
 | Decisions | `docs/DECISIONS.md` |
-| App UX audit | `docs/APP-AUDIT.md` |
+| Docs index (what is current) | `docs/README.md` |
 | Platform health protocol | `docs/PLATFORM-HEALTH.md` |
-| Product audit & gaps | `docs/DIAGNOSTIC.md` |
+| Support (channels, FAQ, macros) | `docs/support/` |
 | Architecture | `docs/ARCHITECTURE.md` |
 | Development guide | `docs/DEVELOPMENT.md` |
 | Brand guidelines | `docs/BRAND.md` |
 | Design system (tokens, type, components, motion, copy patterns) | `DESIGN.md` |
 | Launch checklist | `docs/LAUNCH.md` |
-| Marketing plan | `docs/MARKETING.md` |
+| Go-to-market plan | private, LifeOS `08_Growth/super-downloads/` |
