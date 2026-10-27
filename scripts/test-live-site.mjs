@@ -53,7 +53,7 @@ ok((await get(A, { method: 'POST', headers: { 'Content-Type': 'application/json'
 const text = Object.values(pages).join(' ');
 ok(!/\bbeta\b/i.test(text.replace(/<[^>]+>/g, ' ')), 'no «beta» on public pages');
 ok(!/founder/i.test(text.replace(/<[^>]+>/g, ' ')), 'no «founder» on public pages');
-ok((home.match(/utm_campaign=family/g) || []).length === 3, 'family footer links 3 siblings');
+ok((home.match(/utm_campaign=family/g) || []).length === 4 && /superapps\.pro\/\?utm_source=superdownloads/.test(home), 'family footer links superapps.pro + 3 siblings');
 ok(/id="known-issues"/.test(pages['/changelog']), 'changelog has known issues');
 
 console.log(`${pass} passed, ${fail} failed`);
