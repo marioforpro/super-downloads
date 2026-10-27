@@ -309,6 +309,69 @@ const SHARE_URL = "https://superdownloads.app/?utm_source=app&utm_medium=share&u
 const INSTALL_ID_MAX_AGE_DAYS = 365;
 const ACTIVE_PING_RECHECK_MS = 3 * 60 * 60 * 1000; // the app can stay open for days
 let activePingInFlight = false;
+// What the next daily ping reports about use since the previous one: finished
+// downloads per local day and how often each option was used. Counts only,
+// never links or titles. Kept only while «Share anonymous usage stats» is on.
+const USAGE_SINCE_PING_KEY = "usageSincePing";
+const USAGE_FEATURES = ["best", "batch", "mp3"];
+
+function readUsage() {
+  try {
+    const u = JSON.parse(localStorage.getItem(USAGE_SINCE_PING_KEY) || "{}");
+    return { days: u.days && typeof u.days === "object" ? u.days : {}, features: u.features && typeof u.features === "object" ? u.features : {} };
+  } catch {
+    return { days: {}, features: {} };
+  }
+}
+
+function writeUsage(u) {
+  // Bound it: an app left without network for months still sends a small ping.
+  const days = Object.keys(u.days).sort().slice(-31);
+  u.days = Object.fromEntries(days.map((d) => [d, u.days[d]]));
+  if (!days.length && !Object.keys(u.features).length) localStorage.removeItem(USAGE_SINCE_PING_KEY);
+  else localStorage.setItem(USAGE_SINCE_PING_KEY, JSON.stringify(u));
+}
+
+function recordFeatureUse(features) {
+  if (!usageStatsOn()) return;
+  const u = readUsage();
+  for (const f of features) if (USAGE_FEATURES.includes(f)) u.features[f] = (u.features[f] || 0) + 1;
+  writeUsage(u);
+}
+
+function recordFinishedDownload() {
+  if (!usageStatsOn()) return;
+  const u = readUsage();
+  const day = localDay();
+  u.days[day] = (u.days[day] || 0) + 1;
+  writeUsage(u);
+}
+
+// The summary sent with the ping: total since the last ping, the busiest single
+// day, and which options were used at least once.
+function usageSummary(u) {
+  const counts = Object.values(u.days).map((n) => Math.max(0, Number(n) || 0));
+  return {
+    downloads: counts.reduce((a, b) => a + b, 0),
+    peakDay: counts.length ? Math.max(...counts) : 0,
+    features: USAGE_FEATURES.filter((f) => (u.features[f] || 0) > 0),
+  };
+}
+
+// After a ping arrives, take away exactly what it reported (downloads that
+// finished while it was on its way stay for the next one).
+function subtractUsage(sent) {
+  const u = readUsage();
+  for (const [d, n] of Object.entries(sent.days)) {
+    const left = (u.days[d] || 0) - n;
+    if (left > 0) u.days[d] = left; else delete u.days[d];
+  }
+  for (const [f, n] of Object.entries(sent.features)) {
+    const left = (u.features[f] || 0) - n;
+    if (left > 0) u.features[f] = left; else delete u.features[f];
+  }
+  writeUsage(u);
+}
 
 function localDay(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -322,6 +385,7 @@ function forgetInstallId() {
   localStorage.removeItem(INSTALL_ID_KEY);
   localStorage.removeItem(INSTALL_ID_CREATED_KEY);
   localStorage.removeItem(LAST_ACTIVE_PING_KEY);
+  localStorage.removeItem(USAGE_SINCE_PING_KEY);
 }
 
 // The stored id, or null when there is none or it is due for renewal (the
@@ -343,9 +407,11 @@ async function maybeSendActivePing() {
   activePingInFlight = true;
   try {
     const sentId = currentInstallId();
-    const installId = await window.__TAURI__.core.invoke("send_active_ping", { installId: sentId });
+    const sentUsage = readUsage();
+    const installId = await window.__TAURI__.core.invoke("send_active_ping", { installId: sentId, usage: usageSummary(sentUsage) });
     // Turned off while the ping was on its way: keep nothing.
     if (!usageStatsOn()) return;
+    subtractUsage(sentUsage);
     if (installId !== sentId) localStorage.setItem(INSTALL_ID_CREATED_KEY, today);
     localStorage.setItem(INSTALL_ID_KEY, installId);
     localStorage.setItem(LAST_ACTIVE_PING_KEY, today);
@@ -2004,6 +2070,11 @@ async function startDownloadForUrl(url, options = {}) {
   const settingsForFormat = JSON.parse(localStorage.getItem("appSettings") || "{}");
   const outputFormat = settingsForFormat.audioOnlyEnabled === true ? "mp3" : "mp4";
 
+  recordFeatureUse([
+    outputFormat === "mp3" ? "mp3" : (settingsForFormat.videoQuality || "best") === "best" ? "best" : "",
+    batchModeEnabled ? "batch" : "",
+  ]);
+
   // Add download to list
   const downloadId = addDownload(url);
   lastDownloadStartedAt = performance.now();
@@ -2700,6 +2771,7 @@ window.__TAURI__.event.listen("download-finished", (event) => {
   });
 
   countCompletedAndMaybeNudge();
+  recordFinishedDownload();
 
   // Native macOS notification (only when app is not focused)
   if (!document.hasFocus() && window.__TAURI__?.core?.invoke) {

@@ -3292,8 +3292,10 @@ async fn register_activation(
 async fn send_active_ping(
     app: tauri::AppHandle,
     install_id: Option<String>,
+    usage: Option<active_ping::Usage>,
 ) -> Result<String, String> {
     let install_id = active_ping::install_id_or_new(install_id.as_deref());
+    let usage = usage.unwrap_or_default();
     let os_version = tauri::async_runtime::spawn_blocking(activation_os_version)
         .await
         .unwrap_or_else(|_| "unknown".to_string());
@@ -3302,6 +3304,7 @@ async fn send_active_ping(
         &app.package_info().version.to_string(),
         activation_arch(),
         &os_version,
+        &usage,
     );
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))

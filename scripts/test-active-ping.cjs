@@ -94,7 +94,7 @@ let fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); i
   // D: Settings shows what is sent, links to /privacy, and off before the first ping sends nothing
   const p3 = await existingInstall(b);
   await p3.click('#settings-toggle'); await p3.clock.runFor(500);
-  ok(await p3.isVisible('#usage-stats-hint') && /app version, Mac type and a random number/.test(await p3.textContent('#usage-stats-hint')),
+  ok(await p3.isVisible('#usage-stats-hint') && /app version, Mac type, a random number.*which options you used \(Best, Batch, MP3\)\. Never what you download/.test(await p3.textContent('#usage-stats-hint')),
     'Settings: the switch says what is sent');
   await p3.click('#usage-stats-privacy-link');
   ok(await p3.evaluate(() => window.__opened.at(-1)) === 'https://superdownloads.app/privacy', 'Settings: Privacy link opens /privacy');
@@ -110,6 +110,28 @@ let fail = 0; const ok = (c, m) => { console.log((c ? 'PASS ' : 'FAIL ') + m); i
   ok(await pings(p2) === 0, 'new install: no ping while the welcome screen is open');
   await p2.fill('.activation-email-input', 'new@user.co'); await p2.click('.onboarding-start-btn'); await p2.clock.runFor(500);
   ok(await pings(p2) === 1 && !NOTICE.test(await text(p2)) && !await p2.$('.toast'), 'new install: one ping, no notice after Get Started');
+
+  // F: use since the last ping (counts and three option names only), subtracted once it arrives
+  const p4 = await existingInstall(b);
+  await p4.clock.runFor(17000);
+  ok(JSON.stringify((await p4.evaluate(() => window.__pingArgs.at(-1)))?.usage) === '{"downloads":0,"peakDay":0,"features":[]}', 'first ping: zero use, still sends the summary');
+  await p4.fill('#url-input', 'https://www.youtube.com/watch?v=WhWc3b3KhnY'); await p4.keyboard.press('Enter'); await p4.clock.runFor(500);
+  const used = JSON.parse(await ls(p4, 'usageSincePing') || '{}');
+  ok(used.features?.best === 1 && !used.days?.[await daysAgo(p4, 0)], 'a started download records «best» (finished count comes on completion)');
+  ok(!/youtube|WhWc3b3KhnY/.test(await ls(p4, 'usageSincePing')), 'no link stored with the usage');
+  const yday = await daysAgo(p4, 1), today = await daysAgo(p4, 0);
+  await setLs(p4, { lastActivePingDay: '2000-01-01', usageSincePing: JSON.stringify({ days: { [yday]: 7, [today]: 2 }, features: { best: 3, mp3: 1, batch: 0, url: 9 } }) });
+  await p4.reload(); await p4.evaluate(() => { window.__pingDelay = 2000; }); await p4.clock.runFor(16000);
+  ok(JSON.stringify((await p4.evaluate(() => window.__pingArgs.at(-1)))?.usage) === '{"downloads":9,"peakDay":7,"features":["best","mp3"]}', 'ping carries total, busiest day, options used');
+  // A download finishing while the ping is on its way stays for the next one.
+  await p4.evaluate((d) => { const u = JSON.parse(localStorage.getItem('usageSincePing')); u.days[d] += 1; localStorage.setItem('usageSincePing', JSON.stringify(u)); }, today);
+  await p4.clock.runFor(3000);
+  const after = JSON.parse(await ls(p4, 'usageSincePing') || '{}');
+  ok(JSON.stringify(after.days) === JSON.stringify({ [today]: 1 }) && !after.features?.best && !after.features?.mp3, 'after the ping: only what it did not report is left');
+  await switchTo(p4, false);
+  ok(await ls(p4, 'usageSincePing') === null, 'turned off: usage counts deleted');
+  await p4.fill('#url-input', 'https://vimeo.com/76979871'); await p4.keyboard.press('Enter'); await p4.clock.runFor(500);
+  ok(await ls(p4, 'usageSincePing') === null, 'off: nothing recorded');
 
   await b.close(); server.close(); fs.rmSync(STAGE, { recursive: true, force: true });
   console.log(fail ? `${fail} FAILED` : 'ALL PASS'); process.exit(fail ? 1 : 0);

@@ -130,8 +130,8 @@ export const faqGroups = [
       {
         id: 'usage-stats',
         q: 'Does the app track what I download?',
-        a: 'No. The app sends one anonymous ping a day so we can count how many people use it: the app version, your Mac type and a random number renewed every year. No email, no IP address, nothing about your downloads. Turn it off in Settings › Share anonymous usage stats.',
-        html: 'No. The app sends one anonymous ping a day so we can count how many people use it: the app version, your Mac type and a random number renewed every year. No email, no IP address, nothing about your downloads. Turn it off in Settings › Share anonymous usage stats. Details in the <a href="/privacy#usage-stats">Privacy Policy</a>.',
+        a: 'No. The app sends one anonymous ping a day so we can count how many people use it: the app version, your Mac type and a random number renewed every year. Versions after 1.5.8 also count how many downloads finished and which of Best quality, Batch and MP3 you used. No email, no IP address, never a link or anything about what you download. Turn it off in Settings › Share anonymous usage stats.',
+        html: 'No. The app sends one anonymous ping a day so we can count how many people use it: the app version, your Mac type and a random number renewed every year. Versions after 1.5.8 also count how many downloads finished and which of Best quality, Batch and MP3 you used. No email, no IP address, never a link or anything about what you download. Turn it off in Settings › Share anonymous usage stats. Details in the <a href="/privacy#usage-stats">Privacy Policy</a>.',
       },
       {
         id: 'delete',
