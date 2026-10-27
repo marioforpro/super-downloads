@@ -15,14 +15,13 @@ Upstream project: https://ffmpeg.org/
 
 | Arch | Version | Origin string | Config highlights (from `-version` / `-L`) |
 |---|---|---|---|
-| `aarch64-apple-darwin` | 6.0 | none (built at `/Volumes/tempdisk/sw`, Apple clang 13.1.6) | `--enable-gpl --enable-version3 --enable-nonfree` |
+| `aarch64-apple-darwin` | 7.1.5 | rebuilt 2026-10-27 from the official FFmpeg tarball (`scripts/build-ffmpeg-arm64.sh`; Apple clang 21) | `--enable-gpl --enable-version3 --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-videotoolbox --enable-audiotoolbox` (static, arm64, min macOS 12.0; **no** `--enable-nonfree`) |
 | `x86_64-apple-darwin` | 6.1.1-tessus | `https://evermeet.cx/ffmpeg/` (Apple clang 11.0.0) | `--enable-gpl --enable-version3` — **no** `--enable-nonfree` |
 
 **License identity as verified — divergent per architecture:**
 
-- **aarch64 build:** compiled with `--enable-gpl`, `--enable-version3`, and `--enable-nonfree`. Running `ffmpeg-aarch64-apple-darwin -L` prints, verbatim, as the binary's own statement:
-  > "This version of ffmpeg has nonfree parts compiled in. Therefore it is not legally redistributable."
-  This is the effective license status for this specific binary as reported by the vendored binary itself — not an inference. **This build is the one currently bundled and shipped in the Apple Silicon DMG.**
+- **aarch64 build:** rebuilt 2026-10-27 as FFmpeg 7.1.5 (official tarball from ffmpeg.org, GPG signature verified) with `--enable-gpl --enable-version3` and **without** `--enable-nonfree`. `ffmpeg-aarch64-apple-darwin -L` prints the GPL v3-or-later text and no nonfree warning. Statically linked components: x264 (stable branch, commit b35605ac, GPLv2+), LAME 3.100 (LGPL), dav1d 1.5.4 (BSD-2-Clause); Apple VideoToolbox/AudioToolbox are system frameworks. Effective license: **GPL v3 or later**. This replaces the earlier 6.0 build that was compiled with `--enable-nonfree`.
+  **Corresponding source (GPL):** the exact source tarballs used for this build (FFmpeg 7.1.5, x264, LAME 3.100, dav1d 1.5.4) are kept and available on request from support@superdownloads.app.
 - **x86_64 build:** compiled with `--enable-gpl` and `--enable-version3`, without `--enable-nonfree`. `-L` output prints GPL v3 license text (no nonfree warning). Effective license for this build: **GPL v3 or later**.
 
 **Provenance of each claim:** both rows verified directly by executing the vendored binaries with `-version` and `-L` on 2026-08-03 (both archs run natively on the audit machine; no `strings`/quarantine fallback was needed). The x86_64 binary self-identifies its origin (evermeet.cx / "tessus" build tag) in its own version string; the aarch64 binary does not self-identify a build origin beyond its build path and compiler.
@@ -30,7 +29,7 @@ Upstream project: https://ffmpeg.org/
 **Canonical upstream pointers (no license text pasted here):**
 - https://www.ffmpeg.org/legal.html
 - https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html (baseline FFmpeg license without `--enable-gpl`/`--enable-version3` — not the mode either vendored build uses)
-- https://www.gnu.org/licenses/gpl-3.0.html (applies to the x86_64 build, per `--enable-version3` and its own `-L` output)
+- https://www.gnu.org/licenses/gpl-3.0.html (applies to both builds, per `--enable-version3` and its own `-L` output)
 
 ## FFprobe
 
@@ -41,10 +40,10 @@ Upstream project: https://ffmpeg.org/ffprobe.html
 
 | Arch | Version | Origin string | Config highlights |
 |---|---|---|---|
-| `aarch64-apple-darwin` | 6.0 | none (`/Volumes/tempdisk/sw`, Apple clang 13.1.6) | `--enable-gpl --enable-version3 --enable-nonfree` |
+| `aarch64-apple-darwin` | 7.1.5 | rebuilt 2026-10-27 (same build as ffmpeg above) | `--enable-gpl --enable-version3 --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-videotoolbox --enable-audiotoolbox` (static, arm64, min macOS 12.0; **no** `--enable-nonfree`) |
 | `x86_64-apple-darwin` | 6.1.1-tessus | `https://evermeet.cx/ffmpeg/` (Apple clang 11.0.0) | `--enable-gpl --enable-version3`, no `--enable-nonfree` |
 
-**License identity as verified:** running `ffprobe-aarch64-apple-darwin -L` prints the identical statement as ffmpeg: "This version of ffprobe has nonfree parts compiled in. Therefore it is not legally redistributable." The x86_64 `ffprobe -L` prints GPL v3 text, no nonfree warning — same verdict as the ffmpeg x86_64 build (GPL v3 or later).
+**License identity as verified:** the aarch64 `ffprobe` is the same 7.1.5 GPL build as ffmpeg above (rebuilt 2026-10-27, no `--enable-nonfree`); its `-L` prints GPL v3-or-later text. The x86_64 `ffprobe -L` also prints GPL v3 text, no nonfree warning (GPL v3 or later). Corresponding source for the aarch64 build (FFmpeg 7.1.5, x264, LAME 3.100, dav1d 1.5.4) is kept and available on request from support@superdownloads.app.
 
 **Canonical upstream pointers:** same as FFmpeg above (ffprobe ships under the same license terms as the ffmpeg binary from the same build).
 
@@ -82,6 +81,6 @@ No acquisition record was found in-repo:
 ## Known gaps / next steps
 
 1. **This file covers the repository only.** The *distributed* artifacts — the public DMG bundle and the live website legal pages — do not yet surface these notices. Carrying this attribution into the shipped bundle and into `privacy.astro`/`terms.astro`/`copyright.astro` is deferred to the next release, alongside the signing/notarization decision (**SD-F-009**, founder-open).
-2. **The aarch64 ffmpeg/ffprobe build currently bundled and shipped is, by its own `-L` output, self-described as "not legally redistributable"** (compiled with `--enable-nonfree`). This is a live distribution concern for the Apple Silicon DMG specifically, independent of and in addition to the GPL/LGPL attribution gap. No legal review of this has been performed yet.
-3. **LGPL §6 / GPL relink and object-availability obligations** for the shipped FFmpeg builds have not been assessed — this requires legal review before further commercial distribution, for both the GPLv3 (x86_64) and GPL+nonfree (aarch64) builds.
+2. ~~The aarch64 ffmpeg/ffprobe build was compiled with `--enable-nonfree`~~ — resolved 2026-10-27 by the GPL rebuild (FFmpeg 7.1.5, no nonfree); takes effect for users in the first release that ships it.
+3. **LGPL §6 / GPL relink and object-availability obligations** for the shipped FFmpeg builds have not been assessed — this requires legal review before further commercial distribution, for both GPLv3 builds (x86_64 and aarch64).
 4. **No legal advice.** This document records current posture and verified facts only (build configuration strings, binary self-reported license statements, and what does/doesn't exist in-repo). It does not constitute a compliance determination.
