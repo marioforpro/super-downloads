@@ -1,3 +1,5 @@
+> **Histórico (archivado 2026-10-27).** Sustituido por el plan de salida al mercado privado (fuera de este repo). Precios y canales de aquí ya no valen: la app es gratis (`docs/DECISIONS.md`).
+
 # Launch Plan: Super Downloads
 
 > **RETIRED 2026-10-25, superseded by the private GTM plan (LifeOS `08_Growth/super-downloads/GTM-2026-10-25.md`, kept out of this public repo)** (R-SD-012). Kept for history: it still describes

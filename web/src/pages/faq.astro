@@ -1,0 +1,70 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FamilyNav from '../components/FamilyNav.astro';
+import SubscribeForm from '../components/SubscribeForm.astro';
+import { faqGroups, faqJsonLd, SUPPORT } from '../data/faqs.js';
+---
+
+<Layout title="Help and FAQ — Super Downloads" description="Answers about Super Downloads: installing on macOS, the “can’t verify” and “damaged” messages, updates, quality, sites that need a login, imports into Premiere Pro, privacy and support.">
+  <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+  <main id="main" class="help">
+    <a href="/" class="back">&larr; Back</a>
+    <h1>Help and FAQ</h1>
+    <p class="lead">Short answers to what editors ask most. Not here? Write to <a href={`mailto:${SUPPORT}`}>{SUPPORT}</a>, or use Settings › Help › Report a problem in the app.</p>
+
+    <nav class="toc" aria-label="Topics">
+      {faqGroups.map((g, i) => <a href={`#topic-${i + 1}`}>{g.title}</a>)}
+    </nav>
+
+    {faqGroups.map((g, i) => (
+      <section class="group" id={`topic-${i + 1}`} aria-labelledby={`topic-${i + 1}-title`}>
+        <h2 id={`topic-${i + 1}-title`}>{g.title}</h2>
+        {g.items.map((f) => (
+          <details id={f.id}>
+            <summary>{f.q}</summary>
+            <p set:html={f.html ?? f.a} />
+          </details>
+        ))}
+      </section>
+    ))}
+
+    <p class="more">Something not on this page is broken right now? Check <a href="/changelog#known-issues">Known issues</a>. Importing into Premiere? See the <a href="/guides">guides for editors</a>. Ready to try it? <a href="/#download">Download Super Downloads</a>.</p>
+    <div class="faq-subscribe"><SubscribeForm place="faq" /></div>
+    <FamilyNav />
+  </main>
+
+  <script is:inline>
+    // Open the answer a link points to (e.g. /faq#damaged), and the one in the URL on load.
+    (function () {
+      function open() {
+        var el = location.hash && document.getElementById(location.hash.slice(1));
+        if (el && el.tagName === 'DETAILS') el.open = true;
+      }
+      window.addEventListener('hashchange', open);
+      open();
+    })();
+  </script>
+</Layout>
+
+<style>
+  .help { max-width: 720px; margin: 0 auto; padding: 60px 24px 80px; }
+  .back { display: inline-flex; align-items: center; min-height: 32px; font-size: 13px; color: var(--gray-600); margin-bottom: 16px; }
+  h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+  .lead { font-size: 15px; line-height: 1.6; color: var(--slate); margin-bottom: 20px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+  .toc a { font-size: 13px; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink); background: var(--mist); }
+  .toc a:hover { text-decoration: none; border-color: var(--gray-400); }
+  .group { padding-top: 28px; }
+  h2 { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  details { border-bottom: 1px solid var(--line); }
+  .group h2 + details { border-top: 1px solid var(--line); }
+  summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 16px 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: ''; flex: none; width: 8px; height: 8px; border-right: 2px solid var(--slate); border-bottom: 2px solid var(--slate); transform: rotate(45deg); margin-top: -4px; transition: transform .2s; }
+  details[open] summary::after { transform: rotate(-135deg); margin-top: 2px; }
+  @media (prefers-reduced-motion: reduce) { summary::after { transition: none; } }
+  details p { padding: 0 0 18px; font-size: 15px; line-height: 1.65; color: var(--slate); }
+  details :global(code) { font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: var(--mist); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; word-break: break-all; }
+  .faq-subscribe { margin: 0 0 48px; }
+  .more { margin: 32px 0 32px; font-size: 14px; line-height: 1.6; color: var(--slate); }
+</style>

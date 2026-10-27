@@ -1,0 +1,50 @@
+---
+import Guide from '../../layouts/Guide.astro';
+---
+
+<Guide
+  slug="premiere-pro-webm-av1"
+  title="Premiere Pro won’t import WebM or AV1: why, and how to fix it — Super Downloads"
+  description="Premiere Pro says “file format not supported” for a video from YouTube? It’s WebM, VP9 or AV1. How to check the file, and the exact commands that turn it into an H.264 MP4."
+  h1="Premiere Pro won’t import WebM or AV1: why, and how to fix it"
+  updated="2026-10-27"
+>
+  <p>You downloaded a video, dragged it into Premiere Pro, and got <em>“File format not supported”</em>, or a clip with sound and no picture. Nine times out of ten the file is a <strong>WebM</strong>, or its video is <strong>VP9</strong> or <strong>AV1</strong>. Premiere Pro doesn’t read any of the three. Here’s why, how to check, and how to fix it for free.</p>
+
+  <h2>Why it happens</h2>
+  <p>Video sites store each video in several codecs and hand every viewer the most efficient one their browser plays. Browsers play VP9 and AV1 well, so that is often what a downloader receives. We checked YouTube on October 27, 2026: at 1080p and below it offers H.264, VP9 and AV1; <strong>at 1440p and 4K it offers only VP9 and AV1</strong>. Ask a downloader for “best quality” and you get one of those.</p>
+  <p>Editing apps want the opposite: codecs that decode fast frame by frame. <a href="https://helpx.adobe.com/premiere-pro/using/supported-file-formats.html">Premiere Pro’s list of supported formats</a> includes H.264, HEVC and ProRes, and does not include WebM, VP9 or AV1. The audio inside a WebM is usually Opus, which also needs converting.</p>
+
+  <h2>Check what you have</h2>
+  <p>The file name doesn’t tell you: an <code>.mp4</code> can hold VP9 or AV1 too. With <a href="https://ffmpeg.org">FFmpeg</a> installed (for example <code>brew install ffmpeg</code>), run:</p>
+  <pre><code>ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=nw=1 "video.webm"</code></pre>
+  <p><code>codec_name=h264</code> or <code>hevc</code> imports fine. <code>vp9</code>, <code>av1</code> or <code>vp8</code> needs one of the fixes below. The free <a href="https://mediaarea.net/en/MediaInfo">MediaInfo</a> app shows the same without the Terminal.</p>
+
+  <h2>Fix 1: convert the file you already have</h2>
+  <p>One command turns any of them into an H.264 MP4 with AAC audio that Premiere imports:</p>
+  <pre><code>ffmpeg -i "video.webm" -c:v libx264 -crf 18 -preset slow -pix_fmt yuv420p -c:a aac -b:a 192k "video.mp4"</code></pre>
+  <p><code>-crf 18</code> keeps it visually lossless; raise it to 20–23 for smaller files. On an Apple Silicon Mac, the hardware encoder is several times faster at a similar quality for editing:</p>
+  <pre><code>ffmpeg -i "video.webm" -c:v h264_videotoolbox -b:v 20M -pix_fmt yuv420p -c:a aac -b:a 192k "video.mp4"</code></pre>
+  <p>Use about 20M for 1080p and 50–80M for 4K.</p>
+
+  <h2>Fix 2: download H.264 in the first place</h2>
+  <p>If you use <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>, ask it for H.264 video and AAC audio in an MP4 and there’s nothing to convert:</p>
+  <pre><code>yt-dlp -f "bv*[vcodec^=avc1]+ba[ext=m4a]/b[ext=mp4]" --merge-output-format mp4 "VIDEO_URL"</code></pre>
+  <p>The catch: on YouTube, H.264 stops at 1080p. For a 1440p or 4K reference you need Fix 1 after downloading.</p>
+
+  <h2>What about plugins?</h2>
+  <p>Third-party WebM plugins for Premiere exist, but they are hit and miss with recent versions and don’t cover AV1. Converting once gives you a file every app on every machine opens, which matters when the project moves to another editor.</p>
+
+  <h2>And in DaVinci Resolve?</h2>
+  <p>Resolve on Mac reads VP9 and AV1 when they come in an MP4 or MOV, but not the WebM container (per <a href="https://documents.blackmagicdesign.com/SupportNotes/DaVinci_Resolve_20_Supported_Codec_List.pdf">Blackmagic’s Resolve 20 codec list</a>). Re-wrapping the video without re-encoding is usually enough:</p>
+  <pre><code>ffmpeg -i "video.webm" -c:v copy -c:a aac -b:a 192k "video.mp4"</code></pre>
+  <p>VP9 and AV1 still play heavier than H.264 on the timeline; for long edits, Fix 1 is smoother.</p>
+
+  <h2>The short version</h2>
+  <ul>
+    <li>Premiere Pro imports H.264, HEVC and ProRes. Not WebM, VP9 or AV1.</li>
+    <li>YouTube at 1440p and 4K only exists as VP9 or AV1, so it always needs converting.</li>
+    <li>At 1080p, download H.264 directly and skip the conversion.</li>
+  </ul>
+  <p class="note">Download only video you own, have licensed, that’s shared under Creative Commons, or that you’re otherwise authorized to use: your own uploads, client footage, approved references. For client work, the original file from the client is always better than any download.</p>
+</Guide>

@@ -22,6 +22,7 @@
 
 - **App**: Tauri v2 — build with `npm run tauri build`. Produces DMGs in `src-tauri/target/<triple>/release/bundle/dmg/`.
 - **Landing page**: `cd web && npm run build`. Deployed on Vercel (auto-deploy on push to main).
+- **IndexNow** (Bing, and through it ChatGPT/Copilot search): after each production deploy, `.github/workflows/indexnow.yml` sends every URL of the live sitemap (`web/scripts/indexnow.mjs`; by hand: `node web/scripts/indexnow.mjs [--dry]`). The key is public by design and served from `web/public/<key>.txt`; keep the file. Add new pages to `web/public/sitemap.xml` or IndexNow never hears of them.
 - **Cross-arch builds**: Homebrew `rust` ships only the host stdlib. To build the non-host target, prepend the rustup toolchain to PATH: `PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH" npm run tauri build -- --target x86_64-apple-darwin --bundles dmg`.
 
 ## Release pipeline

@@ -9,7 +9,7 @@ const meta = (html, prop) => html.match(new RegExp(`<meta (?:property|name)="${p
 
 // Pages
 const pages = {};
-for (const p of ['/', '/changelog', '/privacy', '/terms', '/copyright', '/press']) {
+for (const p of ['/', '/faq', '/guides', '/guides/premiere-pro-webm-av1', '/guides/download-video-for-premiere-pro', '/guides/codecs-by-platform', '/changelog', '/privacy', '/terms', '/copyright', '/press']) {
   const r = await get(SITE + p);
   pages[p] = await r.text();
   ok(r.status === 200, `${p} 200`);
@@ -28,7 +28,17 @@ ok(!!og && meta(home, 'og:title') && meta(home, 'og:description') && meta(home, 
 const ogr = await get(og);
 const ogLen = Number(ogr.headers.get('content-length') || (await ogr.arrayBuffer()).byteLength);
 ok(ogr.status === 200 && /image\/(jpeg|png)/.test(ogr.headers.get('content-type')) && ogLen < 300000, `share card 200, image, ${Math.round(ogLen / 1024)} KB < 300 KB`);
-ok(/noindex/.test(pages['/press']) && !/noindex/.test(home), 'press is noindex, home is not');
+ok(!/noindex/.test(pages['/press']) && !/noindex/.test(home), 'press and home are indexable');
+
+// Indexable extras: llms.txt, /help → /faq, FAQPage only on /faq, sitemap
+const llms = await get(SITE + '/llms.txt');
+ok(llms.status === 200 && /^# Super Downloads/.test(await llms.text()), '/llms.txt 200');
+const help = await get(SITE + '/help', { redirect: 'manual' });
+ok([301, 308].includes(help.status) && /\/faq$/.test(help.headers.get('location') || ''), '/help redirects to /faq');
+ok(/"@type":"FAQPage"/.test(pages['/faq']) && !/"@type":"FAQPage"/.test(home), 'FAQPage JSON-LD on /faq only');
+const sitemap = await (await get(SITE + '/sitemap.xml')).text();
+ok(['/faq', '/press', '/guides', '/guides/premiere-pro-webm-av1'].every((p) => sitemap.includes(`superdownloads.app${p}<`)), 'sitemap lists /faq, /press and the guides');
+ok(/data-place="guide-premiere-pro-webm-av1"/.test(pages['/guides/premiere-pro-webm-av1']), 'guide download buttons carry place=guide-*');
 
 // Release: landing version = GitHub latest; DMGs + updater reachable; hashes match
 const rel = await (await get(`https://api.github.com/repos/${REPO}/releases/latest`, { headers: { 'User-Agent': 'sd-live-test' } })).json();
@@ -48,13 +58,18 @@ const A = SITE + '/api/activate';
 ok((await get(A, { method: 'OPTIONS' })).status === 204, 'activate OPTIONS 204');
 ok((await get(A)).status === 405, 'activate GET 405');
 ok((await get(A, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"nope"}' })).status === 400, 'activate bad email 400');
+const SUB = SITE + '/api/subscribe';
+ok((await get(SUB, { method: 'OPTIONS' })).status === 204, 'subscribe OPTIONS 204');
+ok((await get(SUB, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"email":"a@b.co","consent":false}' })).status === 400, 'subscribe without consent 400 (nothing stored)');
 
 // Copy guards
 const text = Object.values(pages).join(' ');
 ok(!/\bbeta\b/i.test(text.replace(/<[^>]+>/g, ' ')), 'no «beta» on public pages');
 ok(!/founder/i.test(text.replace(/<[^>]+>/g, ' ')), 'no «founder» on public pages');
-ok((home.match(/utm_campaign=family/g) || []).length === 3, 'family footer links 3 siblings');
+ok((home.match(/utm_campaign=family/g) || []).length === 4 && /superapps\.pro\/\?utm_source=superdownloads/.test(home), 'family footer links superapps.pro + 3 siblings');
 ok(/id="known-issues"/.test(pages['/changelog']), 'changelog has known issues');
+const relD = rel.assets.find((x) => x.name === 'Super-Downloads_aarch64.dmg')?.digest?.replace('sha256:', '');
+ok(!!relD && pages['/changelog'].includes(relD), 'changelog shows the SHA-256 of the latest DMG');
 
 console.log(`${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

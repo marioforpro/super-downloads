@@ -3,14 +3,34 @@
 //! Once a day, when the user leaves «Share anonymous usage stats» on, the app
 //! sends one `app_active` event to PostHog. The event carries a random install
 //! id (a v4 UUID created on this Mac, not derived from anything about it), the
-//! app version, the CPU architecture and the macOS major version. No email,
+//! app version, the CPU architecture and the macOS major version, plus counts
+//! of use since the previous ping: finished downloads, the busiest single day,
+//! and which of three options were used (Best quality, Batch, MP3). No email,
 //! no computer name, no IP address (sent as 0.0.0.0, GeoIP off), no person
-//! profile, nothing about what the user downloads.
+//! profile, no links, titles or sites: nothing about what the user downloads.
 //!
 //! The frontend (src/main.js) renews the install id every 12 months and
 //! deletes it when the switch is turned off.
 
+use serde::Deserialize;
 use serde_json::{json, Value};
+
+/// The only option names that can ever be reported.
+pub const FEATURES: [&str; 3] = ["best", "batch", "mp3"];
+/// Counts above this are clamped (a stuck counter can't send a silly number).
+const MAX_COUNT: u32 = 10_000;
+
+/// Use since the previous ping, as summed up by the frontend.
+#[derive(Debug, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Usage {
+    #[serde(default)]
+    pub downloads: u32,
+    #[serde(default)]
+    pub peak_day: u32,
+    #[serde(default)]
+    pub features: Vec<String>,
+}
 
 pub const CAPTURE_URL: &str = "https://us.i.posthog.com/i/v0/e/";
 
@@ -39,7 +59,19 @@ pub fn macos_major(os_version: &str) -> String {
     }
 }
 
-pub fn body(install_id: &str, app_version: &str, arch: &str, os_version: &str) -> Value {
+pub fn body(
+    install_id: &str,
+    app_version: &str,
+    arch: &str,
+    os_version: &str,
+    usage: &Usage,
+) -> Value {
+    let downloads = usage.downloads.min(MAX_COUNT);
+    let features: Vec<&str> = FEATURES
+        .iter()
+        .copied()
+        .filter(|f| usage.features.iter().any(|u| u == f))
+        .collect();
     json!({
         "api_key": PROJECT_TOKEN,
         "event": EVENT,
@@ -49,6 +81,9 @@ pub fn body(install_id: &str, app_version: &str, arch: &str, os_version: &str) -
             "version": app_version,
             "arch": arch,
             "macos_major": macos_major(os_version),
+            "downloads_since_last_ping": downloads,
+            "downloads_peak_day": usage.peak_day.min(downloads),
+            "features_used": features,
             "$process_person_profile": false,
             // PostHog stores the request IP unless an explicit $ip is sent
             // (null or "" are ignored — measured 2026-10-25).
@@ -97,6 +132,7 @@ mod tests {
             "1.5.5",
             "aarch64",
             "15.6.1",
+            &Usage::default(),
         );
         assert_eq!(b["event"], EVENT);
         assert_eq!(b["distinct_id"], "3f2b8c1e-9a4d-4e6f-8b7a-1c2d3e4f5a6b");
@@ -115,10 +151,71 @@ mod tests {
                 "$ip",
                 "$process_person_profile",
                 "arch",
+                "downloads_peak_day",
+                "downloads_since_last_ping",
+                "features_used",
                 "macos_major",
                 "product",
                 "version"
             ]
         );
+        assert_eq!(p["downloads_since_last_ping"], 0);
+        assert_eq!(p["features_used"], json!([]));
+    }
+
+    #[test]
+    fn usage_is_counts_and_known_options_only() {
+        let usage = Usage {
+            downloads: 12,
+            peak_day: 7,
+            features: vec![
+                "mp3".into(),
+                "https://example.com/video".into(),
+                "best".into(),
+                "mp3".into(),
+            ],
+        };
+        let b = body(
+            "3f2b8c1e-9a4d-4e6f-8b7a-1c2d3e4f5a6b",
+            "1.6.0",
+            "aarch64",
+            "15",
+            &usage,
+        );
+        let p = &b["properties"];
+        assert_eq!(p["downloads_since_last_ping"], 12);
+        assert_eq!(p["downloads_peak_day"], 7);
+        // Fixed order, no duplicates, anything else dropped.
+        assert_eq!(p["features_used"], json!(["best", "mp3"]));
+    }
+
+    #[test]
+    fn usage_numbers_are_clamped() {
+        let usage = Usage {
+            downloads: 5,
+            peak_day: 900_000,
+            features: vec![],
+        };
+        let b = body(
+            "3f2b8c1e-9a4d-4e6f-8b7a-1c2d3e4f5a6b",
+            "1.6.0",
+            "aarch64",
+            "15",
+            &usage,
+        );
+        assert_eq!(b["properties"]["downloads_peak_day"], 5);
+        let big = Usage {
+            downloads: u32::MAX,
+            peak_day: u32::MAX,
+            features: vec![],
+        };
+        let b = body(
+            "3f2b8c1e-9a4d-4e6f-8b7a-1c2d3e4f5a6b",
+            "1.6.0",
+            "aarch64",
+            "15",
+            &big,
+        );
+        assert_eq!(b["properties"]["downloads_since_last_ping"], 10_000);
     }
 }

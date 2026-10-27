@@ -7,7 +7,7 @@
 #
 #   1. Source gate  — the working tree state at build time:
 #        • git tree clean (no unstaged/uncommitted release-critical changes)
-#        • src/main.js contains the expected LemonSqueezy product UUID
+#        • no payment checkout URL in src/ (the app is free; SD-4, 2026-10-27)
 #        • HEAD reachable from the URL-fix commit (CBA5D29_GUARD)
 #
 #   2. Artifact gate — per DMG passed in:
@@ -23,7 +23,6 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-EXPECTED_LS_UUID="21db1cfb-37f8-4371-8085-b5e30f89645f"
 URL_FIX_COMMIT="cba5d29"
 RELEASE_PATHS=(
   src/
@@ -59,12 +58,13 @@ else
   echo "  tree clean ✓"
 fi
 
-# 1b. src/main.js contains expected UUID
-if grep -q "$EXPECTED_LS_UUID" src/main.js; then
-  echo "  src/main.js contains LS UUID $EXPECTED_LS_UUID ✓"
-else
-  echo "  FAIL: src/main.js does NOT contain expected LS UUID"
+# 1b. No payment checkout URL ships while the app is free (was: the Lemon
+# Squeezy product UUID had to be present; that checkout was removed 2026-10-27).
+if grep -rqiE "lemonsqueezy\.com/checkout|checkout/buy/" src/; then
+  echo "  FAIL: src/ contains a checkout URL"
   fail=1
+else
+  echo "  src/ has no checkout URL ✓"
 fi
 
 # 1c. URL-fix commit reachable from HEAD

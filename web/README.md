@@ -22,4 +22,4 @@ npm run dev      # local dev server
 npm run build    # production build → dist/
 ```
 
-> Project docs live one level up in `../docs/`. Brand rules: `../docs/BRAND.md`. Marketing: `../docs/MARKETING.md`.
+> Project docs live one level up in `../docs/`. Brand rules: `../docs/BRAND.md`. Docs index: `../docs/README.md`.

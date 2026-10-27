@@ -1,0 +1,57 @@
+---
+import Guide from '../../layouts/Guide.astro';
+---
+
+<Guide
+  slug="download-video-for-premiere-pro"
+  title="How to download a video for Premiere Pro (and get a file it opens) — Super Downloads"
+  description="Download a YouTube, Vimeo or TikTok video for a Premiere Pro edit: what you’re allowed to use, the format Premiere needs, and three ways to get an H.264 MP4."
+  h1="How to download a video for Premiere Pro (and get a file it opens)"
+  updated="2026-10-27"
+>
+  <p>A reference for a moodboard, a client’s own video for a recut, a Creative Commons clip for a montage: editors pull video from the web every week. The download is the easy part. Getting a file that Premiere Pro imports on the first try, at the quality you need, is where the time goes. This guide covers both.</p>
+
+  <h2>1. Make sure you can use it</h2>
+  <p>Download only what you own, have licensed, that’s shared under Creative Commons, or that you’re otherwise authorized to use. In practice:</p>
+  <ul>
+    <li><strong>Your own uploads.</strong> YouTube Studio and Vimeo let the owner download their own videos.</li>
+    <li><strong>Client footage.</strong> Ask for the original file first. It is always better than anything a website serves, which is compressed for streaming.</li>
+    <li><strong>Creative Commons.</strong> Check the licence (YouTube shows it under the description when a video is CC BY) and credit the author as it asks.</li>
+    <li><strong>References for a pitch or a moodboard.</strong> Keep them internal, and get permission before anything ends up in a delivered piece.</li>
+  </ul>
+  <p>Copy-protected video (DRM, as on Netflix or paid courses) is off limits, and no honest tool gets around it.</p>
+
+  <h2>2. Know what Premiere needs</h2>
+  <p>Premiere Pro imports H.264, HEVC and ProRes, in MP4 or MOV, with AAC audio. It does not import WebM, VP9 or AV1, and those are exactly what many sites serve at high resolutions. We checked on October 27, 2026:</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Site</th><th>What it serves</th><th>Opens in Premiere?</th></tr></thead>
+    <tbody>
+      <tr><td>YouTube, up to 1080p</td><td>H.264, VP9 or AV1 (you choose)</td><td>Yes, if you take the H.264</td></tr>
+      <tr><td>YouTube, 1440p and 4K</td><td>VP9 or AV1 only</td><td>No, convert first</td></tr>
+      <tr><td>Vimeo</td><td>H.264</td><td>Yes</td></tr>
+      <tr><td>TikTok, 720p and 1080p</td><td>HEVC</td><td>Yes, but heavier to edit than H.264</td></tr>
+      <tr><td>X</td><td>H.264</td><td>Yes</td></tr>
+    </tbody>
+  </table></div>
+  <p>Details and method in <a href="/guides/codecs-by-platform">Which codec each video site gives you</a>.</p>
+
+  <h2>3. Three ways to get the file</h2>
+  <h3>The original</h3>
+  <p>Ask the owner. For client work this is the right answer: full quality, no re-compression, and a clear permission trail.</p>
+
+  <h3>The Terminal (free)</h3>
+  <p>With <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a> and <a href="https://ffmpeg.org">FFmpeg</a> installed (<code>brew install yt-dlp ffmpeg</code>), this asks for H.264 video and AAC audio in an MP4, which Premiere opens directly:</p>
+  <pre><code>yt-dlp -f "bv*[vcodec^=avc1]+ba[ext=m4a]/b[ext=mp4]" --merge-output-format mp4 "VIDEO_URL"</code></pre>
+  <p>It tops out at 1080p on YouTube. For 1440p or 4K, download the best version and convert it, as shown in <a href="/guides/premiere-pro-webm-av1">Premiere Pro won’t import WebM or AV1</a>. Sites change often, so keep yt-dlp updated (<code>brew upgrade yt-dlp</code>) when a link stops working.</p>
+
+  <h3>An app that does both steps</h3>
+  <p>Super Downloads is a free Mac app built for this: copy a link, paste it, and the MP4 lands in your folder as H.264 with AAC audio. It keeps H.264 when the site has it and converts on your Mac’s hardware encoder when it doesn’t, and it updates its download engine by itself every week.</p>
+
+  <h2>4. Small things that save time</h2>
+  <ul>
+    <li><strong>1080p for references.</strong> It comes as H.264 on most sites, so it downloads fast and needs no conversion. Use 4K only when the shot will be in the final cut.</li>
+    <li><strong>One folder per project.</strong> Point your downloads at the project’s footage folder so Premiere’s links never break.</li>
+    <li><strong>Keep the link.</strong> Paste the source URL into the clip’s Description in the Project panel; you’ll need it for credits and permissions.</li>
+  </ul>
+  <p class="note">Download only video you own, have licensed, that’s shared under Creative Commons, or that you’re otherwise authorized to use.</p>
+</Guide>

@@ -1,7 +1,7 @@
 # Launch Checklist — Super Downloads
 
 > Everything needed before going public. Items are ordered by dependency.
-> **This is the single source of truth for launch gates.** `LAUNCH-PLAN.md` is launch-day execution only (channels, copy, metrics).
+> **This is the single source of truth for launch gates.** Launch-day channels and copy live in the private go-to-market plan (LifeOS); `docs/archive/LAUNCH-PLAN-2026-03.md` is historical.
 
 > **Status (updated 2026-07-16):** REOPENED 2026-07-16 (founder recommit — relaunch hardening, see `superpowers/specs/2026-07-16-relaunch-hardening-design.md`). Was PARKED 2026-06-15; product shipped (v1.1.0 + v1.1.1), commercially un-launched.
 > **2026-10-03:** the app is FREE and there is no payments provider (no LemonSqueezy account) — the payment gates below are void (`docs/DECISIONS.md` 2026-10-03). Launch = ship v1.4.0 + announcement (R-SD-002).
@@ -44,7 +44,7 @@
 ## Gate 4: Billing Ready
 
 - [~] ~~LemonSqueezy cuenta creada y producto configurado~~ — void 2026-10-03: no hay cuenta (app gratis)
-- [x] Producto "Super Downloads Pro" — €29 lifetime
+- [~] ~~Producto "Super Downloads Pro" (licencia de por vida)~~ — void 2026-10-03 (app gratis)
 - [x] License key generation habilitado (3 activaciones por key)
 - [ ] Promo code LAUNCH30 creado (30% off) — verificar en LS
 - [ ] **Flujo de compra funcional (web → checkout → license key → app activation)** ← OPEN GATE

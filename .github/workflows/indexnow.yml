@@ -1,0 +1,14 @@
+# After every successful PRODUCTION deploy on Vercel (Vercel reports it to GitHub as a deployment status), tell
+# IndexNow about the live sitemap. No secret: the IndexNow key is public (web/public/<key>.txt).
+name: indexnow
+on: deployment_status
+jobs:
+  ping:
+    if: github.event.deployment_status.state == 'success' && github.event.deployment.environment == 'Production'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node web/scripts/indexnow.mjs

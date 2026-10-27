@@ -47,12 +47,12 @@ That's it. App opens → counter shows "Pro" → unlimited downloads.
 
 - **Skill barrier:** Low. Anyone comfortable with the macOS terminal + 1 grep can reproduce. Tauri/WKWebView localStorage paths are well-documented online.
 - **Reach:** macOS-only, requires local filesystem access (so no remote exploit — needs the binary installed).
-- **Economic blast radius:** Each crack costs €29 of forgone revenue. At pre-launch volume: negligible. At 1K+ paying users: still small relative to engineering cost of hardening (see "Right-sized hardening" below).
+- **Economic blast radius:** Each crack costs one licence of forgone revenue. At pre-launch volume: negligible. At 1K+ paying users: still small relative to engineering cost of hardening (see "Right-sized hardening" below).
 - **Reputation risk:** Higher. A YouTube/Reddit "how to crack Super Downloads in 60 seconds" video would be embarrassing for the brand, especially given the audience overlap with technical users (Premiere Pro editors, Mac power users).
 
 ### Right-sized hardening (proposals — pick one, do NOT stack everything)
 
-For a €29 one-time consumer app, full DRM is overkill and a tarpit. Three tiers, increasing cost:
+For a low-priced one-time consumer app, full DRM is overkill and a tarpit. Three tiers, increasing cost:
 
 **Tier 1 — Periodic revalidation (low effort, kills the trivial inject)**
 - On app launch, if `proLicenseKey` exists, call `validate_license` against Lemon. If invalid/revoked → wipe local state + downgrade to Free.
@@ -73,7 +73,7 @@ For a €29 one-time consumer app, full DRM is overkill and a tarpit. Three tier
 
 ### Recommendation for pre-launch
 
-**Tier 1 only.** It eliminates the trivial-inject path (which is the only one a non-technical pirate will ever find) and costs ~1 day. Tiers 2–3 are diminishing returns at €29/copy and should wait for clear evidence of meaningful piracy at scale.
+**Tier 1 only.** It eliminates the trivial-inject path (which is the only one a non-technical pirate will ever find) and costs ~1 day. Tiers 2–3 are diminishing returns at a low one-time price and should wait for clear evidence of meaningful piracy at scale.
 
 ### What NOT to do
 

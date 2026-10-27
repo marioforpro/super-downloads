@@ -1,3 +1,5 @@
+> **Histórico (archivado 2026-10-27).** Auditoría/diseño de una versión antigua; sus puntos están cerrados o reconciliados (ver `docs/DECISIONS.md` y `CHANGELOG.md`).
+
 # Relaunch Hardening — Design (2026-07-16)
 
 > Approved by founder 2026-07-16. Unparks the project (founder recommit).

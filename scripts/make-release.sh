@@ -156,12 +156,21 @@ SIG_AARCH64="$(cat "dist/Super-Downloads_${VERSION}_aarch64.app.tar.gz.sig")"
 SIG_X64="$(cat "dist/Super-Downloads_${VERSION}_x64.app.tar.gz.sig")"
 BASE="https://github.com/${REPO}/releases/download/${TAG}"
 
-python3 - "$VERSION" "$TAG" "$SIG_AARCH64" "$SIG_X64" "$BASE" > dist/latest.json <<'PY'
+# Updater notes = the plain-language lines of web/src/data/releases.js for this
+# version (the app shows them once after updating). Missing entry → just the tag.
+RELEASE_NOTES="$(node --input-type=module -e '
+  const { releases } = await import(process.argv[1]);
+  const r = releases.find((x) => x.version === process.argv[2]);
+  if (r) console.log(r.notes.map((n) => "• " + n).join("\n"));
+' "file://$PWD/web/src/data/releases.js" "$VERSION" 2>/dev/null || true)"
+[ -n "$RELEASE_NOTES" ] || echo "  ⚠ no web/src/data/releases.js entry for $VERSION: updater notes fall back to the tag"
+
+python3 - "$VERSION" "$TAG" "$SIG_AARCH64" "$SIG_X64" "$BASE" "$RELEASE_NOTES" > dist/latest.json <<'PY'
 import json, sys, datetime
-version, tag, sig_aarch64, sig_x64, base = sys.argv[1:6]
+version, tag, sig_aarch64, sig_x64, base, notes = sys.argv[1:7]
 manifest = {
     "version": version,
-    "notes": f"Super Downloads {tag}",
+    "notes": notes.strip() or f"Super Downloads {tag}",
     "pub_date": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
     "platforms": {
         "darwin-aarch64": {"signature": sig_aarch64, "url": f"{base}/Super-Downloads_{version}_aarch64.app.tar.gz"},

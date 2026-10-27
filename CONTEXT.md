@@ -1,7 +1,7 @@
 # SUPER-DOWNLOADS — Context
 
 ## Purpose
-macOS video downloader for editors (H.264/MP4 ready for Premiere/Resolve/Final Cut). FREE app, live — v1.5.4 (2026-10-23); private use + friends testing, no public announcement yet. No payments provider (Track C closed 2026-10-03, `docs/DECISIONS.md`). Work plan 2026-10-23 in `ROADMAP.md` (R-SD-005…009). [Superseded: Track C2 (six Lemon Squeezy E2E gates) was the next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03). *(Status line said "Paused pre-launch" until 2026-08-03 — stale through the 2026-06-15 park and the 2026-07-16 reopen; corrected per SD-F-003/PROJ-F-014.)*]
+macOS video downloader for editors (H.264/MP4 ready for Premiere/Resolve/Final Cut). FREE app, live — v1.5.7 (2026-10-26); private use + friends testing, no public announcement yet (big launch 2027-01-26 after Apple signing). Docs index: `docs/README.md`. No payments provider (Track C closed 2026-10-03, `docs/DECISIONS.md`). Work plan 2026-10-23 in `ROADMAP.md` (R-SD-005…009). [Superseded: Track C2 (six Lemon Squeezy E2E gates) was the next move since the Big Sur gate cleared (founder decision SD-F-002=(a), 2026-08-03). *(Status line said "Paused pre-launch" until 2026-08-03 — stale through the 2026-06-15 park and the 2026-07-16 reopen; corrected per SD-F-003/PROJ-F-014.)*]
 
 ## Belongs here
 - Tauri app code (`src/` frontend, `src-tauri/` Rust backend)
@@ -45,6 +45,6 @@ macOS video downloader for editors (H.264/MP4 ready for Premiere/Resolve/Final C
 - iCloud sync produces duplicate artefacts (`node_modules 2`, `web/dist/* 2.*`, `.nosync` variants). 2026-08-03: the empty `node_modules 2` dir and four `web/dist/* 2.*` files were relocated to `_archive/icloud-duplicates-2026-08-03/` (never-delete: archived, not destroyed; `_archive/` is gitignored). `node_modules.nosync` remains in place.
 
 ## Pointers (do NOT auto-load)
-- Launch plan / checklist (in-project): `docs/LAUNCH-PLAN.md`, `docs/LAUNCH.md`
+- Docs index: `docs/README.md` · technical launch checklist: `docs/LAUNCH.md` · plan and go-to-market: private, LifeOS `08_Growth/super-downloads/`
 - Growth channel strategy: `08_Growth/CONTEXT.md`
 - Pricing decisions: `10_Decisions/CONTEXT.md`

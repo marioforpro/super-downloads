@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import FamilyNav from '../components/FamilyNav.astro';
 
 // Press kit. Assets live in web/public/press (logos: scripts/press/render-logos.cjs),
 // web/public/shots (real app screenshots), web/public/og and web/public/demo.
@@ -21,8 +22,8 @@ const SHOTS = [
 ];
 ---
 
-<Layout title="Press kit — Super Downloads" description="Logos, screenshots, descriptions and facts about Super Downloads, the video downloader built for editors." noindex>
-  <div class="press">
+<Layout title="Press kit — Super Downloads" description="Logos, screenshots, descriptions and facts about Super Downloads, the video downloader built for editors.">
+  <main id="main" class="press">
     <a href="/" class="back">&larr; Back</a>
     <h1>Press kit</h1>
     <p class="lead">Everything you need to write about Super Downloads. Use it freely in articles, reviews and videos. Questions: <a href="mailto:support@superdownloads.app">support@superdownloads.app</a>.</p>
@@ -86,7 +87,8 @@ const SHOTS = [
         </a>
       </div>
     </section>
-  </div>
+    <FamilyNav />
+  </main>
 </Layout>
 
 <style>

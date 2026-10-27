@@ -1,5 +1,8 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import FamilyNav from '../components/FamilyNav.astro';
+import SubscribeForm from '../components/SubscribeForm.astro';
+import { faqs, XATTR } from '../data/faqs.js';
 
 const REPO = 'https://github.com/marioforpro/super-downloads';
 const DMG_ARM = `${REPO}/releases/latest/download/Super-Downloads_aarch64.dmg`;
@@ -34,69 +37,8 @@ try {
   }
 } catch {}
 
-// «More from Super Apps»: the family portal + the sibling apps (same block on all four sites, literal taglines;
-// canonical list: 01_Projects/SUPER-APPS/family.json, founder 2026-10-26).
-const FAMILY_UTM = '?utm_source=superdownloads&utm_medium=footer&utm_campaign=family';
-const FAMILY = [
-  { name: 'Super Prompts', url: 'https://superprompts.pro/', line: 'Visual library of AI image and video prompts.' },
-  { name: 'Super Podcatch', url: 'https://superpodcatch.com/', line: 'Any podcast, summarized in your language.' },
-  { name: 'Super Guides', url: 'https://superguides.pro/', line: 'Safe-zone guides for every social app, inside Premiere.' },
-];
-
-const XATTR = 'xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"';
-
-// One source for the visible FAQ and its JSON-LD. `html` is the visible
-// answer when it needs markup; `a` is always the plain-text answer.
-const faqs: { id?: string; q: string; a: string; html?: string }[] = [
-  {
-    q: 'What is Super Downloads?',
-    a: 'A native Mac app that saves online video as edit-ready files. YouTube, Vimeo and TikTok work without a login; Instagram, Facebook, X and LinkedIn work through your browser login, on a best-effort basis. Every file is an H.264 MP4 that opens in Premiere Pro, DaVinci Resolve and Final Cut Pro.',
-  },
-  {
-    q: 'What can I download?',
-    a: 'Video you own, video you have licensed, video shared under Creative Commons, and anything else you are authorized to use: your own uploads, client footage, approved references. The app does not get around DRM: if a video is copy-protected, it tells you and stops.',
-  },
-  {
-    q: 'How is it different from other downloaders?',
-    a: 'Most downloaders hand you whatever the site serves, often VP9 or AV1 in a WebM or MKV file that your editing app won’t import. Super Downloads always gives you H.264 in an MP4, picks up the link you just copied, and keeps its download engine up to date by itself. No Terminal, nothing to configure.',
-  },
-  {
-    q: 'Is it free?',
-    a: 'Yes. Free, with unlimited downloads and every feature. You activate it once with your email inside the app. No card required. If that ever changes, everyone who activated hears from us by email first.',
-  },
-  {
-    q: 'What do you do with my email?',
-    a: 'It activates the app and lets us tell you about important changes, such as security fixes or any change to how the app is offered. Emails about updates and our other apps are optional: you get them only if you tick that box, and every one has a one-click unsubscribe.',
-    html: 'It activates the app and lets us tell you about important changes, such as security fixes or any change to how the app is offered. Emails about updates and our other apps are optional: you get them only if you tick that box, and every one has a one-click unsubscribe. Details in the <a href="/privacy">Privacy Policy</a>.',
-  },
-  {
-    q: 'Why do some platforms need my browser login?',
-    a: 'Instagram, Facebook, X and LinkedIn usually serve video only to signed-in users. Super Downloads uses the session already in your default browser (Safari, Chrome, Firefox, Brave, Edge or Vivaldi). It never asks for, sees or stores your password.',
-  },
-  {
-    q: 'A site stopped working. What now?',
-    a: 'Sites change how they deliver video all the time. The app checks for a new download engine every week and installs it on its own, which usually fixes it. To check right away, open Settings and click Update next to Engine. Still failing? Write to support@superdownloads.app with the link.',
-    html: 'Sites change how they deliver video all the time. The app checks for a new download engine every week and installs it on its own, which usually fixes it. To check right away, open Settings and click <strong>Update</strong> next to Engine. Still failing? Write to <a href="mailto:support@superdownloads.app">support@superdownloads.app</a> with the link.',
-  },
-  {
-    q: 'What quality can I download?',
-    a: 'Best (up to 4K), 1080p or 720p, plus audio only as MP3. 1080p and 720p are usually fastest, because most sites already offer them as H.264. When a source only has 4K as VP9 or AV1, Best converts it to H.264 with your Mac’s hardware encoder.',
-  },
-  {
-    q: 'Do my downloads go through your servers?',
-    a: 'No. Everything runs on your Mac. Video goes straight from the platform to your save folder.',
-  },
-  {
-    id: 'faq-macos',
-    q: 'macOS won’t open the app. Is it safe?',
-    a: `Yes. The app isn’t notarized by Apple, so macOS can’t verify it and blocks the first launch. You allow it once. On macOS 15 or later: open the app, click Done, then go to System Settings › Privacy & Security, scroll down to Security and click Open Anyway (it shows for about an hour after you try to open the app), confirm with your password or Touch ID and click Open Anyway again. On macOS 14 or earlier: right-click the app, choose Open, then click Open. If macOS says the app is damaged, run this in Terminal: ${XATTR}. The source code is public on GitHub, and you can check your download against the SHA-256 published on this page.`,
-    html: `Yes. The app isn’t notarized by Apple, so macOS can’t verify it and blocks the first launch. You allow it once. On macOS 15 or later: open the app, click <strong>Done</strong>, then go to System Settings › Privacy &amp; Security, scroll down to Security and click <strong>Open Anyway</strong> (it shows for about an hour after you try to open the app), confirm with your password or Touch ID and click <strong>Open Anyway</strong> again. On macOS 14 or earlier: right-click the app, choose Open, then click Open. If macOS says the app is “damaged”, run this in Terminal:<br /><code>${XATTR.replace(/"/g, '&quot;')}</code><br />The <a href="${REPO}">source code</a> is public, and you can check your download against the SHA-256 under <a href="#download">Verify the download</a>.`,
-  },
-  {
-    q: 'Is there a Windows or Linux version?',
-    a: 'Not yet. Super Downloads is Mac only: Apple Silicon with macOS 12 Monterey or later, and Intel with macOS 10.15 Catalina or later.',
-  },
-];
+// Home shows the key questions; /faq has them all (and the FAQPage JSON-LD).
+const homeFaqs = faqs.filter((f) => f.home);
 ---
 
 <Layout
@@ -104,11 +46,6 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   title="Super Downloads: The video downloader built for editors"
   description="Free Mac app for video editors. Paste a YouTube, Vimeo or TikTok link and get an H.264 MP4 that opens in Premiere Pro, Resolve or Final Cut."
 >
-  <script type="application/ld+json" set:html={JSON.stringify({
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": faqs.map(f => ({ "@type": "Question", "name": f.q, "acceptedAnswer": { "@type": "Answer", "text": f.a } })),
-  })} />
 
   <header class="nav">
     <div class="wrap nav-inner">
@@ -141,6 +78,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
             </p>
           </div>
           <p class="mobile-note" id="mobile-note" hidden>Super Downloads is a Mac app. <button type="button" class="link-btn" id="share-link">Send this page to your Mac</button></p>
+          <div class="mobile-sub" id="mobile-sub" hidden><SubscribeForm place="hero" tone="dark" title="Or get Super Downloads news by email" /></div>
         </div>
 
         <figure class="window window-dark hero-window">
@@ -180,7 +118,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         </div>
         <figure class="window window-dark on-light">
           <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-          <img src="/shots/empty-dark.webp?v=1.5.5" srcset="/shots/empty-dark-560.webp?v=1.5.5 560w, /shots/empty-dark.webp?v=1.5.5 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="500" alt="A copied YouTube link already in the field, with the Download button highlighted" loading="lazy" />
+          <img src="/shots/empty-dark.webp?v=2510" srcset="/shots/empty-dark-560.webp?v=2510 560w, /shots/empty-dark.webp?v=2510 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="500" alt="A copied YouTube link already in the field, with the Download button highlighted" loading="lazy" />
         </figure>
       </div>
     </section>
@@ -234,7 +172,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
           </div>
           <figure class="window window-light">
             <div class="titlebar" aria-hidden="true"><i></i><i></i><i></i><span>Super Downloads</span></div>
-            <img src="/shots/settings-light.webp?v=1.5.7" srcset="/shots/settings-light-560.webp?v=1.5.7 560w, /shots/settings-light.webp?v=1.5.7 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="930" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme, the usage stats switch with what it sends, the engine version with an Update button, and Help" loading="lazy" />
+            <img src="/shots/settings-light.webp?v=2610" srcset="/shots/settings-light-560.webp?v=2610 560w, /shots/settings-light.webp?v=2610 1120w" sizes="(max-width: 640px) calc(100vw - 32px), 560px" width="1120" height="930" alt="Settings: save folder, Video MP4 or Audio MP3, quality, theme, the usage stats switch with what it sends, the engine version with an Update button, and Help" loading="lazy" />
           </figure>
         </div>
       </div>
@@ -309,6 +247,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
             </div>
           </div>
         </div>
+        <div class="download-subscribe"><SubscribeForm place="download" tone="dark" title="Not on your Mac right now? Get the news by email" /></div>
       </div>
     </section>
 
@@ -317,12 +256,13 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
       <div class="wrap faq-inner">
         <h2>Common questions</h2>
         <div class="faq-list">
-          {faqs.map((f) => (
+          {homeFaqs.map((f) => (
             <details id={f.id}>
               <summary>{f.q}</summary>
               <p set:html={f.html ?? f.a} />
             </details>
           ))}
+          <p class="faq-more"><a href="/faq">All questions and help</a></p>
         </div>
       </div>
     </section>
@@ -332,7 +272,8 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     <div class="wrap footer-inner">
       <a class="brand" href="/"><img src="/icon.svg" alt="" width="20" height="20" /><span>Super Downloads</span></a>
       <nav class="footer-links" aria-label="Footer">
-        <a href="/#faq">Help</a>
+        <a href="/faq">Help</a>
+        <a href="/guides">Guides</a>
         <a href="/press">Press</a>
         <a href="mailto:support@superdownloads.app">Contact</a>
         <a href="/privacy">Privacy</a>
@@ -341,14 +282,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         <a href="/copyright">Copyright</a>
         <a href={REPO}>GitHub</a>
       </nav>
-      <nav class="family" aria-label="More from Super Apps">
-        <p class="family-title"><a href={`https://superapps.pro/${FAMILY_UTM}`}>More from Super Apps</a></p>
-        <ul>
-          {FAMILY.map((f) => (
-            <li><a href={`${f.url}${FAMILY_UTM}`}>{f.name}</a><span>{f.line}</span></li>
-          ))}
-        </ul>
-      </nav>
+      <FamilyNav />
       <p class="footer-fine">Super Downloads does not host, store, or distribute any copyrighted content. Download only content you own, have licensed, that’s shared under Creative Commons, or that you’re otherwise authorized to use.</p>
       <p class="footer-fine">Screenshots show Blender Studio open movies (Spring, WING IT!, Coffee Run, CHARGE, Sprite Fright, Agent 327, HERO, Cosmos Laundromat), licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> by the Blender Foundation.</p>
       <p class="footer-fine">© 2026 Super Downloads</p>
@@ -410,6 +344,8 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         heroDl.hidden = true;
         document.querySelector('.hero-meta').hidden = true;
         document.getElementById('mobile-note').hidden = false;
+        var mobileSub = document.getElementById('mobile-sub');
+        if (mobileSub) mobileSub.hidden = false;
       }
       document.getElementById('share-link').addEventListener('click', function () {
         var url = 'https://superdownloads.app';
@@ -576,6 +512,8 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   .hero-actions { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
   .hero-meta { display: flex; flex-direction: column; gap: 3px; font-size: 13px; line-height: 1.45; color: rgba(213, 235, 255, 0.72); }
   .hero-meta a { color: var(--blue-200); }
+  .mobile-sub { margin-top: 20px; }
+  .download-subscribe { width: 100%; max-width: 440px; margin-top: 48px; padding-top: 32px; border-top: 1px solid rgba(140, 208, 255, 0.2); }
   .mobile-note { font-size: 15px; line-height: 1.5; color: rgba(213, 235, 255, 0.82); }
   .link-btn {
     display: block; margin-top: 12px; font: inherit; font-weight: 600; cursor: pointer;
@@ -730,6 +668,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   }
   .faq-list details[open] summary::after { transform: rotate(-135deg); margin-top: -2px; }
   .faq-list details p { padding: 0 0 20px; font-size: 15px; line-height: 1.65; color: var(--slate); max-width: 40em; }
+  .faq-more { padding-top: 20px; font-size: 15px; font-weight: 500; }
   .faq-list code { font-family: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; background: var(--mist); border: 1px solid var(--line); border-radius: 6px; padding: 2px 6px; word-break: break-all; }
 
   /* Footer */
@@ -737,13 +676,6 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
   .footer-links { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 15px; }
   .footer-links a { color: var(--slate); display: inline-flex; align-items: center; min-height: 32px; }
-  .family { width: 100%; padding: 20px 0 4px; border-top: 1px solid var(--line); }
-  .family-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
-  .family ul { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 32px; }
-  .family li { display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.5; color: #5b6b80; }
-  .family a { font-size: 15px; font-weight: 500; color: var(--ink); width: fit-content; }
-  .family .family-title a { font-size: inherit; font-weight: inherit; text-decoration: none; }
-  .family .family-title a:hover { text-decoration: underline; }
   .footer-fine { width: 100%; font-size: 13px; line-height: 1.6; color: #5b6b80; }
   .footer-fine a { color: inherit; text-decoration: underline; }
 
@@ -773,7 +705,6 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     .hero-actions .btn-lg { width: 100%; }
     .lede { font-size: 17px; }
     .facts { grid-template-columns: 1fr; gap: 24px; }
-    .family ul { grid-template-columns: 1fr; gap: 12px; }
     .btn-dl { width: 100%; }
     .install { padding: 22px 18px; }
     .link-btn { width: 100%; }

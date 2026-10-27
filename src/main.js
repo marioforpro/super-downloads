@@ -108,7 +108,9 @@ const ACTIVATION_EMAIL_KEY = "activationEmail";
 const ACTIVATION_SYNCED_KEY = "activationSynced";
 const ACTIVATION_SKIPPED_KEY = "activationSkipped"; // Pro (paid) users only
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const LEMONSQUEEZY_CHECKOUT_URL = "https://superdownloads.lemonsqueezy.com/checkout/buy/21db1cfb-37f8-4371-8085-b5e30f89645f";
+// Checkout link for the dormant Pro upgrade. Empty while the app is free: there is no
+// payments provider, and the upgrade link stays hidden (FREE_MODE) or does nothing.
+const CHECKOUT_URL = "";
 let lastRequestedMinWindowHeight = 0;
 // Last clipboard text already acted on (prefilled, pasted, downloaded or
 // dismissed), so the same copy is never suggested or started twice.
@@ -210,8 +212,8 @@ function updateLicenseUI() {
     statusEl.innerHTML = `<span class="license-badge free">Free — ${FREE_DAILY_LIMIT}/day</span>`;
     inputRow.style.display = "flex";
     activeRow.style.display = "none";
-    upgradeLink.classList.toggle("hidden", FREE_MODE);
-    upgradeLink.href = LEMONSQUEEZY_CHECKOUT_URL;
+    upgradeLink.classList.toggle("hidden", FREE_MODE || !CHECKOUT_URL);
+    upgradeLink.href = CHECKOUT_URL || "#";
   }
   updateDownloadCounterUI();
 }
@@ -307,6 +309,69 @@ const SHARE_URL = "https://superdownloads.app/?utm_source=app&utm_medium=share&u
 const INSTALL_ID_MAX_AGE_DAYS = 365;
 const ACTIVE_PING_RECHECK_MS = 3 * 60 * 60 * 1000; // the app can stay open for days
 let activePingInFlight = false;
+// What the next daily ping reports about use since the previous one: finished
+// downloads per local day and how often each option was used. Counts only,
+// never links or titles. Kept only while «Share anonymous usage stats» is on.
+const USAGE_SINCE_PING_KEY = "usageSincePing";
+const USAGE_FEATURES = ["best", "batch", "mp3"];
+
+function readUsage() {
+  try {
+    const u = JSON.parse(localStorage.getItem(USAGE_SINCE_PING_KEY) || "{}");
+    return { days: u.days && typeof u.days === "object" ? u.days : {}, features: u.features && typeof u.features === "object" ? u.features : {} };
+  } catch {
+    return { days: {}, features: {} };
+  }
+}
+
+function writeUsage(u) {
+  // Bound it: an app left without network for months still sends a small ping.
+  const days = Object.keys(u.days).sort().slice(-31);
+  u.days = Object.fromEntries(days.map((d) => [d, u.days[d]]));
+  if (!days.length && !Object.keys(u.features).length) localStorage.removeItem(USAGE_SINCE_PING_KEY);
+  else localStorage.setItem(USAGE_SINCE_PING_KEY, JSON.stringify(u));
+}
+
+function recordFeatureUse(features) {
+  if (!usageStatsOn()) return;
+  const u = readUsage();
+  for (const f of features) if (USAGE_FEATURES.includes(f)) u.features[f] = (u.features[f] || 0) + 1;
+  writeUsage(u);
+}
+
+function recordFinishedDownload() {
+  if (!usageStatsOn()) return;
+  const u = readUsage();
+  const day = localDay();
+  u.days[day] = (u.days[day] || 0) + 1;
+  writeUsage(u);
+}
+
+// The summary sent with the ping: total since the last ping, the busiest single
+// day, and which options were used at least once.
+function usageSummary(u) {
+  const counts = Object.values(u.days).map((n) => Math.max(0, Number(n) || 0));
+  return {
+    downloads: counts.reduce((a, b) => a + b, 0),
+    peakDay: counts.length ? Math.max(...counts) : 0,
+    features: USAGE_FEATURES.filter((f) => (u.features[f] || 0) > 0),
+  };
+}
+
+// After a ping arrives, take away exactly what it reported (downloads that
+// finished while it was on its way stay for the next one).
+function subtractUsage(sent) {
+  const u = readUsage();
+  for (const [d, n] of Object.entries(sent.days)) {
+    const left = (u.days[d] || 0) - n;
+    if (left > 0) u.days[d] = left; else delete u.days[d];
+  }
+  for (const [f, n] of Object.entries(sent.features)) {
+    const left = (u.features[f] || 0) - n;
+    if (left > 0) u.features[f] = left; else delete u.features[f];
+  }
+  writeUsage(u);
+}
 
 function localDay(d = new Date()) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -320,6 +385,7 @@ function forgetInstallId() {
   localStorage.removeItem(INSTALL_ID_KEY);
   localStorage.removeItem(INSTALL_ID_CREATED_KEY);
   localStorage.removeItem(LAST_ACTIVE_PING_KEY);
+  localStorage.removeItem(USAGE_SINCE_PING_KEY);
 }
 
 // The stored id, or null when there is none or it is due for renewal (the
@@ -341,9 +407,11 @@ async function maybeSendActivePing() {
   activePingInFlight = true;
   try {
     const sentId = currentInstallId();
-    const installId = await window.__TAURI__.core.invoke("send_active_ping", { installId: sentId });
+    const sentUsage = readUsage();
+    const installId = await window.__TAURI__.core.invoke("send_active_ping", { installId: sentId, usage: usageSummary(sentUsage) });
     // Turned off while the ping was on its way: keep nothing.
     if (!usageStatsOn()) return;
+    subtractUsage(sentUsage);
     if (installId !== sentId) localStorage.setItem(INSTALL_ID_CREATED_KEY, today);
     localStorage.setItem(INSTALL_ID_KEY, installId);
     localStorage.setItem(LAST_ACTIVE_PING_KEY, today);
@@ -719,6 +787,8 @@ async function openProblemReport(download = null) {
 }
 
 document.querySelector("#report-problem-btn")?.addEventListener("click", () => openProblemReport());
+// Answers to the common questions live on the website (/help redirects to /faq).
+document.querySelector("#help-faq-btn")?.addEventListener("click", () => openExternal("https://superdownloads.app/faq"));
 // The 24-second demo film lives on the landing (#demo).
 document.querySelector("#watch-demo-btn")?.addEventListener("click", () => openExternal("https://superdownloads.app/#demo"));
 
@@ -2000,6 +2070,11 @@ async function startDownloadForUrl(url, options = {}) {
   const settingsForFormat = JSON.parse(localStorage.getItem("appSettings") || "{}");
   const outputFormat = settingsForFormat.audioOnlyEnabled === true ? "mp3" : "mp4";
 
+  recordFeatureUse([
+    outputFormat === "mp3" ? "mp3" : (settingsForFormat.videoQuality || "best") === "best" ? "best" : "",
+    batchModeEnabled ? "batch" : "",
+  ]);
+
   // Add download to list
   const downloadId = addDownload(url);
   lastDownloadStartedAt = performance.now();
@@ -2416,6 +2491,8 @@ if (!hasSeenOnboarding()) {
   setTimeout(() => showActivationCard(), 300);
 }
 retryActivationSync();
+// After an update: what changed, once, unless the welcome screen is up.
+if (hasSeenOnboarding()) setTimeout(maybeShowWhatsNew, 1200);
 setTimeout(maybeSendActivePing, 15000);
 setInterval(maybeSendActivePing, ACTIVE_PING_RECHECK_MS);
 
@@ -2428,7 +2505,7 @@ document.querySelector("#activate-license-btn")?.addEventListener("click", handl
 document.querySelector("#deactivate-license-btn")?.addEventListener("click", handleDeactivateLicense);
 document.querySelector("#upgrade-pro-link")?.addEventListener("click", (e) => {
   e.preventDefault();
-  window.__TAURI__.opener.openUrl(LEMONSQUEEZY_CHECKOUT_URL);
+  if (CHECKOUT_URL) window.__TAURI__.opener.openUrl(CHECKOUT_URL);
 });
 
 // Dynamic version from Tauri
@@ -2444,13 +2521,89 @@ document.querySelector("#upgrade-pro-link")?.addEventListener("click", (e) => {
 
 // ── Auto-update (one-click) ─────────────────────────────────────────
 let sdUpdateInProgress = false;
+let sdPendingUpdate = null; // { version, notes } of the update on offer
+// The notes of the version being installed, shown once after the relaunch.
+const WHATS_NEW_KEY = "whatsNew";
 
 function showUpdateBanner(info) {
   const banner = document.getElementById("update-banner");
   const text = document.getElementById("update-banner-text");
   if (!banner || !text) return;
+  sdPendingUpdate = info;
   text.textContent = `Version ${info.version} is available`;
   banner.hidden = false;
+}
+
+// "1.5.10" > "1.5.9"
+function versionAtLeast(a, b) {
+  const pa = String(a).split(".").map((n) => parseInt(n, 10) || 0);
+  const pb = String(b).split(".").map((n) => parseInt(n, 10) || 0);
+  for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+    if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0);
+  }
+  return true;
+}
+
+// latest.json notes are plain lines, one change per line («• …»).
+function whatsNewLines(notes) {
+  return String(notes || "")
+    .split("\n")
+    .map((l) => l.replace(/^[•\-*]\s*/, "").trim())
+    .filter((l) => l && !/^Super Downloads v?\d/.test(l))
+    .slice(0, 5);
+}
+
+async function maybeShowWhatsNew() {
+  let saved;
+  try { saved = JSON.parse(localStorage.getItem(WHATS_NEW_KEY) || "null"); } catch { saved = null; }
+  if (!saved?.version) return;
+  let current = "";
+  try { current = await window.__TAURI__.app.getVersion(); } catch { return; }
+  if (saved.version !== current) {
+    // The update didn't land (yet): keep it. A newer version arrived another way: drop it.
+    if (versionAtLeast(current, saved.version)) localStorage.removeItem(WHATS_NEW_KEY);
+    return;
+  }
+  localStorage.removeItem(WHATS_NEW_KEY);
+  const lines = whatsNewLines(saved.notes);
+  let container = document.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+  const card = document.createElement("div");
+  card.className = "toast toast-card whats-new";
+  card.setAttribute("role", "status");
+  const title = document.createElement("p");
+  title.className = "whats-new-title";
+  title.textContent = `Updated to ${current}`;
+  card.appendChild(title);
+  if (lines.length) {
+    const list = document.createElement("ul");
+    for (const line of lines) {
+      const li = document.createElement("li");
+      li.textContent = line;
+      list.appendChild(li);
+    }
+    card.appendChild(list);
+  }
+  const actions = document.createElement("div");
+  actions.className = "toast-card-actions";
+  actions.innerHTML = `
+      <button class="confirm-btn confirm-cancel" data-whats-new="notes">All release notes</button>
+      <button class="confirm-btn confirm-ok" data-whats-new="ok">OK</button>`;
+  card.appendChild(actions);
+  card.addEventListener("click", (e) => {
+    const choice = e.target.closest("[data-whats-new]")?.dataset.whatsNew;
+    if (!choice) return;
+    card.classList.remove("visible");
+    setTimeout(() => card.remove(), 300);
+    if (choice === "notes") openExternal(`https://superdownloads.app/changelog#v${current}`);
+  });
+  container.appendChild(card);
+  void card.offsetWidth;
+  card.classList.add("visible");
 }
 
 async function checkForUpdate({ silent = true } = {}) {
@@ -2478,6 +2631,9 @@ async function startUpdate() {
     btn.textContent = "Updating…";
   }
   if (text) text.textContent = "Starting update…";
+  if (sdPendingUpdate?.version) {
+    localStorage.setItem(WHATS_NEW_KEY, JSON.stringify({ version: sdPendingUpdate.version, notes: sdPendingUpdate.notes || "" }));
+  }
   try {
     // Downloads, installs, and relaunches the app — no further user action.
     await window.__TAURI__.core.invoke("install_update");
@@ -2696,6 +2852,7 @@ window.__TAURI__.event.listen("download-finished", (event) => {
   });
 
   countCompletedAndMaybeNudge();
+  recordFinishedDownload();
 
   // Native macOS notification (only when app is not focused)
   if (!document.hasFocus() && window.__TAURI__?.core?.invoke) {
