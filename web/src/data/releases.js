@@ -12,6 +12,13 @@ export const knownIssues = [
 
 export const releases = [
   {
+    version: '1.5.8',
+    date: '2026-10-28',
+    notes: [
+      'Rebuilt the video converter on Apple Silicon Macs from the official FFmpeg 7.1.5 source, as fully open-source (GPL) software. Downloads come out exactly as before: H.264 video, AAC audio, MP4.',
+    ],
+  },
+  {
     version: '1.5.7',
     date: '2026-10-26',
     notes: [
