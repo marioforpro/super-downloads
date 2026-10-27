@@ -9,7 +9,7 @@ const fmt = (iso) =>
 // SHA-256 of each version's DMGs, from GitHub at build time (GitHub stores a
 // digest per release asset). Offline or rate-limited: the hashes are just left out.
 const DMGS = [['Apple Silicon', 'Super-Downloads_aarch64.dmg'], ['Intel', 'Super-Downloads_x64.dmg']];
-const shas: Record<string, { label: string; sha: string }[]> = {};
+const shas: Record<string, { label: string; sha: string; retired?: boolean }[]> = {};
 try {
   const res = await fetch('https://api.github.com/repos/marioforpro/super-downloads/releases?per_page=50', {
     headers: { 'User-Agent': 'superdownloads-web', Accept: 'application/vnd.github+json' },
@@ -19,7 +19,11 @@ try {
       const list = DMGS.map(([label, name]) => {
         const d = rel.assets?.find((a: { name: string }) => a.name === name)?.digest;
         return { label, sha: typeof d === 'string' && d.startsWith('sha256:') ? d.slice(7) : '' };
-      }).filter((x) => x.sha);
+      });
+      // The Apple Silicon builds before 1.5.8 were withdrawn on 2026-10-27; say so instead of hiding the row.
+      const intel = list.find((x) => x.label === 'Intel')?.sha;
+      for (const x of list) if (!x.sha && intel) x.retired = true;
+      list.splice(0, list.length, ...list.filter((x) => x.sha || x.retired));
       if (list.length) shas[String(rel.tag_name).replace(/^v/, '')] = list;
     }
   }
@@ -54,7 +58,7 @@ try {
           <details class="sha">
             <summary>SHA-256</summary>
             <dl>
-              {shas[r.version].map((x) => <div><dt>{x.label}</dt><dd><code>{x.sha}</code></dd></div>)}
+              {shas[r.version].map((x) => <div><dt>{x.label}</dt><dd>{x.retired ? <span>Withdrawn. <a href="/#download">Get the latest version</a>.</span> : <code>{x.sha}</code>}</dd></div>)}
             </dl>
           </details>
         )}
