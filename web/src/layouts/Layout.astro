@@ -1,6 +1,7 @@
 ---
 import '@fontsource-variable/geist';
 import '@fontsource-variable/geist-mono';
+import { releases } from '../data/releases.js';
 
 interface Props {
   title: string;
@@ -9,7 +10,7 @@ interface Props {
   version?: string;
 }
 
-const { title, description, noindex = false, version = '1.5.5' } = Astro.props;
+const { title, description, noindex = false, version = releases[0].version } = Astro.props;
 const pageUrl = new URL(Astro.url.pathname, 'https://superdownloads.app').href;
 
 // Share preview (WhatsApp / X / LinkedIn). Swap the file here only; give a new
