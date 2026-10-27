@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-## [1.5.8] — 2026-10-28
+## [1.5.8] — 2026-10-27
 
 Apple Silicon: ffmpeg/ffprobe rebuilt from the official FFmpeg 7.1.5 source as GPL v3 (x264, LAME, dav1d), without nonfree parts; same H.264/AAC/MP4 output. Source tarballs attached to this release.
 
