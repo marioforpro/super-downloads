@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import FamilyNav from '../components/FamilyNav.astro';
 
 const REPO = 'https://github.com/marioforpro/super-downloads';
 const DMG_ARM = `${REPO}/releases/latest/download/Super-Downloads_aarch64.dmg`;
@@ -33,15 +34,6 @@ try {
     release.shaIntel = sha('Super-Downloads_x64.dmg');
   }
 } catch {}
-
-// «More from Super Apps»: the family portal + the sibling apps (same block on all four sites, literal taglines;
-// canonical list: 01_Projects/SUPER-APPS/family.json, founder 2026-10-26).
-const FAMILY_UTM = '?utm_source=superdownloads&utm_medium=footer&utm_campaign=family';
-const FAMILY = [
-  { name: 'Super Prompts', url: 'https://superprompts.pro/', line: 'Visual library of AI image and video prompts.' },
-  { name: 'Super Podcatch', url: 'https://superpodcatch.com/', line: 'Any podcast, summarized in your language.' },
-  { name: 'Super Guides', url: 'https://superguides.pro/', line: 'Safe-zone guides for every social app, inside Premiere.' },
-];
 
 const XATTR = 'xattr -dr com.apple.quarantine "/Applications/Super Downloads.app"';
 
@@ -341,14 +333,7 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
         <a href="/copyright">Copyright</a>
         <a href={REPO}>GitHub</a>
       </nav>
-      <nav class="family" aria-label="More from Super Apps">
-        <p class="family-title"><a href={`https://superapps.pro/${FAMILY_UTM}`}>More from Super Apps</a></p>
-        <ul>
-          {FAMILY.map((f) => (
-            <li><a href={`${f.url}${FAMILY_UTM}`}>{f.name}</a><span>{f.line}</span></li>
-          ))}
-        </ul>
-      </nav>
+      <FamilyNav />
       <p class="footer-fine">Super Downloads does not host, store, or distribute any copyrighted content. Download only content you own, have licensed, that’s shared under Creative Commons, or that you’re otherwise authorized to use.</p>
       <p class="footer-fine">Screenshots show Blender Studio open movies (Spring, WING IT!, Coffee Run, CHARGE, Sprite Fright, Agent 327, HERO, Cosmos Laundromat), licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> by the Blender Foundation.</p>
       <p class="footer-fine">© 2026 Super Downloads</p>
@@ -737,13 +722,6 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
   .footer-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
   .footer-links { display: flex; flex-wrap: wrap; gap: 8px 24px; font-size: 15px; }
   .footer-links a { color: var(--slate); display: inline-flex; align-items: center; min-height: 32px; }
-  .family { width: 100%; padding: 20px 0 4px; border-top: 1px solid var(--line); }
-  .family-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
-  .family ul { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 32px; }
-  .family li { display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.5; color: #5b6b80; }
-  .family a { font-size: 15px; font-weight: 500; color: var(--ink); width: fit-content; }
-  .family .family-title a { font-size: inherit; font-weight: inherit; text-decoration: none; }
-  .family .family-title a:hover { text-decoration: underline; }
   .footer-fine { width: 100%; font-size: 13px; line-height: 1.6; color: #5b6b80; }
   .footer-fine a { color: inherit; text-decoration: underline; }
 
@@ -773,7 +751,6 @@ const faqs: { id?: string; q: string; a: string; html?: string }[] = [
     .hero-actions .btn-lg { width: 100%; }
     .lede { font-size: 17px; }
     .facts { grid-template-columns: 1fr; gap: 24px; }
-    .family ul { grid-template-columns: 1fr; gap: 12px; }
     .btn-dl { width: 100%; }
     .install { padding: 22px 18px; }
     .link-btn { width: 100%; }

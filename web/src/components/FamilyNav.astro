@@ -1,0 +1,29 @@
+---
+// «More from Super Apps»: the family portal + the sibling apps (same block on all four sites, literal taglines;
+// canonical list: 01_Projects/SUPER-APPS/family.json, founder 2026-10-26). One copy for every page that shows it.
+const FAMILY_UTM = '?utm_source=superdownloads&utm_medium=footer&utm_campaign=family';
+const FAMILY = [
+  { name: 'Super Prompts', url: 'https://superprompts.pro/', line: 'Visual library of AI image and video prompts.' },
+  { name: 'Super Podcatch', url: 'https://superpodcatch.com/', line: 'Any podcast, summarized in your language.' },
+  { name: 'Super Guides', url: 'https://superguides.pro/', line: 'Safe-zone guides for every social app, inside Premiere.' },
+];
+---
+<nav class="family" aria-label="More from Super Apps">
+  <p class="family-title"><a href={`https://superapps.pro/${FAMILY_UTM}`}>More from Super Apps</a></p>
+  <ul>
+    {FAMILY.map((f) => (
+      <li><a href={`${f.url}${FAMILY_UTM}`}>{f.name}</a><span>{f.line}</span></li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  .family { width: 100%; padding: 20px 0 4px; border-top: 1px solid var(--line); }
+  .family-title { font-size: 13px; font-weight: 600; color: var(--ink); margin-bottom: 10px; }
+  .family ul { list-style: none; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 32px; }
+  .family li { display: flex; flex-direction: column; gap: 2px; font-size: 13px; line-height: 1.5; color: #5b6b80; }
+  .family a { font-size: 15px; font-weight: 500; color: var(--ink); width: fit-content; }
+  .family .family-title a { font-size: inherit; font-weight: inherit; text-decoration: none; }
+  .family .family-title a:hover { text-decoration: underline; }
+  @media (max-width: 640px) { .family ul { grid-template-columns: 1fr; gap: 12px; } }
+</style>
