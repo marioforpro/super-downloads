@@ -1,4 +1,8 @@
 {
+  "redirects": [
+    { "source": "/help", "destination": "/faq", "permanent": true },
+    { "source": "/support", "destination": "/faq", "permanent": true }
+  ],
   "headers": [
     {
       "source": "/(.*)",
