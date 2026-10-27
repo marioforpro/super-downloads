@@ -721,6 +721,8 @@ async function openProblemReport(download = null) {
 }
 
 document.querySelector("#report-problem-btn")?.addEventListener("click", () => openProblemReport());
+// Answers to the common questions live on the website (/help redirects to /faq).
+document.querySelector("#help-faq-btn")?.addEventListener("click", () => openExternal("https://superdownloads.app/faq"));
 // The 24-second demo film lives on the landing (#demo).
 document.querySelector("#watch-demo-btn")?.addEventListener("click", () => openExternal("https://superdownloads.app/#demo"));
 

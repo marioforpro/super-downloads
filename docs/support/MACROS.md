@@ -1,6 +1,7 @@
 # Support macros — Super Downloads
 
-> Reply templates for support@superdownloads.app, used by `/comms-draft`. Brand voice (`DESIGN.md` § 1):
+> Reply templates for support@superdownloads.app, used by `/support` and `/comms-draft`. Channels and the 15 expected
+> questions: `SUPPORT.md`. We reply within 2 business days. Brand voice (`DESIGN.md` § 1):
 > plain, short, no exclamation marks, signed by the team, never by a person. Fill the `{…}` slots; delete
 > lines that don't apply. This repo is public: no names, addresses or real cases in this file.
 >
@@ -134,6 +135,11 @@ The Super Downloads team
 
 ## 9. Is it really free? Will you charge later?
 
+> Two versions. Use **9a** while the site says «Free». If how the app is offered changes, the owner swaps in the
+> other version (kept outside this public repo) the same day the site, `/faq#free` and `/press` change.
+
+**9a — free (current)**
+
 Subject: Price
 
 Hi,
@@ -141,6 +147,9 @@ Hi,
 Yes: it's free, with unlimited downloads and every feature, and no card. If that ever changes, everyone who activated gets an email before anything happens; nothing changes for you without notice.
 
 The Super Downloads team
+
+**9b — if a paid plan exists:** not in this repo (see the note above). Rule for writing it: say what stays free first,
+then what the paid plan adds and its price, then what happens to people who activated before the change.
 
 ---
 

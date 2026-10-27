@@ -147,8 +147,8 @@ export const faqGroups = [
       {
         id: 'contact',
         q: 'How do I report a problem or suggest a feature?',
-        a: `In the app, open Settings › Help › Report a problem: it starts an email with your app and Mac details filled in. Or write to ${SUPPORT} directly. Include the link if a download failed. Feature ideas are welcome at the same address.`,
-        html: `In the app, open Settings › Help › <strong>Report a problem</strong>: it starts an email with your app and Mac details filled in. Or write to ${MAIL} directly. Include the link if a download failed. Feature ideas are welcome at the same address. Known issues and their fixes are listed in the <a href="/changelog#known-issues">release notes</a>.`,
+        a: `In the app, open Settings › Help › Report a problem: it starts an email with your app and Mac details filled in. Or write to ${SUPPORT} directly. Include the link if a download failed. Feature ideas are welcome at the same address. We reply within 2 business days.`,
+        html: `In the app, open Settings › Help › <strong>Report a problem</strong>: it starts an email with your app and Mac details filled in. Or write to ${MAIL} directly. Include the link if a download failed. Feature ideas are welcome at the same address. We reply within 2 business days. Known issues and their fixes are listed in the <a href="/changelog#known-issues">release notes</a>.`,
       },
     ],
   },
