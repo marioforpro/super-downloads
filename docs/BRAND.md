@@ -36,17 +36,23 @@ Rules:
 
 ---
 
-## 3. Brand Independence
+## 3. Brand Independence — inside the Super Apps family
 
-Super Downloads is an **independent brand**.
+Super Downloads is its own brand inside the **Super Apps** family (founder decision 2026-10-26: a light family —
+same surname, own clothes). Super Apps is the family, not a parent logo. (§3 text approved by the founder
+2026-11-13, SD-F-019.)
 
-- NOT a sub-brand of Super Prompts
-- Own visual identity, own voice, own channels
-- May share operational patterns but NEVER brand elements
-- **Family links, two only** (founder decision GROW-F-014, 2026-10-26): the «More from Super» footer on the
-  website, and a one-line P.S. about another Super app (today Super Guides) in emails — only to people whose
-  stored consent names «other Super apps» (the unticked activation box), always with the one-click
-  unsubscribe (`web/api/unsubscribe.js`). Nothing inside the app.
+- NOT a sub-brand of Super Prompts or of any sibling.
+- Own visual identity, own voice, own channels. Never borrows another app's colour, type, logo or icon.
+- **Family links, three only:**
+  1. the «More from Super Apps» footer on the website: the title links to superapps.pro
+     (`utm_source=superdownloads&utm_medium=footer&utm_campaign=family`), one literal line per sibling
+     (canonical list: `01_Projects/SUPER-APPS/family.json`);
+  2. `parentOrganization` → Super Apps (`https://superapps.pro/#org`) in the site's JSON-LD (invisible);
+  3. a one-line P.S. about another Super app in emails — only to people whose stored consent names «other Super
+     apps» (the unticked activation box), always with the one-click unsubscribe (`web/api/unsubscribe.js`)
+     (GROW-F-014, 2026-10-26).
+- Nothing inside the app, the DMG or the email sender: no «by Super Apps» anywhere else.
 
 ---
 
