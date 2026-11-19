@@ -11,7 +11,9 @@ interface Props {
 }
 
 const { title, description, noindex = false, version = releases[0].version } = Astro.props;
-const pageUrl = new URL(Astro.url.pathname, 'https://superdownloads.app').href;
+// No trailing slash: the sitemap lists /guides/x, and a canonical of /guides/x/ made Google drop the
+// sitemap URL as an «alternate page» (Search Console, 2026-11-19).
+const pageUrl = new URL(Astro.url.pathname.replace(/(.)\/+$/, '$1'), 'https://superdownloads.app').href;
 
 // Share preview (WhatsApp / X / LinkedIn). Swap the file here only; give a new
 // image a new filename so the platforms' caches pick it up. Keep it JPG/PNG < 300 KB.
