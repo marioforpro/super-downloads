@@ -40,9 +40,7 @@ The Ed25519 key that signs every update lives at `~/.config/super-downloads/taur
 (chmod 600, outside iCloud, since 2026-11-21; `SD_UPDATE_KEY=<path>` overrides). It is
 encrypted; its password is `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` in `~/.secrets`. **Without the
 file + password no installed app can be updated again** — the key was lost once (rotated
-2026-05-31), so a copy of both lives in the founder's password manager. `make-release.sh` still
-falls back to the old in-repo copy `src-tauri/.tauri-update-key` (gitignored, but synced by iCloud)
-and warns; remove that copy once the password-manager backup exists. Check the key works:
+2026-05-31), so a copy of both lives in the founder's Apple Passwords (entry «Super Downloads updater key», saved 2026-11-21). The old in-repo copy `src-tauri/.tauri-update-key` was deleted the same day; `make-release.sh` would still use it as a warned fallback if it ever reappeared. Recovery on a new Mac: paste the key text from that entry into `~/.config/super-downloads/tauri-update-key` (chmod 600) and the password into `~/.secrets`. Check the key works:
 `npx tauri signer sign -f ~/.config/super-downloads/tauri-update-key -p "$TAURI_SIGNING_PRIVATE_KEY_PASSWORD" <any file>`.
 
 ## Release verification

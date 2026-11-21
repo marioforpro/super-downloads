@@ -66,5 +66,5 @@ Cuando cambie la UI de la app: ver `scripts/screenshots/README.md` (renderiza el
 
 | Archivo | Qué es | ¿En git? |
 |---|---|---|
-| `~/.config/super-downloads/tauri-update-key` | Clave privada del updater, fuera de iCloud desde 2026-11-21 (contraseña en `~/.secrets`, `load-secrets`; copia de ambas en el gestor de contraseñas). La copia vieja `src-tauri/.tauri-update-key` se borra cuando exista esa copia | NO |
+| `~/.config/super-downloads/tauri-update-key` | Clave privada del updater, fuera de iCloud desde 2026-11-21 (contraseña en `~/.secrets`, `load-secrets`; copia de ambas en Contraseñas de Apple, «Super Downloads updater key», 2026-11-21). La copia vieja de iCloud `src-tauri/.tauri-update-key` se borró el 2026-11-21 | NO |
 | `src-tauri/.tauri-update-key.pub` | Clave pública del updater | Sí |
