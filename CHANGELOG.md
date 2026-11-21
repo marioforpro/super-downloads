@@ -6,9 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- **Daily ping:** the anonymous ping also counts use since the previous ping (finished downloads, busiest day, Best / Batch / MP3 used). In main, ships with the next version.
 - **Web (live 2026-10-27):** /faq with 20 answers (/help and /support redirect to it), /llms.txt, three guides for editors on /guides, news sign-up without installing (consent box unticked), /press indexable, SHA-256 per version on /changelog and «Withdrawn» for the Apple Silicon builds before 1.5.8, IndexNow after each deploy, skip link, JSON-LD and meta fixes, «More from Super Apps» on /press.
-- **App (in main, next version):** FAQ button in Help, real release notes in the update and a «What's new» card after updating, old checkout link removed.
+
+## [1.5.9] — 2026-11-21
+
+- **What's new:** after an update the app shows a «What's new» card with the real release notes (also in `latest.json`, so the update banner shows them).
+- **Help:** FAQ button next to «Report a problem».
+- **Engine:** bundled yt-dlp 2026.10.26 (was 2026.10.21) for fresh installs; installed apps already self-update to it.
+- **Daily ping:** the anonymous ping also counts use since the previous ping (finished downloads, busiest day, Best / Batch / MP3 used). Disclosed on /privacy#usage-stats since 2026-10-27; still off with the Settings switch.
+- **Security:** tauri-plugin-updater 2.14.1 and zip 9.5.1 (Dependabot #22; the zip path is Windows-only, not compiled into the macOS app).
+- Old checkout link removed from the app.
 
 ## [1.5.8] — 2026-10-27
 

@@ -12,6 +12,17 @@ export const knownIssues = [
 
 export const releases = [
   {
+    version: '1.5.9',
+    date: '2026-11-21',
+    notes: [
+      'After an update the app now tells you what changed, in a short «What’s new» card.',
+      'Help › FAQ opens the answers to the most common questions.',
+      'Fresh download engine out of the box, so YouTube and the other sites work from the first download.',
+      'The anonymous daily count now also says how many downloads finished and which options were used (Best quality, Batch, MP3). Never a link, a title or a site. Settings › Share anonymous usage stats turns it off.',
+      'Updated security libraries.',
+    ],
+  },
+  {
     version: '1.5.8',
     date: '2026-10-27',
     notes: [
