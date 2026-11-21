@@ -6,7 +6,7 @@ prefix: SD
 lifecycle: active
 current_phase: Free app, private use + friends testing (v1.5.6 live) — work plan 2026-10-23 below
 next_milestone: Developer ID signing + notarization in early January before the 26-Jan launch (R-SD-009, target 2027-01-20) — pipeline ready and rehearsed + fixes from tester reports
-updated: 2026-10-26
+updated: 2026-11-21
 ---
 
 > Forward-motion view for Super Downloads at LifeOS level.
@@ -18,6 +18,12 @@ updated: 2026-10-26
 > **Work plan (2026-10-23).** Order = what moves the product most for the least founder time. Now → Next → Later.
 > References behind each call are cited inline (yt-dlp release cadence, Apple notarization, competitor apps).
 
+- **R-SD-017** · P1 · next · v1.5.9 — fresh engine + the app parts of R-SD-016 (What's new, FAQ, ping counts) + updater 2.14.1
+  - added: 2026-11-21
+  - moved: 2026-11-21
+  - why: daily health check DEGRADED since ~2026-11-18 (bundled engine 2026.10.21 > 28 d); the app half of R-SD-016 sat unreleased in main since 2026-10-27.
+  - progress: 2026-11-21 — built and verified (E2E 10/10, gates OK, updater signatures valid, engine 2026.10.26 + GPL ffmpeg in both apps); publish waits for the founder (repo is public; publishing is outward-facing). `--publish` now attaches the GPL sources itself.
+  - next: founder `git push && load-secrets && ./scripts/make-release.sh --no-build --publish` → Claude sets the landing fallback (OPS step 6).
 - **R-SD-016** · P1 · shipped · Help, guides and web sign-up — /faq, /guides, news sign-up without installing, «What's new» card
   - added: 2026-10-27
   - moved: 2026-10-27
