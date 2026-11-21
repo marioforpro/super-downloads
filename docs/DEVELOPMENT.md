@@ -127,7 +127,7 @@ downloads + installs + relaunches automatically.
 
 `scripts/make-release.sh` automates the whole release:
 ```bash
-# Ed25519 signing password is required (the key src-tauri/.tauri-update-key is
+# Ed25519 signing password is required (the key ~/.config/super-downloads/tauri-update-key is
 # encrypted). NEVER commit it — pass it inline for the command only:
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD='<password>'
 # (2026-10-03) It lives in ~/.secrets — `load-secrets` exports it; no need to type it.

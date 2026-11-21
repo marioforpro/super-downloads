@@ -14,7 +14,7 @@
 # so latest.json MUST be uploaded as a release asset alongside the artifacts.
 #
 # Signing: updater artifacts are signed with the Ed25519 key. Provide:
-#   export TAURI_SIGNING_PRIVATE_KEY="$(cat src-tauri/.tauri-update-key)"
+#   export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.config/super-downloads/tauri-update-key)"
 #   export TAURI_SIGNING_PRIVATE_KEY_PASSWORD="<password or empty>"
 # (the script sets the key from the file automatically if the env var is unset).
 #
@@ -59,11 +59,20 @@ TAG="v${VERSION}"
 echo "▶ Release ${TAG}"
 
 # ── Signing key ──────────────────────────────────────────────────────────
+# The key lives OUTSIDE iCloud since 2026-11-21: ~/.config/super-downloads/
+# (SD_UPDATE_KEY overrides). The old in-repo path is only a fallback until the
+# founder removes that copy (docs/OPS.md § Updater key).
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
-  if [[ -f src-tauri/.tauri-update-key ]]; then
-    export TAURI_SIGNING_PRIVATE_KEY="$(cat src-tauri/.tauri-update-key)"
+  KEY_FILE=""
+  for candidate in "${SD_UPDATE_KEY:-}" "$HOME/.config/super-downloads/tauri-update-key" src-tauri/.tauri-update-key; do
+    [[ -n "$candidate" && -f "$candidate" ]] && { KEY_FILE="$candidate"; break; }
+  done
+  if [[ -n "$KEY_FILE" ]]; then
+    [[ "$KEY_FILE" == src-tauri/.tauri-update-key ]] \
+      && echo "WARN: using the in-repo key copy (iCloud) — move it to ~/.config/super-downloads/tauri-update-key" >&2
+    export TAURI_SIGNING_PRIVATE_KEY="$(cat "$KEY_FILE")"
   else
-    echo "FAIL: no signing key (src-tauri/.tauri-update-key missing and TAURI_SIGNING_PRIVATE_KEY unset)" >&2
+    echo "FAIL: no signing key (~/.config/super-downloads/tauri-update-key missing and TAURI_SIGNING_PRIVATE_KEY unset)" >&2
     exit 1
   fi
 fi
