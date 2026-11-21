@@ -50,7 +50,7 @@ A run ends in one of two verdicts (also the exit code: 0 = certified):
 cd /Users/supermac/Desktop/DEV/01_Projects/SUPER-DOWNLOADS
 
 ./scripts/platform-health-check.sh                    # bundled engine (what ships) — default
-./scripts/platform-health-check.sh --cookies          # + Chrome cookies (probes Tier-2 for real)
+./scripts/platform-health-check.sh --cookies          # + Chrome cookies as the RETRY, like the app (logged-out first)
 ./scripts/platform-health-check.sh --download-probe   # + real end-to-end download (pipeline check)
 ./scripts/platform-health-check.sh --system           # compare against Homebrew/pip yt-dlp
 ```
@@ -146,6 +146,14 @@ launchctl print     gui/$(id -u)/com.superdownloads.health-check   # status
 launchctl bootout   gui/$(id -u)/com.superdownloads.health-check   # disable
 # re-enable: launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.superdownloads.health-check.plist
 ```
+
+## 2026-11-21 — probes mirror the app's order
+
+Every probe now tries logged-out first and uses Chrome cookies only as the retry, as `download_video`
+does; Vimeo probes load the bundled plugin (`src-tauri/ytdlp-plugins`) like the app. Before, the
+cookie-first probe reported Vimeo WARN and Facebook FAIL («Cannot parse data») for 3 weeks while the
+app's own path downloaded both (live E2E 10/10). Bundled engine refreshed 2026.10.21 → 2026.10.26
+(ships with 1.5.9). Run: 7/7 PASS, CERTIFIED OPERATIONAL.
 
 ## Probe URL maintenance
 
