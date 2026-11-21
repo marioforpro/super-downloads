@@ -221,9 +221,28 @@ if [[ "$PUBLISH" == "1" ]]; then
     [[ "$a" == *.dmg ]] && NOTES+=$'\n'"\`$(shasum -a 256 "$a" | cut -d' ' -f1)\`  $(basename "$a")"
   done
 
+  # GPL: the Apple Silicon ffmpeg is a GPL build (1.5.8+), so its source
+  # tarballs ride every release that ships it (named as on v1.5.8). Before
+  # 2026-11-21 they were attached by hand.
+  UPLOADS=("${ASSETS[@]}")
+  if src-tauri/binaries/ffmpeg-aarch64-apple-darwin -hide_banner -version 2>/dev/null | grep -q -- --enable-gpl; then
+    SRC_DIR="$(ls -d src-tauri/binaries/ffmpeg-arm64-sources-* 2>/dev/null | sort | tail -1)"
+    if [[ -z "$SRC_DIR" ]]; then
+      echo "FAIL: arm64 ffmpeg is GPL but no src-tauri/binaries/ffmpeg-arm64-sources-* to attach" >&2
+      exit 1
+    fi
+    rm -rf dist/gpl-sources && mkdir -p dist/gpl-sources
+    for f in "$SRC_DIR"/*; do
+      cp -c "$f" "dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")" 2>/dev/null \
+        || cp "$f" "dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")"
+      UPLOADS+=("dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")")
+    done
+    NOTES+=$'\n\nApple Silicon ffmpeg/ffprobe are a GPL v3 build (x264, LAME, dav1d); their source tarballs are attached to this release.'
+  fi
+
   echo "▶ Publishing ${TAG} (${TARGET:0:7}) to GitHub…"
   gh release create "$TAG" --repo "$REPO" --target "$TARGET" --title "Super Downloads ${TAG}" \
-    --notes "$NOTES" "${ASSETS[@]}"
+    --notes "$NOTES" "${UPLOADS[@]}"
   git fetch -q --tags origin
   echo "✓ Published. Updater endpoint will serve dist/latest.json via releases/latest."
 else
