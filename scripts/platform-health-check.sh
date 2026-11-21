@@ -222,21 +222,28 @@ for entry in "${PROBES[@]}"; do
   # downloads it (impersonation), when the engine supports it.
   EXTRA_ARGS=()
   [[ "$platform" == "facebook" && ${#IMPERSONATE_ARGS[@]} -gt 0 ]] && EXTRA_ARGS=("${IMPERSONATE_ARGS[@]}")
+  # Vimeo mirrors the app (v1.5.1+, lib.rs add_vimeo_plugin): the onedir engine
+  # loads our bundled plugin for embed-restricted videos. Without it the probe
+  # reported WARN on a video the app downloads fine (2026-11-21).
+  [[ "$platform" == "vimeo" && "$YTDLP" == *yt-dlp-onedir/* && -d src-tauri/ytdlp-plugins ]] \
+    && EXTRA_ARGS=(--plugin-dirs src-tauri/ytdlp-plugins)
 
-  # LinkedIn mirrors the app (2026-09-27): first attempt logged-out, browser
-  # cookies only as the retry. A cookie-only probe would test a path users
-  # no longer hit first.
-  PROBE_COOKIES=(${COOKIE_ARGS[@]+"${COOKIE_ARGS[@]}"})
-  [[ "$platform" == "linkedin" ]] && PROBE_COOKIES=()
+  # Every platform mirrors the app (download_video): first attempt logged-out,
+  # browser cookies only as the retry. LinkedIn moved first (2026-09-27); on
+  # 2026-11-21 a cookie-first probe failed Vimeo and Facebook while the app's
+  # logged-out path downloaded both — a cookie-first probe tests a path users
+  # never hit first.
+  PROBE_COOKIES=()
 
   json="$("$YTDLP" -J --simulate --no-warnings --socket-timeout 30 \
-           --user-agent "$UA" ${PROBE_COOKIES[@]+"${PROBE_COOKIES[@]}"} \
-           ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"} "$url" 2>/tmp/sd_hc_err)"
+           --user-agent "$UA" ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"} "$url" 2>/tmp/sd_hc_err)"
   rc=$?
-  if [[ $rc -ne 0 && "$platform" == "linkedin" && ${#COOKIE_ARGS[@]} -gt 0 ]]; then
+  if [[ $rc -ne 0 && ${#COOKIE_ARGS[@]} -gt 0 ]]; then
     json="$("$YTDLP" -J --simulate --no-warnings --socket-timeout 30 \
-             --user-agent "$UA" "${COOKIE_ARGS[@]}" "$url" 2>/tmp/sd_hc_err)"
+             --user-agent "$UA" "${COOKIE_ARGS[@]}" \
+             ${EXTRA_ARGS[@]+"${EXTRA_ARGS[@]}"} "$url" 2>/tmp/sd_hc_err)"
     rc=$?
+    [[ $rc -eq 0 ]] && PROBE_COOKIES=("${COOKIE_ARGS[@]}")
   fi
   # One retry before calling it a failure: a single transient error (Facebook
   # «Cannot parse data» on 2026-10-24, fine on the next run) otherwise flips
