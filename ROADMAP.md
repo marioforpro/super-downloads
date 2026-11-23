@@ -53,6 +53,7 @@ updated: 2026-11-21
   - open_decision: D1–D5 in GTM §10 (launch date, Apple identity, PH, Uneed 29,99 USD, SD→SG cross-promo) — founder.
   - depends_on: R-SD-009
   - target: 2027-01-26
+  - update 2026-11-23: LinkedIn company page live — linkedin.com/company/superdownloads-app (logo + cover + About only; nothing posted until the launch). Instagram/Threads/Reddit profiles still Mario's.
   - next: Claude: AlternativeTo + Uneed listings ready to submit in November, SEO pages 1–3 + `llms.txt`, open STUDIO jobs S1–S4 · Mario: decide D1–D5, create the brand profiles (Instagram, Threads, Reddit) and connect Buffer.
 - **R-SD-005** · P0 · shipped · Landing refresh — real app screenshots, OG image, editor-first design
   - added: 2026-10-23
