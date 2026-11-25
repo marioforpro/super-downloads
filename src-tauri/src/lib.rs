@@ -122,9 +122,22 @@ fn vimeo_embed_url(url: &str) -> Option<String> {
         .unwrap_or(url)
         .trim_end_matches('/');
     let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
+    let is_id = |seg: &str| seg.len() >= 6 && seg.chars().all(|c| c.is_ascii_digit());
+    // Showcase/album ids are not video ids: prefer the id after `video(s)`,
+    // then the id right after the host (`vimeo.com/<id>[/<hash>]`), then the last id that is
+    // not a showcase/album/group container.
     let idx = segments
         .iter()
-        .position(|seg| seg.len() >= 6 && seg.chars().all(|c| c.is_ascii_digit()))?;
+        .position(|seg| matches!(*seg, "video" | "videos"))
+        .map(|i| i + 1)
+        .filter(|&i| segments.get(i).is_some_and(|s| is_id(s)))
+        .or_else(|| segments.get(2).is_some_and(|s| is_id(s)).then_some(2))
+        .or_else(|| {
+            (1..segments.len()).rev().find(|&i| {
+                is_id(segments[i])
+                    && !matches!(segments[i - 1], "showcase" | "album" | "albums" | "groups")
+            })
+        })?;
     let id = segments[idx];
     let hash = segments
         .get(idx + 1)
@@ -688,6 +701,7 @@ fn start_download<R: Runtime>(
         // For Vimeo, try without cookies first (many videos are public)
         let is_vimeo = url.contains("vimeo.com");
         let is_instagram = url.contains("instagram.com") || url.contains("instagr.am");
+        let is_bulk = is_bulk_url(&url);
 
         // Ensure PATH includes common locations in build mode
         let current_path = std::env::var("PATH").unwrap_or_default();
@@ -700,7 +714,12 @@ fn start_download<R: Runtime>(
         // Use --dump-json to get full metadata (including thumbnails for Vimeo)
         let build_metadata_cmd = |with_cookies: bool| {
             let mut metadata_cmd = Command::new(&ytdlp_path);
-            metadata_cmd.arg("--no-playlist");
+            if is_bulk {
+                // List entries only (fast); one JSON line per entry.
+                metadata_cmd.arg("--flat-playlist");
+            } else {
+                metadata_cmd.arg("--no-playlist");
+            }
             metadata_cmd.env("PATH", &enhanced_path);
             metadata_cmd.arg("--dump-json").arg("--skip-download");
 
@@ -744,8 +763,22 @@ fn start_download<R: Runtime>(
                 if output.status.success() {
                     let json_output = String::from_utf8_lossy(&output.stdout);
                     // Parse JSON to extract metadata
-                    if let Ok(json) = serde_json::from_str::<serde_json::Value>(&json_output) {
+                    let parsed_json = serde_json::from_str::<serde_json::Value>(&json_output)
+                        .ok()
+                        .or_else(|| {
+                            if is_bulk {
+                                parse_ndjson_values(&json_output).into_iter().next()
+                            } else {
+                                None
+                            }
+                        });
+                    if let Some(json) = parsed_json {
                         video_title = json["title"].as_str().unwrap_or("").to_string();
+                        if is_bulk {
+                            if let Some(list_title) = json["playlist_title"].as_str() {
+                                video_title = list_title.to_string();
+                            }
+                        }
                         thumbnail_url = json["thumbnail"].as_str().unwrap_or("").to_string();
                         duration_seconds = json["duration"].as_f64();
                         size_bytes = json["filesize"]
@@ -806,7 +839,7 @@ fn start_download<R: Runtime>(
                             // YouTube: Skip metadata resolution - will use actual file resolution after download
                             eprintln!("YouTube: Skipping metadata resolution (will use actual file resolution after download)");
                         }
-                    } else {
+                    } else if !is_bulk {
                         // Fallback: try --get-title if JSON parsing fails
                         let mut title_cmd = Command::new(&ytdlp_path);
                         title_cmd.arg("--no-playlist");
@@ -873,6 +906,13 @@ fn start_download<R: Runtime>(
             // The actual download will handle and report video-specific errors
         }
 
+        if is_bulk {
+            // The first entry's numbers say nothing about the whole list.
+            duration_seconds = None;
+            size_bytes = None;
+            fps = None;
+        }
+
         // For Vimeo, use URL as title since we skipped metadata extraction
         if is_vimeo && video_title.is_empty() {
             video_title = url.clone();
@@ -888,13 +928,19 @@ fn start_download<R: Runtime>(
         } else {
             output_format.to_string()
         };
-        let previous_path = previous_retry_path(&url, &output_extension);
-        let planned_output_path = plan_output_path(
-            &base_path,
-            &video_title,
-            &output_extension,
-            previous_path.as_deref(),
-        );
+        // Bulk: a real template, so each entry gets its own file (SD-05). Single: the planned
+        // path, reusing the previous attempt's path on Retry so --continue resumes (SD-06).
+        let planned_output_path = if is_bulk {
+            bulk_output_template(&base_path)
+        } else {
+            let previous_path = previous_retry_path(&url, &output_extension);
+            plan_output_path(
+                &base_path,
+                &video_title,
+                &output_extension,
+                previous_path.as_deref(),
+            )
+        };
 
         // Store metadata for later use
         let metadata_duration = duration_seconds;
@@ -997,7 +1043,9 @@ fn start_download<R: Runtime>(
             cmd.arg("-S").arg(format_sort);
         }
         // A watch?v=…&list=… link must download the one video, not the playlist.
-        cmd.arg("--no-playlist");
+        if !is_bulk {
+            cmd.arg("--no-playlist");
+        }
 
         // Network resilience options for unstable connections
         cmd.arg("--continue")
@@ -1059,7 +1107,7 @@ fn start_download<R: Runtime>(
 
         add_vimeo_plugin(&mut cmd, &ytdlp_path, &url);
         cmd.arg("-o")
-            .arg(ytdlp_output_template(&planned_output_path))
+            .arg(ytdlp_output_arg(&planned_output_path, is_bulk))
             .arg(&url)
             .stderr(Stdio::piped());
 
@@ -1543,11 +1591,22 @@ fn start_download<R: Runtime>(
 
                 eprintln!("Sending canonical path to frontend: {}", canonical_path);
 
+                let finished_title = if is_bulk {
+                    let saved = count_saved_files(&all_stdout).max(1);
+                    format!(
+                        "{} ({} {} saved)",
+                        video_title,
+                        saved,
+                        if saved == 1 { "video" } else { "videos" }
+                    )
+                } else {
+                    video_title.clone()
+                };
                 let _ = window.emit(
                     "download-finished",
                     (
                         download_id.clone(),
-                        video_title.clone(),
+                        finished_title,
                         canonical_path.clone(), // Use canonicalized path
                         duration_str,
                         file_size_str,
@@ -1691,7 +1750,7 @@ fn start_download<R: Runtime>(
                     retry_cmd
                         .arg("--no-warnings")
                         .arg("-o")
-                        .arg(ytdlp_output_template(&planned_output_path))
+                        .arg(ytdlp_output_arg(&planned_output_path, is_bulk))
                         .arg(&url);
 
                     let current_path = std::env::var("PATH").unwrap_or_default();
@@ -1812,7 +1871,7 @@ fn start_download<R: Runtime>(
                                     .arg("--socket-timeout")
                                     .arg("30")
                                     .arg("-o")
-                                    .arg(ytdlp_output_template(&planned_output_path));
+                                    .arg(ytdlp_output_arg(&planned_output_path, is_bulk));
 
                                 if is_audio_only {
                                     fallback_cmd
@@ -2007,6 +2066,82 @@ fn start_download<R: Runtime>(
     download_id_clone
 }
 
+// Playlist / channel links (the user confirmed the bulk dialog): every entry
+// needs its own file name, so they get a real yt-dlp template. Mirrors
+// isPotentialBulkDownloadUrl in the frontend; a watch?v= link is one video.
+fn is_bulk_url(url: &str) -> bool {
+    let lower = url.to_lowercase();
+    let Some(rest) = lower.split("://").nth(1) else {
+        return false;
+    };
+    let (host, tail) = rest.split_once('/').unwrap_or((rest, ""));
+    if !(host.contains("youtube.com") || host.contains("youtu.be")) {
+        return false;
+    }
+    let (path, query) = tail
+        .split(['#'])
+        .next()
+        .unwrap_or("")
+        .split_once('?')
+        .unwrap_or((tail, ""));
+    let path = format!("/{}", path);
+    if query.split('&').any(|kv| kv.starts_with("v=")) {
+        return false;
+    }
+    ["/@", "/channel/", "/c/", "/user/", "/playlist"]
+        .iter()
+        .any(|p| path.starts_with(p))
+}
+
+fn bulk_output_template(base_path: &str) -> String {
+    Path::new(base_path)
+        .join("%(title)s [%(id)s].%(ext)s")
+        .to_string_lossy()
+        .to_string()
+}
+
+// `--dump-json` on a playlist prints one JSON document per line (NDJSON).
+fn parse_ndjson_values(output: &str) -> Vec<serde_json::Value> {
+    output
+        .lines()
+        .filter_map(|line| serde_json::from_str::<serde_json::Value>(line.trim()).ok())
+        .collect()
+}
+
+// Number of distinct media files yt-dlp reported for a (bulk) run. Intermediate
+// `.fNNN` streams and the audio-extract step collapse onto the final stem.
+fn count_saved_files(stdout: &str) -> usize {
+    let mut stems: HashSet<String> = HashSet::new();
+    for line in stdout.lines() {
+        let path = if let Some(p) = line
+            .strip_prefix("[download] ")
+            .and_then(|r| r.strip_suffix(" has already been downloaded"))
+        {
+            p.to_string()
+        } else if line.starts_with("[download] Destination:")
+            || line.starts_with("[ExtractAudio] Destination:")
+            || line.starts_with("[Merger] Merging formats into")
+        {
+            match extract_file_path(line) {
+                Some(p) => p,
+                None => continue,
+            }
+        } else {
+            continue;
+        };
+        let no_ext = match path.rsplit_once('.') {
+            Some((stem, ext)) if !ext.contains('/') => stem,
+            _ => path.as_str(),
+        };
+        let stem = match no_ext.rsplit_once(".f") {
+            Some((head, n)) if !n.is_empty() && n.chars().all(|c| c.is_ascii_digit()) => head,
+            _ => no_ext,
+        };
+        stems.insert(stem.to_string());
+    }
+    stems.len()
+}
+
 fn extract_file_path(line: &str) -> Option<String> {
     // Extract file path from yt-dlp output
     // Try quoted paths first
@@ -2194,6 +2329,18 @@ fn has_partial_files(planned: &Path) -> bool {
 // yt-dlp reads the -o value as an output template: a literal % must be %%.
 fn ytdlp_output_template(path: &str) -> String {
     path.replace('%', "%%")
+}
+
+// The -o value. A single download's path is escaped whole (sd-app-5). A bulk path is a real
+// template (SD-05): escape only the folder, so `%(title)s [%(id)s]` stays live.
+fn ytdlp_output_arg(planned: &str, is_bulk: bool) -> String {
+    if !is_bulk {
+        return ytdlp_output_template(planned);
+    }
+    let p = Path::new(planned);
+    let dir = p.parent().map(|d| d.to_string_lossy().to_string()).unwrap_or_default();
+    let file = p.file_name().map(|f| f.to_string_lossy().to_string()).unwrap_or_default();
+    Path::new(&ytdlp_output_template(&dir)).join(file).to_string_lossy().to_string()
 }
 
 // The file yt-dlp produced: the path it reported, else the planned path. Never
@@ -2926,6 +3073,36 @@ mod tests {
             Some("https://player.vimeo.com/video/76979871?h=a1b2c3d4e5")
         );
         assert!(super::vimeo_embed_url("https://player.vimeo.com/video/76979871").is_none());
+    }
+
+    #[test]
+    fn vimeo_embed_url_ignores_showcase_and_album_ids() {
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/showcase/9876543/video/412345678").as_deref(),
+            Some("https://player.vimeo.com/video/412345678")
+        );
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/album/1234567/video/412345678?x=1")
+                .as_deref(),
+            Some("https://player.vimeo.com/video/412345678")
+        );
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/channels/staffpicks/videos/76979871/")
+                .as_deref(),
+            Some("https://player.vimeo.com/video/76979871")
+        );
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/showcase/9876543/video/412345678/a1b2c3d4e5")
+                .as_deref(),
+            Some("https://player.vimeo.com/video/412345678?h=a1b2c3d4e5")
+        );
+        // A showcase page alone carries no video id.
+        assert!(super::vimeo_embed_url("https://vimeo.com/showcase/9876543").is_none());
+        // Plain and unlisted links keep working.
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/76979871/a1b2c3d4e5").as_deref(),
+            Some("https://player.vimeo.com/video/76979871?h=a1b2c3d4e5")
+        );
         assert!(super::vimeo_embed_url("https://vimeo.com/user12/videos").is_none());
     }
 
@@ -2944,6 +3121,57 @@ mod tests {
         let line = "[download] Destination: /Users/me/Downloads/video.mp4";
         let path = extract_file_path(line).expect("path should parse");
         assert_eq!(path, "/Users/me/Downloads/video.mp4");
+    }
+
+    #[test]
+    fn bulk_urls_are_detected_but_single_videos_are_not() {
+        for u in [
+            "https://www.youtube.com/playlist?list=PL123",
+            "https://www.youtube.com/@somechannel",
+            "https://www.youtube.com/@somechannel/videos",
+            "https://youtube.com/channel/UC123",
+            "https://www.youtube.com/c/Name",
+            "https://www.youtube.com/user/Name",
+        ] {
+            assert!(super::is_bulk_url(u), "{u}");
+        }
+        for u in [
+            "https://www.youtube.com/watch?v=abc&list=PL123",
+            "https://youtu.be/abc?list=PL123",
+            "https://vimeo.com/76979871",
+            "https://www.instagram.com/@x",
+        ] {
+            assert!(!super::is_bulk_url(u), "{u}");
+        }
+    }
+
+    #[test]
+    fn bulk_template_has_per_entry_fields() {
+        let t = super::bulk_output_template("/Users/me/Downloads/");
+        assert_eq!(t, "/Users/me/Downloads/%(title)s [%(id)s].%(ext)s");
+        assert!(t.contains("%(id)s"));
+    }
+
+    #[test]
+    fn ndjson_metadata_is_parsed_line_by_line() {
+        let out = "{\"title\":\"T1\",\"id\":\"a\"}\n{\"title\":\"T2\",\"id\":\"b\"}\n\nnot json\n{\"title\":\"T3\",\"id\":\"c\"}\n";
+        let values = super::parse_ndjson_values(out);
+        assert_eq!(values.len(), 3);
+        assert_eq!(values[1]["title"], "T2");
+    }
+
+    #[test]
+    fn saved_files_are_counted_once_each() {
+        let out = "\
+[download] Destination: /d/A [a].f137.mp4
+[download] Destination: /d/A [a].f140.m4a
+[Merger] Merging formats into \"/d/A [a].mp4\"
+[download] /d/B [b].mp4 has already been downloaded
+[download] Destination: /d/C [c].mp4
+[download] Destination: /d/C [c].mp4
+";
+        assert_eq!(super::count_saved_files(out), 3);
+        assert_eq!(super::count_saved_files(""), 0);
     }
 
     #[test]
@@ -4048,6 +4276,12 @@ mod output_path_tests {
     #[test]
     fn percent_is_escaped_for_the_output_template() {
         assert_eq!(ytdlp_output_template("/a/100%(title)s.mp4"), "/a/100%%(title)s.mp4");
+        // Bulk: the folder is escaped, the template fields are not.
+        assert_eq!(
+            ytdlp_output_arg(&bulk_output_template("/Users/x/50% off"), true),
+            "/Users/x/50%% off/%(title)s [%(id)s].%(ext)s"
+        );
+        assert_eq!(ytdlp_output_arg("/a/100%.mp4", false), "/a/100%%.mp4");
     }
 
     #[test]

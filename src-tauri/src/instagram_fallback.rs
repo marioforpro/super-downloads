@@ -76,6 +76,17 @@ pub fn should_attempt_fallback(error_text: &str) -> bool {
         || lc.contains("requested content is not available")
 }
 
+/// The 1-based `img_index` query value of a carousel link (`?img_index=3`
+/// points at the third item). `None` when absent, zero or not a number.
+pub fn parse_img_index(url: &str) -> Option<usize> {
+    let query = url.split('#').next()?.split_once('?')?.1;
+    query
+        .split('&')
+        .find_map(|pair| pair.strip_prefix("img_index="))
+        .and_then(|v| v.parse::<usize>().ok())
+        .filter(|&n| n >= 1)
+}
+
 /// Parse a single-post/reel Instagram URL into its kind + shortcode.
 /// Supports `/p/`, `/reel/`, `/reels/`, `/tv/`, with or without a trailing
 /// slash or query string, on both `instagram.com` and `instagr.am`.
@@ -367,14 +378,18 @@ fn best_from_video_versions(video_versions: &serde_json::Value) -> Option<String
 /// object (used directly by endpoint (b), and nested under
 /// `data.xdt_api__v1__media__shortcode__web_info.items[0]` for endpoint (c)).
 /// Handles single-video items and video items inside a carousel.
-fn best_from_item(item: &serde_json::Value) -> Option<String> {
+fn best_from_item(item: &serde_json::Value, img_index: Option<usize>) -> Option<String> {
     if let Some(video_versions) = item.get("video_versions") {
         if let Some(url) = best_from_video_versions(video_versions) {
             return Some(url);
         }
     }
     if let Some(carousel) = item.get("carousel_media").and_then(|c| c.as_array()) {
-        for media in carousel {
+        // A linked item (`?img_index=N`) is the only candidate: never swap in
+        // another item's video when the linked one is a photo.
+        let skip = img_index.map_or(0, |n| n - 1);
+        let take = if img_index.is_some() { 1 } else { usize::MAX };
+        for media in carousel.iter().skip(skip).take(take) {
             if let Some(video_versions) = media.get("video_versions") {
                 if let Some(url) = best_from_video_versions(video_versions) {
                     return Some(url);
@@ -389,7 +404,16 @@ fn best_from_item(item: &serde_json::Value) -> Option<String> {
 /// response shapes. Returns `None` when the JSON parsed fine but carries no
 /// usable video (wrong shape, or a genuinely photo-only post) — the caller
 /// treats that as "try the next endpoint format".
+#[cfg(test)]
 pub fn extract_best_video_url(json: &serde_json::Value) -> Option<String> {
+    extract_best_video_url_at(json, None)
+}
+
+/// Like `extract_best_video_url`, but honours a 1-based carousel `img_index`.
+pub fn extract_best_video_url_at(
+    json: &serde_json::Value,
+    img_index: Option<usize>,
+) -> Option<String> {
     // Shape (a) — legacy `graphql.shortcode_media`.
     if let Some(media) = json.get("graphql").and_then(|g| g.get("shortcode_media")) {
         if let Some(url) = media.get("video_url").and_then(|v| v.as_str()) {
@@ -400,7 +424,9 @@ pub fn extract_best_video_url(json: &serde_json::Value) -> Option<String> {
             .and_then(|e| e.get("edges"))
             .and_then(|e| e.as_array())
         {
-            for edge in edges {
+            let skip = img_index.map_or(0, |n| n - 1);
+            let take = if img_index.is_some() { 1 } else { usize::MAX };
+            for edge in edges.iter().skip(skip).take(take) {
                 if let Some(url) = edge
                     .get("node")
                     .and_then(|n| n.get("video_url"))
@@ -420,7 +446,7 @@ pub fn extract_best_video_url(json: &serde_json::Value) -> Option<String> {
         .and_then(|i| i.as_array())
     {
         if let Some(first) = items.first() {
-            if let Some(url) = best_from_item(first) {
+            if let Some(url) = best_from_item(first, img_index) {
                 return Some(url);
             }
         }
@@ -429,7 +455,7 @@ pub fn extract_best_video_url(json: &serde_json::Value) -> Option<String> {
     // Shape (b) — private API media-info (`{"items": [...]}` at the top level).
     if let Some(items) = json.get("items").and_then(|i| i.as_array()) {
         if let Some(first) = items.first() {
-            if let Some(url) = best_from_item(first) {
+            if let Some(url) = best_from_item(first, img_index) {
                 return Some(url);
             }
         }
@@ -494,7 +520,8 @@ pub fn fetch_instagram_direct_video_url(url: &str) -> Result<String, IgFallbackE
 
     let endpoints = build_endpoint_candidates(&parsed);
 
-    resolve_from_endpoints(&endpoints, |endpoint| {
+    let img_index = parse_img_index(url);
+    resolve_from_endpoints(&endpoints, img_index, |endpoint| {
         backoff_before_request();
         fetch_json_from_endpoint(&client, endpoint)
     })
@@ -507,6 +534,7 @@ pub fn fetch_instagram_direct_video_url(url: &str) -> Result<String, IgFallbackE
 /// message is reported only if no shape succeeds.
 fn resolve_from_endpoints<F>(
     endpoints: &[EndpointCandidate],
+    img_index: Option<usize>,
     mut fetch: F,
 ) -> Result<String, IgFallbackError>
 where
@@ -520,7 +548,7 @@ where
 
     for endpoint in endpoints {
         match fetch(endpoint) {
-            Ok(json) => match extract_best_video_url(&json) {
+            Ok(json) => match extract_best_video_url_at(&json, img_index) {
                 Some(video_url) => return Ok(video_url),
                 None => {
                     if post_is_definitely_not_a_video(&json) {
@@ -710,6 +738,57 @@ mod tests {
     }
 
     #[test]
+    fn img_index_picks_the_linked_carousel_item() {
+        let json: serde_json::Value = serde_json::from_str(
+            r#"{"items":[{"media_type":8,"carousel_media":[
+                {"media_type":2,"video_versions":[{"url":"https://cdn.example.com/c1.mp4","width":720,"height":1280}]},
+                {"media_type":1},
+                {"media_type":2,"video_versions":[{"url":"https://cdn.example.com/c3.mp4","width":720,"height":1280}]}
+            ]}]}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            parse_img_index("https://www.instagram.com/p/ABC/?img_index=3"),
+            Some(3)
+        );
+        assert_eq!(
+            parse_img_index("https://www.instagram.com/p/ABC/?utm=x&img_index=2#t"),
+            Some(2)
+        );
+        assert_eq!(parse_img_index("https://www.instagram.com/p/ABC/"), None);
+        assert_eq!(
+            parse_img_index("https://www.instagram.com/p/ABC/?img_index=0"),
+            None
+        );
+        assert_eq!(
+            extract_best_video_url_at(&json, Some(3)),
+            Some("https://cdn.example.com/c3.mp4".to_string())
+        );
+        // The linked item is a photo: do not substitute another item's video.
+        assert_eq!(extract_best_video_url_at(&json, Some(2)), None);
+        // No index: first video, as before.
+        assert_eq!(
+            extract_best_video_url_at(&json, None),
+            Some("https://cdn.example.com/c1.mp4".to_string())
+        );
+    }
+
+    #[test]
+    fn img_index_picks_the_linked_legacy_graphql_item() {
+        let json: serde_json::Value = serde_json::from_str(
+            r#"{"graphql":{"shortcode_media":{"edge_sidecar_to_children":{"edges":[
+                {"node":{"is_video":true,"video_url":"https://cdn.example.com/l1.mp4"}},
+                {"node":{"is_video":true,"video_url":"https://cdn.example.com/l2.mp4"}}
+            ]}}}}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            extract_best_video_url_at(&json, Some(2)),
+            Some("https://cdn.example.com/l2.mp4".to_string())
+        );
+    }
+
+    #[test]
     fn extracts_video_from_private_api_carousel_item() {
         let json: serde_json::Value = serde_json::from_str(
             r#"{"items":[{"media_type":8,"carousel_media":[
@@ -812,7 +891,7 @@ mod tests {
         // 2026-10-25: __a=1 answered 404 for a live reel and the old loop
         // returned «unavailable or deleted» without trying GraphQL.
         let eps = candidates(&["a", "b", "c"]);
-        let got = resolve_from_endpoints(&eps, |ep| match ep.label {
+        let got = resolve_from_endpoints(&eps, None, |ep| match ep.label {
             "a" => classify_response(reqwest::StatusCode::NOT_FOUND, "<html>", "a"),
             "b" => classify_response(reqwest::StatusCode::FORBIDDEN, "{}", "b"),
             _ => Ok(video_json()),
@@ -823,7 +902,7 @@ mod tests {
     #[test]
     fn a_fatal_answer_is_reported_when_no_endpoint_succeeds() {
         let eps = candidates(&["a", "b"]);
-        let got = resolve_from_endpoints(&eps, |ep| match ep.label {
+        let got = resolve_from_endpoints(&eps, None, |ep| match ep.label {
             "a" => classify_response(reqwest::StatusCode::NOT_FOUND, "<html>", "a"),
             _ => Err(IgFallbackError::Transient("b: HTTP 500".to_string())),
         });
@@ -833,7 +912,7 @@ mod tests {
     #[test]
     fn transient_errors_only_stay_transient() {
         let eps = candidates(&["a", "b"]);
-        let got = resolve_from_endpoints(&eps, |ep| {
+        let got = resolve_from_endpoints(&eps, None, |ep| {
             Err(IgFallbackError::Transient(format!(
                 "{}: HTTP 500",
                 ep.label
