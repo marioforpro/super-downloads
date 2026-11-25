@@ -2589,6 +2589,31 @@ mod e2e_tests;
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn license_meta_checks_store_and_product() {
+        let body = |s: u64, p: u64| serde_json::json!({"meta": {"store_id": s, "product_id": p}});
+        let ids: &[u64] = &[10, 11];
+        assert!(super::check_license_meta(&body(1, 10), Some(1), Some(ids)).is_ok());
+        assert!(super::check_license_meta(&body(1, 11), Some(1), Some(ids)).is_ok());
+        assert!(super::check_license_meta(&body(2, 10), Some(1), Some(ids)).is_err());
+        assert!(super::check_license_meta(&body(1, 99), Some(1), Some(ids)).is_err());
+        assert!(super::check_license_meta(&serde_json::json!({}), Some(1), Some(ids)).is_err());
+        let e = super::check_license_meta(&body(1, 10), None, None).unwrap_err();
+        assert!(e.contains("not configured"));
+        assert!(super::check_license_meta(&body(1, 10), Some(1), None).is_err());
+    }
+
+    #[test]
+    fn license_ids_ship_unconfigured_and_fail_closed() {
+        let body = serde_json::json!({"meta": {"store_id": 1, "product_id": 10}});
+        assert!(super::check_license_meta(
+            &body,
+            super::EXPECTED_LS_STORE_ID,
+            super::EXPECTED_LS_PRODUCT_IDS
+        )
+        .is_err());
+    }
+
     fn spawn_sleeper() -> std::process::Child {
         let mut cmd = std::process::Command::new("sleep");
         cmd.arg("30");
@@ -3193,6 +3218,33 @@ struct LicenseResult {
     customer_name: Option<String>,
 }
 
+// Super Downloads' own Lemon Squeezy store and product ids (public values, not
+// secrets). Fill them in before turning Pro on. While None, licence activation
+// and validation fail closed: a key from any other store would otherwise pass.
+const EXPECTED_LS_STORE_ID: Option<u64> = None;
+const EXPECTED_LS_PRODUCT_IDS: Option<&[u64]> = None;
+
+/// Accept a Lemon Squeezy licence response only if `meta.store_id` and
+/// `meta.product_id` are ours. Unconfigured ids refuse everything.
+fn check_license_meta(
+    body: &serde_json::Value,
+    store_id: Option<u64>,
+    product_ids: Option<&[u64]>,
+) -> Result<(), String> {
+    let (Some(store_id), Some(product_ids)) = (store_id, product_ids) else {
+        return Err("Licensing is not configured: store not configured".to_string());
+    };
+    let meta = body.get("meta");
+    let got_store = meta.and_then(|m| m.get("store_id")).and_then(|v| v.as_u64());
+    let got_product = meta
+        .and_then(|m| m.get("product_id"))
+        .and_then(|v| v.as_u64());
+    if got_store != Some(store_id) || !got_product.is_some_and(|p| product_ids.contains(&p)) {
+        return Err("This licence key is not for Super Downloads".to_string());
+    }
+    Ok(())
+}
+
 fn get_instance_name() -> String {
     hostname::get()
         .map(|h| h.to_string_lossy().to_string())
@@ -3342,15 +3394,21 @@ async fn activate_license(key: String) -> Result<LicenseResult, String> {
         .await
         .map_err(|e| format!("Invalid response: {}", e))?;
 
-    let activated = body
+    let mut activated = body
         .get("activated")
         .and_then(|v| v.as_bool())
         .unwrap_or(false);
-    let error_msg = body
+    let mut error_msg = body
         .get("error")
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string();
+    if activated {
+        if let Err(e) = check_license_meta(&body, EXPECTED_LS_STORE_ID, EXPECTED_LS_PRODUCT_IDS) {
+            activated = false;
+            error_msg = e;
+        }
+    }
     let instance_id = body
         .get("instance")
         .and_then(|i| i.get("id"))
@@ -3393,12 +3451,18 @@ async fn validate_license(key: String, instance_id: String) -> Result<LicenseRes
         .await
         .map_err(|e| format!("Invalid response: {}", e))?;
 
-    let valid = body.get("valid").and_then(|v| v.as_bool()).unwrap_or(false);
-    let error_msg = body
+    let mut valid = body.get("valid").and_then(|v| v.as_bool()).unwrap_or(false);
+    let mut error_msg = body
         .get("error")
         .and_then(|v| v.as_str())
         .unwrap_or("")
         .to_string();
+    if valid {
+        if let Err(e) = check_license_meta(&body, EXPECTED_LS_STORE_ID, EXPECTED_LS_PRODUCT_IDS) {
+            valid = false;
+            error_msg = e;
+        }
+    }
     let license_key_id = body
         .get("license_key")
         .and_then(|l| l.get("id"))

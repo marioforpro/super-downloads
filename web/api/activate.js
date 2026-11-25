@@ -4,7 +4,8 @@
 // AIRTABLE_BASE_ID, AIRTABLE_SD_USERS_TABLE.
 //
 // Marketing consent: only counts when the app sends the exact wording of the
-// box the person ticked (`marketingConsentText`). App 1.5.6+ shows that box
+// box the person ticked (`marketingConsentText`) and it equals the server-side
+// copy in _shared.js (CONSENT_TEXTS); the copy is what gets stored. App 1.5.6+ shows that box
 // unticked and sends the text; 1.5.5 and earlier showed it pre-ticked, which
 // is not valid consent (GDPR), so those opt-ins are stored as false.
 //
@@ -17,6 +18,7 @@
 // made (SD_UNSUB_SECRET) — the email then carries it in the footer and in the
 // List-Unsubscribe headers. Everyone else gets the welcome email without it.
 import { unsubUrl } from './_unsub.js';
+import { airtableConfig, airtableFetch, consentWording, findByEmail, rateLimited } from './_shared.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ARCHS = ['aarch64', 'x86_64', 'unknown'];
@@ -141,17 +143,47 @@ export default async function handler(req, res) {
     return send(res, 400, { ok: false, error: 'invalid_email' });
   }
 
-  const token = process.env.AIRTABLE_TOKEN;
-  const base = process.env.AIRTABLE_BASE_ID;
-  const table = process.env.AIRTABLE_SD_USERS_TABLE;
-  if (!token || !base || !table) {
+  const cfg = airtableConfig();
+  if (!cfg) {
     return send(res, 503, { ok: false, error: 'not_configured' });
   }
+  if (rateLimited(req, email, 'activate')) {
+    res.setHeader('Retry-After', '3600');
+    return send(res, 429, { ok: false, error: 'rate_limited' });
+  }
+
+  // Look the address up first: one activation row and at most one welcome email
+  // per address, and nobody who withdrew consent is opted back in by a request.
+  let existing;
+  try {
+    existing = await findByEmail(cfg, email, ['Email', 'Activated At', 'Marketing Opt-in', 'Marketing Withdrawn At', 'Welcome Sent At']);
+  } catch {
+    console.error('[activate] Airtable lookup failed');
+    return send(res, 502, { ok: false, error: 'upstream' });
+  }
+  const withdrawn = existing.some((r) => r.fields?.['Marketing Withdrawn At']);
+  const alreadyOptedIn = existing.some((r) => r.fields?.['Marketing Opt-in'] === true);
+  const activatedRow = existing.find((r) => r.fields?.['Activated At']);
 
   const now = new Date().toISOString();
   const arch = ARCHS.includes(body.arch) ? body.arch : 'unknown';
-  const consentText = clamp(body.marketingConsentText, 300);
-  const consent = body.marketingOptIn === true && consentText !== '';
+  // Consent only counts with the exact wording of a box we ship; what is stored
+  // is our copy of it, not the client's text.
+  const consentText = consentWording(body.marketingConsentText, 'app');
+  const consent = body.marketingOptIn === true && consentText !== '' && !withdrawn;
+  const consentFields = { 'Marketing Opt-in': true, 'Marketing Consent At': now, 'Marketing Consent Text': consentText };
+
+  if (activatedRow) {
+    // Repeat sync (retry after a timeout, reinstall): no second row, no email.
+    // A first-time consent tick on a later sync is still recorded.
+    if (consent && !alreadyOptedIn) {
+      try {
+        await airtableFetch(cfg, { method: 'PATCH', payload: { records: [{ id: activatedRow.id, fields: consentFields }] } });
+      } catch {}
+    }
+    return send(res, 200, { ok: true });
+  }
+
   const fields = {
     Email: email,
     'Activated At': now,
@@ -167,16 +199,9 @@ export default async function handler(req, res) {
     fields['Marketing Consent Text'] = consentText;
   }
 
-  const airtable = (method, path, payload) =>
-    fetch(`https://api.airtable.com/v0/${encodeURIComponent(base)}/${encodeURIComponent(table)}${path}`, {
-      method,
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-
   let recordId = null;
   try {
-    const r = await airtable('POST', '', { records: [{ fields }], typecast: true });
+    const r = await airtableFetch(cfg, { method: 'POST', payload: { records: [{ fields }], typecast: true } });
     if (!r.ok) {
       console.error('[activate] Airtable status', r.status);
       return send(res, 502, { ok: false, error: 'upstream' });
@@ -188,10 +213,11 @@ export default async function handler(req, res) {
   }
 
   // The welcome email never blocks or fails an activation. Only real app
-  // activations get it (the landing never activates), once per sync.
-  if (fields.Source === 'app' && fields['App Version'] && (await sendWelcome(email, consent && OTHER_APPS_RE.test(consentText))) && recordId) {
+  // activations get it (the landing never activates), and only to an address
+  // that had no row at all (so never twice, and never to a web sign-up).
+  if (existing.length === 0 && fields.Source === 'app' && fields['App Version'] && (await sendWelcome(email, consent && OTHER_APPS_RE.test(consentText))) && recordId) {
     try {
-      await airtable('PATCH', '', { records: [{ id: recordId, fields: { 'Welcome Sent At': new Date().toISOString() } }] });
+      await airtableFetch(cfg, { method: 'PATCH', payload: { records: [{ id: recordId, fields: { 'Welcome Sent At': new Date().toISOString() } }] } });
     } catch {}
   }
   return send(res, 200, { ok: true });

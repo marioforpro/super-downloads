@@ -21,12 +21,14 @@ const ok = (cond, name) => {
 let calls = [];
 let airtableOk = true;
 globalThis.fetch = async (url, opts = {}) => {
+  // The look-up before insert (GET) finds nothing and is not recorded; extra rules live in test-abuse.mjs.
+  if ((opts.method || 'GET') === 'GET') return { ok: true, status: 200, json: async () => ({ records: [] }) };
   calls.push({ url: String(url), method: opts.method || 'GET', body: opts.body ? JSON.parse(opts.body) : null });
   return { ok: airtableOk, status: airtableOk ? 200 : 422, json: async () => ({ records: [{ id: 'rec1' }] }) };
 };
 const res = () => ({ statusCode: 0, headers: {}, body: '', setHeader(k, v) { this.headers[k] = v; }, end(b) { this.body = b || ''; } });
 const call = async (req) => { const r = res(); await subscribe(req, r); return r; };
-const TEXT = 'Email me about new versions and news from Super Downloads.';
+const TEXT = 'Email me about new versions and news from Super Downloads. A few emails a year; every one has a one-click unsubscribe.'; // server copy in web/api/_shared.js
 const good = { email: 'ed@example.com', consent: true, consentText: TEXT, place: 'faq' };
 
 process.env.AIRTABLE_TOKEN = 't';
