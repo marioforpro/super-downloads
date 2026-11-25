@@ -47,7 +47,7 @@ A run ends in one of two verdicts (also the exit code: 0 = certified):
 ## How to run
 
 ```bash
-cd /Users/supermac/Desktop/DEV/01_Projects/SUPER-DOWNLOADS
+cd ~/Desktop/DEV/01_Projects/SUPER-DOWNLOADS
 
 ./scripts/platform-health-check.sh                    # bundled engine (what ships) — default
 ./scripts/platform-health-check.sh --cookies          # + Chrome cookies as the RETRY, like the app (logged-out first)
@@ -136,7 +136,7 @@ A `launchd` agent runs the check **daily at 10:00**:
   platforms *changes* (newly broken or recovered). State:
   `~/Library/Application Support/SuperDownloads/health-failing.txt`.
 - Every run logs to `~/Library/Logs/super-downloads-health.log`.
-- The plist uses absolute paths via the `/Users/supermac/Desktop/DEV` symlink
+- The plist uses absolute paths via the `~/Desktop/DEV` symlink
   (LifeOS launchd rule: no `$HOME`/`~`/shell vars in plists).
 
 Manage it:

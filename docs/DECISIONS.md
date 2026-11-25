@@ -24,13 +24,13 @@
 **Decision (founder):** the app sends one anonymous `app_active` event a day (PostHog, cookieless, no person profile, no IP), **on by default (opt-out)**, under the CNIL/AEPD audience-measurement exemption. The conditions are part of the decision: one purpose (counting active installs) · anonymous data · a random install id that lives at most 13 months · a clear notice before the first ping · an easy switch in Settings · a privacy text that explains all of it. Shipped in v1.5.5.
 **Supersedes:** «the App has no telemetry» in the privacy text before v1.5.5.
 
-## 2026-10-25 — No Mario Monteiro on any public surface; the brand speaks
-**Context:** Founder decision for all products (SP, SD, SPC, SG), relayed by the orchestrator: «Yo no quiero referencias a Mario Monteiro… no a mi cara y mi voz. Sí a demos, pero no con mi cara y mi voz. Lo que quiero es que estos sean empresas.»
+## 2026-10-25 — No founder identity on any public surface; the brand speaks
+**Context:** Founder decision for all products (SP, SD, SPC, SG): the products present as companies; no founder face, voice or name.
 **Decision (founder):**
 - No name, face, voice, signature or founder story anywhere a user or a search engine sees it: landing (footer, legal), JSON-LD, app texts, README, release notes, prepared social copy, demos. The voice is «Super Downloads» or «we».
-- Landing footer drops «Made by Mario Monteiro» (and its link to mariomonteiro.tv). Privacy names the controller as «Super Downloads ("we"), based in Spain» + support@superdownloads.app — same as SP/SPC/SG; the founder accepted the GDPR art. 13 risk of not naming a person (2026-10-23).
-- Super Downloads stays a free gift, but it no longer points to «Mario's other work»: no maker line, no portfolio cross-link.
-**Supersedes:** the 2026-10-23 entries below where they keep the maker line on the landing/app and frame the app as a path to Mario's work.
+- Landing footer drops the personal maker line (and its link to the founder's portfolio). Privacy names the controller as «Super Downloads ("we"), based in Spain» + support@superdownloads.app — same as SP/SPC/SG.
+- Super Downloads stays a free gift, but it no longer points to «the founder's other work»: no maker line, no portfolio cross-link.
+**Supersedes:** the 2026-10-23 entries below where they keep the maker line on the landing/app and frame the app as a path to the founder's work.
 **Not changed:** the GitHub account `marioforpro` (download and changelog URLs) — an account matter, handled by the orchestrator.
 
 ## 2026-10-23 — Landing: no timeline strip under the hero; demo not posted on social yet
@@ -39,18 +39,18 @@
 shows the timeline in context). Nav and buttons get a subtle LED edge + glow («tech future, sin pasarse»), the hero window too — its edge kept to a fine blue hairline, no white corners (founder, same day: «demasiado brillante blanco, debe ser más fino, elegante»).
 The v8 demo goes on the landing; **nothing is posted on Instagram/X for now**. Demo music = the founder's original Suno track.
 
-## 2026-10-23 — The demo film carries no «Made by Mario Monteiro»
+## 2026-10-23 — The demo film carries no personal maker line
 **Context:** Founder review of the demo v5: «no es necesario tenerlo tan visible en la demo».
 **Decision (founder):** the end card is the product alone — icon, «Super Downloads», «Free for Mac · superdownloads.app», the film credit. The maker line stays on the landing and in the app (decision below); only the demo drops it.
 
-## 2026-10-23 — Super Downloads is a lead magnet: a gift that leads to Mario's other work
-**Context:** Open questions from the landing review: what happens after «Free for a limited time», and whether to keep the «Made by Mario Monteiro» line.
+## 2026-10-23 — Super Downloads is a lead magnet: a gift that leads to the founder's other work
+**Context:** Open questions from the landing review: what happens after «Free for a limited time», and whether to keep the personal maker line.
 **Decision (founder):**
-- **Role:** the app is a lead magnet — something Mario gives to followers, friends and clients, and that brings them to know his other projects.
-- ~~**Maker line stays** («Made by Mario Monteiro»).~~ *Superseded 2026-10-25: removed everywhere.*
+- **Role:** the app is a lead magnet — something the founder gives to followers, friends and clients, and that brings them to know his other projects.
+- ~~**Maker line stays** (the personal maker line).~~ *Superseded 2026-10-25: removed everywhere.*
 - **Free, no end date for now.** «Free for a limited time» copy stays as is; monetization is considered only if downloads and usage grow a lot. Not now.
-**Consequence:** Success = people who download, activate (email list) and then discover Mario's other work — not revenue. Product choices favour reach and a path to Mario's work over gating. The FAQ keeps saying nothing about the end of the free period.
-**Why:** a useful free tool for editors earns attention and goodwill from exactly the audience Mario's other projects serve.
+**Consequence:** Success = people who download, activate (email list) and then discover the founder's other work — not revenue. Product choices favour reach and a path to the founder's work over gating. The FAQ keeps saying nothing about the end of the free period.
+**Why:** a useful free tool for editors earns attention and goodwill from exactly the audience the founder's other projects serve.
 
 ## 2026-10-23 — App CSP keeps `img-src https:` (audit T1 closed, won't-fix)
 **Context:** The 2026-03-24 audit (T1) suggested narrowing the app's `img-src 'self' https: data:` to thumbnail domains; it was the last open audit item.
@@ -81,7 +81,7 @@ The v8 demo goes on the landing; **nothing is posted on Instagram/X for now**. D
 
 ## 2026-10-03 — No public launch for now: private use + friends testing
 **Context:** v1.4.0 published; the next roadmap step was the public announcement (R-SD-002, r/macapps + Show HN).
-**Decision (founder):** «no quiero poner ningún anuncio, primero es para mí y mis amigos y vamos testeando, ya veremos si la promociono». No announcement. The app is used by Mario and shared with friends as a test phase; promotion is decided later.
+**Decision (founder):** «no quiero poner ningún anuncio, primero es para mí y mis amigos y vamos testeando, ya veremos si la promociono». No announcement. The app is used by the founder and shared with friends as a test phase; promotion is decided later.
 **Consequence:** R-SD-002 → on hold. `docs/ANNOUNCEMENT-DRAFT.md` kept up to date (v1.4.0 facts) but marked paused. The public site and GitHub releases stay as they are (they already serve the free app).
 
 ## 2026-10-03 — "Best" always means the highest resolution available (4K included)

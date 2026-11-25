@@ -41,9 +41,9 @@
 
 - [ ] Reddit: r/macapps, r/commandline, r/selfhosted
 - [ ] Hacker News: Show HN post
-- [ ] X/Twitter: announcement from a Super Downloads brand account — *a personal account is REJECTED (Mario, 2026-10-25: no Mario Monteiro on any product surface)*
+- [ ] X/Twitter: announcement from a Super Downloads brand account — *a personal account is REJECTED (the founder, 2026-10-25: no the founder on any product surface)*
 - [ ] LinkedIn: Post to professional network
-- ~~mariomonteiro.tv: Add to portfolio / projects section~~ — **REJECTED by Mario 2026-10-25** (products are not tied to his name)
+- ~~the founder's portfolio site: Add to portfolio / projects section~~ — **REJECTED by the founder 2026-10-25** (products are not tied to his name)
 
 **Launch copy draft** (to refine):
 > Super Downloads — a native macOS app built for editors. Download video from YouTube, TikTok, and Vimeo (Instagram, Facebook, X, and LinkedIn supported via your browser's login, best-effort), delivered edit-ready as H.264/MP4 for Premiere Pro. For content you own or are authorized to use. One-time purchase, no subscription. Built with Tauri.

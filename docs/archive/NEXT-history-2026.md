@@ -21,7 +21,7 @@
 
 > **NEXT (2026-10-03, noche) — v1.4.0 lista para construir (superado):** commits `276bb4a`…`c9428af` en `main`, sin push. Incluye: fix del congelamiento al abrir (~7s), motor yt-dlp *onedir* (~7s → 0,2s por llamada), opt-in de emails marcado por defecto, Settings rediseñado, pasada QA completa (E2E real: 7 plataformas, cancelación, playlist, conversión H.264 con progreso real), Vimeo en 3 pasos (DRM de autor = mensaje claro, nunca se salta). **Pasos:** (decidido: «Best» = siempre máxima calidad, 4K incluido — `docs/DECISIONS.md`) `! source ~/.secrets && ./scripts/make-release.sh` → verificar build (arranque, motor en `Contents/Resources/yt-dlp-engine`, Settings en WebKit real) → `./scripts/make-release.sh --no-build --publish` + `git push` (despliega Terms/Privacy actualizados). Luego el anuncio (R-SD-002).
 
-> **NEXT (2026-10-03):** **v1.3.0 FREE publicada** (release GitHub, updater 1.3.0, landing «Free for a limited time», activaciones → Airtable `SD · Users` verificadas). Siguiente: **publicar el anuncio** (R-SD-002, `docs/ANNOUNCEMENT-DRAFT.md`: r/macapps + Show HN) — lo postea Mario. Contraseña del updater: `load-secrets` (ver `docs/DEVELOPMENT.md`).
+> **NEXT (2026-10-03):** **v1.3.0 FREE publicada** (release GitHub, updater 1.3.0, landing «Free for a limited time», activaciones → Airtable `SD · Users` verificadas). Siguiente: **publicar el anuncio** (R-SD-002, `docs/ANNOUNCEMENT-DRAFT.md`: r/macapps + Show HN) — lo postea el founder. Contraseña del updater: `load-secrets` (ver `docs/DEVELOPMENT.md`).
 
 > **NEXT (2026-09-27, superado por la v1.3.0):** fix de LinkedIn en `main` (`99768b6` — sin cookies primero, cookies sólo como reintento; con sesión abierta en el navegador la descarga fallaba) **sin publicar**: llega a los usuarios sólo con una release (v1.2.1). Primer paso: decidir si se publica → `npm run tauri build` + `scripts/check-release-artifacts.sh` (OPS.md). Health check 7/7 CERTIFIED; `cargo fmt --check` marca una línea heredada de `c587dbb` (Vimeo) — `npm run check` no estará verde hasta formatearla.
 ---
@@ -157,7 +157,7 @@ Adjunto los dos items que pediste:
 Quedamos a la espera del approval para activar la store en producción.
 
 Gracias,
-Mario
+el founder
 ```
 
 - [ ] Send reply

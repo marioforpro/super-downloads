@@ -1,8 +1,8 @@
 # BORRADOR EN PAUSA — no publicar (decisión founder 2026-10-03)
 
-> **Estado:** R-SD-002 **en pausa**. Mario usa la app él mismo y con amigos para testearla; la promoción pública se decide más adelante (`docs/DECISIONS.md` 2026-10-03). Este copy se mantiene al día para ese momento — no es un plan activo.
+> **Estado:** R-SD-002 **en pausa**. el founder usa la app él mismo y con amigos para testearla; la promoción pública se decide más adelante (`docs/DECISIONS.md` 2026-10-03). Este copy se mantiene al día para ese momento — no es un plan activo.
 >
-> **Voz de marca (Mario, 2026-10-25):** habla «Super Downloads» o «we» — sin «I», sin firma, sin historia del fundador, sin el nombre de Mario. Las versiones en primera persona («I'm Mario, the developer…») quedan RECHAZADAS.
+> **Voz de marca (el founder, 2026-10-25):** habla «Super Downloads» o «we» — sin «I», sin firma, sin historia del fundador, sin el nombre del founder. Las versiones en primera persona («I'm el founder, the developer…») quedan RECHAZADAS.
 >
 > Actualizado 2026-10-03 contra la **v1.4.0** publicada. Hechos verificados en la sesión de QA de ese día (E2E real en 7 plataformas).
 
@@ -77,6 +77,6 @@ Free for now, unsigned, for content you own or are authorized to download. Feedb
 - [ ] Instagram: re-verificar el fallback sin login con `scripts/platform-health-check.sh --ig-fallback` (sus URLs de prueba estaban muertas el 2026-10-03).
 - [ ] Repo público **sin licencia** (código visible, no open source): decidir si se menciona el repo y con qué licencia antes de enlazarlo en HN.
 - [ ] Normas de r/macapps (flair/disclosure de autor) revisadas el día.
-- [ ] OK explícito de Mario.
+- [ ] OK explícito del founder.
 
 Nota: `docs/archive/LAUNCH-PLAN-2026-03.md` (archivado) sigue en modo de pago (LAUNCH30) y está desfasado; no usar ese copy.

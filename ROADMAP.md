@@ -39,7 +39,7 @@ updated: 2026-11-21
   - added: 2026-10-25
   - moved: 2026-10-26
   - scope: branch `release/v1.5.6` (built, not published): marketing consent unticked with its wording (Planet49) · one-time «share it» notice after the 10th download · Tauri 2.12 + cargo/npm refresh · turn on the welcome email (Resend) · release pipeline adds a VirusTotal upload + `VT_SCANNED` before publishing.
-  - shipped: 2026-10-26 — founder yes (SD-F-018). Tag `9155d41`; latest.json 1.5.6 verified live, updater signature valid with the 1.5.x key, web SHA-256 = binary, `test-live-site` 29/29; Dependabot 21 → 1 (glib, Linux-only). Web «Free» with no deadline (SD-F-016, `af8b6d6`+`e649dee`); the in-app activation card still says «limited time» until the next app release. One-click unsubscribe + Super Guides P.S. for consented users built (`2ca232d`), off until Mario adds the Resend + Vercel env vars. Report `_done/2026-10-26-super-downloads-v156-signing-ps.md`.
+  - shipped: 2026-10-26 — founder yes (SD-F-018). Tag `9155d41`; latest.json 1.5.6 verified live, updater signature valid with the 1.5.x key, web SHA-256 = binary, `test-live-site` 29/29; Dependabot 21 → 1 (glib, Linux-only). Web «Free» with no deadline (SD-F-016, `af8b6d6`+`e649dee`); the in-app activation card still says «limited time» until the next app release. One-click unsubscribe + Super Guides P.S. for consented users built (`2ca232d`), off until the founder adds the Resend + Vercel env vars. Report `_done/2026-10-26-super-downloads-v156-signing-ps.md`.
 - **R-SD-013** · P1 · shipped · v1.5.5 — Vimeo + Instagram fixes, «Copy. Paste. Done.», anonymous daily active ping
   - added: 2026-10-25
   - moved: 2026-10-25
@@ -53,8 +53,8 @@ updated: 2026-11-21
   - open_decision: D1–D5 in GTM §10 (launch date, Apple identity, PH, Uneed 29,99 USD, SD→SG cross-promo) — founder.
   - depends_on: R-SD-009
   - target: 2027-01-26
-  - update 2026-11-23: LinkedIn company page live — linkedin.com/company/superdownloads-app (logo + cover + About only; nothing posted until the launch). Instagram/Threads/Reddit profiles still Mario's.
-  - next: Claude: AlternativeTo + Uneed listings ready to submit in November, SEO pages 1–3 + `llms.txt`, open STUDIO jobs S1–S4 · Mario: decide D1–D5, create the brand profiles (Instagram, Threads, Reddit) and connect Buffer.
+  - update 2026-11-23: LinkedIn company page live — linkedin.com/company/superdownloads-app (logo + cover + About only; nothing posted until the launch). Instagram/Threads/Reddit profiles still the founder's.
+  - next: Claude: AlternativeTo + Uneed listings ready to submit in November, SEO pages 1–3 + `llms.txt`, open STUDIO jobs S1–S4 · the founder: decide D1–D5, create the brand profiles (Instagram, Threads, Reddit) and connect Buffer.
 - **R-SD-005** · P0 · shipped · Landing refresh — real app screenshots, OG image, editor-first design
   - added: 2026-10-23
   - moved: 2026-10-23
@@ -123,7 +123,7 @@ updated: 2026-11-21
   - dropped: 2026-10-25
   - dropped_reason: merged into R-SD-012 (GTM plan). The old form no longer works: r/macapps rule 8 limits non-qualifying developers to the monthly megathread, and Show HN asks for a personal, handwritten post with no email gate.
   - merged_into: R-SD-012
-  - deferral: 2026-10-03 (on hold) — founder: no announcement for now; the app is for Mario + friends to test first, promotion decided later (`docs/DECISIONS.md` 2026-10-03). Draft kept current for v1.4.0 in `docs/ANNOUNCEMENT-DRAFT.md`.
+  - deferral: 2026-10-03 (on hold) — founder: no announcement for now; the app is for the founder + friends to test first, promotion decided later (`docs/DECISIONS.md` 2026-10-03). Draft kept current for v1.4.0 in `docs/ANNOUNCEMENT-DRAFT.md`.
   - note: 2026-10-03 (was «unblocked») — v1.3.0 free-mode build published and the landing is live with free-mode copy; the announcement can go out (`docs/ANNOUNCEMENT-DRAFT.md`). Founder posts.
   - next: none while on hold — when promotion is decided, start from the checklist in `docs/ANNOUNCEMENT-DRAFT.md` §3. [Historical: copy DRAFTED (OOO-auto 2026-10-02) → `docs/ANNOUNCEMENT-DRAFT.md` (r/macapps + Show HN + pre-post checklist); post only after the free-mode build ships and `web/src/pages/index.astro` drops «5 downloads per day» / «€29 Pro»]
   - note: 2026-08-10 · re-anclada por la decisión free-until-further-notice (`docs/DECISIONS.md §2026-08-10`) — el announcement ya NO espera el checkout LS; espera la build en modo free + el copy de landing actualizado. El ángulo "Free for a limited time" ES parte del pitch del announcement.
@@ -132,7 +132,7 @@ updated: 2026-11-21
   - moved: 2026-10-03
 - **R-SD-004** · P0 · shipped · Relaunch hardening — v1.2.0 reliability release + legal repositioning
   - note: 2026-10-03 · **v1.3.0 FREE mode shipped** (founder decision 2026-08-10): no daily limit, license gate hidden (LemonSqueezy code intact behind `FREE_MODE`), email activation via `register_activation` → `web/api/activate.js` → Airtable workspace SUPER DOWNLOADS › `SD · Users`; release published, updater serves 1.3.0 (both arches), activation verified E2E. Track C2 (LemonSqueezy) stays deferred.
-  - gate: Big Sur (Santalucía / Oriol Villar) client delivery — founder decision 2026-07-27, Weekly Loop. Reopen the moment Big Sur ships. This item is NOT blocked: nothing external stops Track C2, the founder's attention is committed elsewhere and saying so out loud beats carrying an unworked P0. Two consecutive Weekly Loops (2026-07-19, 2026-07-27) named C2 as the next move and neither week moved it — the gate records why instead of letting the board keep asserting a priority that execution contradicts.
+  - gate: a client delivery — founder decision 2026-07-27, Weekly Loop. Reopen the moment Big Sur ships. This item is NOT blocked: nothing external stops Track C2, the founder's attention is committed elsewhere and saying so out loud beats carrying an unworked P0. Two consecutive Weekly Loops (2026-07-19, 2026-07-27) named C2 as the next move and neither week moved it — the gate records why instead of letting the board keep asserting a priority that execution contradicts.
   - gate-resolved: 2026-08-03 — founder decision SD-F-002 «Aceptar (a) — ships» (ledger: `00_System/AUDITS/2026-08-03-audit-program-final-consolidation/FOUNDER-DECISIONS-RESPONSES-2026-08-03.md` §1.1). The client-facing Big Sur v1 delivery on 2026-07-30 satisfies the gate ("Big Sur" = the STUDIO client job, not macOS 11). **Track C2 (six Lemon Squeezy E2E gates, `NEXT.md` step 4) is the live next move.** The four remaining STUDIO client loose ends stay in STUDIO as quality/licensing residue and do NOT re-block this item. Unblocks R-SD-002 and R-GROW-003.
   - status 2026-08-03: trigger satisfied · **the six LS E2E gates remain UNEXECUTED** (product work, founder-in-the-loop) · v1.2.0 publicly distributed (release URLs verified 200 on 2026-08-03) but commercially unverified · signing/notarization decision (SD-F-009) still open — no build/release/signing until the founder answers it.
   - note: 2026-08-16 · SD-F-009 resolved (a) by the founder (OOO) — deferral kept for the FREE launch; the build hold is released; unsigned DMG + install instructions (xattr / «Open Anyway» on macOS 15) belong to the free-mode task in `00_System/TASKS.md`. Revisit signing at >100 downloads (today 45 DMG total) or install complaints.

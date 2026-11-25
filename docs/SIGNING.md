@@ -28,7 +28,7 @@ Dos trampas encontradas en el ensayo, ya resueltas en los scripts:
    enlaces simbólicos) y `codesign` lo rechaza como «bundle ambiguo». El motor carga `_internal/Python` y
    funciona sin el framework → `nested` lo quita de la copia firmada.
 
-## El día del alta (Mario, ~30 min + la espera de Apple)
+## El día del alta (el founder, ~30 min + la espera de Apple)
 
 1. **Alta:** developer.apple.com/programs/enroll → *Individual* → tu Apple ID con doble factor → 99 USD/año.
    Apple verifica la identidad (normalmente 1–2 días). El nombre legal sale en el diálogo de instalación;
@@ -50,7 +50,7 @@ Dos trampas encontradas en el ensayo, ya resueltas en los scripts:
    ```
 5. **Comprobación:** `load-secrets && ./scripts/macos-sign.sh preflight` → `preflight OK`.
 
-## La primera release firmada (Claude, con Mario delante)
+## La primera release firmada (Claude, con el founder delante)
 
 1. Versión nueva (v1.6.0) como siempre (`docs/OPS.md` § Release pipeline, pasos 1–3).
 2. `load-secrets && ./scripts/make-release.sh` — compila, firma, notariza (unos minutos por arquitectura) y

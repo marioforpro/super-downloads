@@ -138,7 +138,7 @@ f2a8c14 feat: Phase 1 must-haves — toast system, empty state, open file, histo
 
 ### Configuration
 - Auto-approve (`bypassPermissions`) set globally in `~/.claude/settings.json`
-- Vercel CLI authenticated for `monteirolabs`
+- Vercel CLI authenticated for `the team account`
 
 ### Commits
 ```
