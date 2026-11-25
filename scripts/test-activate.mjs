@@ -13,8 +13,11 @@ const ok = (cond, name) => {
 };
 
 let calls = [];
+let seq = 0;
 globalThis.fetch = async (url, opts = {}) => {
   calls.push({ url, method: opts.method, body: opts.body ? JSON.parse(opts.body) : null });
+  // Look-up before insert: the address is never on the list yet (dedupe has its own test).
+  if (url.includes('airtable') && (opts.method || 'GET') === 'GET') return { ok: true, status: 200, json: async () => ({ records: [] }) };
   if (url.includes('airtable')) return { ok: true, status: 200, json: async () => ({ records: [{ id: 'recTEST' }] }) };
   if (url.includes('resend')) return { ok: true, status: 200, json: async () => ({ id: 'em_1' }) };
   return { ok: false, status: 404 };
@@ -23,6 +26,8 @@ globalThis.fetch = async (url, opts = {}) => {
 async function call(body, method = 'POST') {
   calls = [];
   const res = { statusCode: 0, headers: {}, body: '', setHeader(k, v) { this.headers[k] = v; }, end(b) { this.body = b || ''; } };
+  // A distinct address per call keeps the per-address rate limit out of the way.
+  if (body && body.email === 'a@b.co') body = { ...body, email: `u${++seq}@b.co` };
   await handler({ method, body }, res);
   return res;
 }
@@ -32,7 +37,7 @@ process.env.AIRTABLE_TOKEN = 't';
 process.env.AIRTABLE_BASE_ID = 'appX';
 process.env.AIRTABLE_SD_USERS_TABLE = 'tblX';
 const base = { email: 'a@b.co', appVersion: '1.5.6', arch: 'aarch64', osVersion: '15.1', instance: 'Mac', source: 'app' };
-const TEXT = 'Email me about app updates and other Super tools (optional)';
+const TEXT = 'Email me about updates and other Super apps'; // server copy in web/api/_shared.js
 
 // Methods and validation
 ok((await call(null, 'OPTIONS')).statusCode === 204, 'OPTIONS 204');
@@ -65,7 +70,7 @@ ok(!calls.some((c) => c.url.includes('resend')), 'flag off → no email');
 process.env.SD_WELCOME_EMAIL = 'on';
 r = await call(base);
 const mail = calls.find((c) => c.url.includes('resend'));
-ok(r.statusCode === 200 && mail && mail.body.to[0] === 'a@b.co', 'flag on → email sent');
+ok(r.statusCode === 200 && mail && /^u\d+@b\.co$/.test(mail.body.to[0]), 'flag on → email sent');
 ok(mail && mail.body.reply_to === 'support@superdownloads.app', 'reply-to support');
 ok(calls.some((c) => c.method === 'PATCH' && c.body.records[0].fields['Welcome Sent At']), 'Welcome Sent At patched');
 

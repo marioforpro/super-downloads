@@ -3,6 +3,7 @@
 // Run: node scripts/test-unsubscribe.mjs
 import activate, { welcomeEmail, OTHER_APPS_RE } from '../web/api/activate.js';
 import unsubscribe from '../web/api/unsubscribe.js';
+import { resetRateLimits } from '../web/api/_shared.js';
 import { unsubToken, unsubUrl, validToken } from '../web/api/_unsub.js';
 
 let pass = 0;
@@ -17,8 +18,11 @@ const ok = (cond, name) => {
 
 let calls = [];
 let airtableRecords = [{ id: 'rec1' }, { id: 'rec2' }];
+let activating = false;
 globalThis.fetch = async (url, opts = {}) => {
   calls.push({ url: String(url), method: opts.method || 'GET', body: opts.body ? JSON.parse(opts.body) : null });
+  // Activation looks the address up first: during activateWith() it is not on the list yet.
+  if (String(url).includes('airtable') && (opts.method || 'GET') === 'GET' && activating) return { ok: true, status: 200, json: async () => ({ records: [] }) };
   if (String(url).includes('airtable')) return { ok: true, status: 200, json: async () => ({ records: airtableRecords }) };
   if (String(url).includes('resend')) return { ok: true, status: 200, json: async () => ({ id: 'em_1' }) };
   return { ok: false, status: 404 };
@@ -35,8 +39,11 @@ const base = { email: 'Ed@Example.com', appVersion: '1.5.6', arch: 'aarch64', os
 const sent = () => calls.find((c) => c.url.includes('resend'))?.body;
 async function activateWith(extra) {
   calls = [];
+  resetRateLimits();
+  activating = true;
   const r = res();
   await activate({ method: 'POST', body: { ...base, ...extra } }, r);
+  activating = false;
   return sent();
 }
 

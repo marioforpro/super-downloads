@@ -9,6 +9,8 @@
 // sent to this list carries the one-click unsubscribe (/api/unsubscribe).
 // Nothing is emailed from here: no confirmation email yet (would need Resend).
 
+import { airtableConfig, airtableFetch, consentWording, findByEmail, rateLimited } from './_shared.js';
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PLACES = ['hero', 'download', 'faq'];
 
@@ -53,34 +55,37 @@ export default async function handler(req, res) {
   if (!email || email.length > 254 || !EMAIL_RE.test(email)) {
     return send(res, 400, { ok: false, error: 'invalid_email' });
   }
-  const consentText = typeof body.consentText === 'string' ? body.consentText.trim().slice(0, 300) : '';
+  const consentText = consentWording(body.consentText, 'web');
   if (body.consent !== true || !consentText) {
     return send(res, 400, { ok: false, error: 'consent_required' });
   }
 
-  const token = process.env.AIRTABLE_TOKEN;
-  const base = process.env.AIRTABLE_BASE_ID;
-  const table = process.env.AIRTABLE_SD_USERS_TABLE;
-  if (!token || !base || !table) return send(res, 503, { ok: false, error: 'not_configured' });
-
-  const now = new Date().toISOString();
-  const place = PLACES.includes(body.place) ? body.place : 'web';
-  const fields = {
-    Email: email,
-    Source: 'web',
-    Instance: `web:${place}`,
-    'Marketing Opt-in': true,
-    'Marketing Consent At': now,
-    'Marketing Consent Text': consentText,
-  };
+  const cfg = airtableConfig();
+  if (!cfg) return send(res, 503, { ok: false, error: 'not_configured' });
+  if (rateLimited(req, email, 'subscribe')) {
+    res.setHeader('Retry-After', '3600');
+    return send(res, 429, { ok: false, error: 'rate_limited' });
+  }
 
   try {
-    const r = await fetch(`https://api.airtable.com/v0/${encodeURIComponent(base)}/${encodeURIComponent(table)}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ records: [{ fields }], typecast: true }),
-      signal: AbortSignal.timeout(8000),
-    });
+    // Nothing nobody confirmed can undo an unsubscribe or pile up rows: an address
+    // that already opted in, or that withdrew, gets a quiet success and no new row.
+    const existing = await findByEmail(cfg, email, ['Email', 'Marketing Opt-in', 'Marketing Withdrawn At']);
+    if (existing.some((r) => r.fields?.['Marketing Opt-in'] === true || r.fields?.['Marketing Withdrawn At'])) {
+      return send(res, 200, { ok: true });
+    }
+
+    const now = new Date().toISOString();
+    const place = PLACES.includes(body.place) ? body.place : 'web';
+    const fields = {
+      Email: email,
+      Source: 'web',
+      Instance: `web:${place}`,
+      'Marketing Opt-in': true,
+      'Marketing Consent At': now,
+      'Marketing Consent Text': consentText,
+    };
+    const r = await airtableFetch(cfg, { method: 'POST', payload: { records: [{ fields }], typecast: true } });
     if (!r.ok) {
       console.error('[subscribe] Airtable status', r.status);
       return send(res, 502, { ok: false, error: 'upstream' });

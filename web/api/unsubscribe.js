@@ -7,6 +7,7 @@
 //                  one-click POST lands here too)
 // Env: AIRTABLE_TOKEN, AIRTABLE_BASE_ID, AIRTABLE_SD_USERS_TABLE, SD_UNSUB_SECRET.
 import { validToken } from './_unsub.js';
+import { AIRTABLE_TIMEOUT_MS, airtableConfig, findByEmail } from './_shared.js';
 
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -47,18 +48,17 @@ export default async function handler(req, res) {
   const table = process.env.AIRTABLE_SD_USERS_TABLE;
   if (!tokenEnv || !base || !table) return page(res, 503, 'Try again later', '<p>We couldn’t reach the list. Reply to any of our emails with «unsubscribe».</p>');
 
-  const url = `https://api.airtable.com/v0/${encodeURIComponent(base)}/${encodeURIComponent(table)}`;
-  const headers = { Authorization: `Bearer ${tokenEnv}`, 'Content-Type': 'application/json' };
+  const cfg = airtableConfig();
+  const url = cfg.url;
+  const headers = cfg.headers;
   try {
-    const formula = `LOWER(TRIM({Email}))='${email.replace(/'/g, "\\'")}'`;
-    const found = await fetch(`${url}?filterByFormula=${encodeURIComponent(formula)}&fields%5B%5D=Email&pageSize=100`, { headers });
-    if (!found.ok) throw new Error(`find ${found.status}`);
-    const ids = ((await found.json()).records || []).map((r) => r.id);
+    const ids = (await findByEmail(cfg, email)).map((r) => r.id);
     const now = new Date().toISOString();
     for (let i = 0; i < ids.length; i += 10) {
       const r = await fetch(url, {
         method: 'PATCH',
         headers,
+        signal: AbortSignal.timeout(AIRTABLE_TIMEOUT_MS),
         body: JSON.stringify({ records: ids.slice(i, i + 10).map((id) => ({ id, fields: { 'Marketing Opt-in': false, 'Marketing Withdrawn At': now } })) }),
       });
       if (!r.ok) throw new Error(`patch ${r.status}`);
