@@ -901,14 +901,7 @@ fn start_download<R: Runtime>(
         } else {
             final_format_ext.clone()
         };
-        let mut metadata_thumbnail = thumbnail_url.clone();
-        if is_instagram {
-            if let Some(local_thumbnail) =
-                cache_thumbnail_for_download(window.app_handle(), &ytdlp_path, &url, &download_id)
-            {
-                metadata_thumbnail = local_thumbnail;
-            }
-        }
+        let metadata_thumbnail = thumbnail_url.clone();
 
         // Emit download-started event with thumbnail
         let _ = window.emit(
@@ -3086,53 +3079,6 @@ fn thumbnail_cache_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String
     fs::create_dir_all(&thumb_dir)
         .map_err(|e| format!("Failed to create thumbnail cache directory: {}", e))?;
     Ok(thumb_dir)
-}
-
-fn cache_thumbnail_for_download<R: Runtime>(
-    app: &AppHandle<R>,
-    ytdlp_path: &str,
-    url: &str,
-    download_id: &str,
-) -> Option<String> {
-    let cache_dir = thumbnail_cache_dir(app).ok()?;
-    let prefix = format!("thumb-{}", download_id);
-
-    if let Ok(entries) = fs::read_dir(&cache_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("");
-            if stem == prefix {
-                let _ = fs::remove_file(path);
-            }
-        }
-    }
-
-    let template = cache_dir.join(format!("{}.%(ext)s", prefix));
-    let output = Command::new(ytdlp_path)
-        .arg("--skip-download")
-        .arg("--no-playlist")
-        .arg("--write-thumbnail")
-        .arg("--convert-thumbnails")
-        .arg("jpg")
-        .arg("-o")
-        .arg(template.to_string_lossy().to_string())
-        .arg(url)
-        .output()
-        .ok()?;
-
-    if !output.status.success() {
-        return None;
-    }
-
-    let preferred_exts = ["jpg", "jpeg", "webp", "png"];
-    for ext in preferred_exts {
-        let candidate = cache_dir.join(format!("{}.{}", prefix, ext));
-        if candidate.exists() {
-            return Some(candidate.to_string_lossy().to_string());
-        }
-    }
-
-    None
 }
 
 fn download_history_path(app: &AppHandle) -> Result<PathBuf, String> {
