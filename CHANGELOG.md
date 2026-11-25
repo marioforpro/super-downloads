@@ -8,6 +8,15 @@ All notable changes to this project will be documented in this file.
 
 - **Web (live 2026-10-27):** /faq with 20 answers (/help and /support redirect to it), /llms.txt, three guides for editors on /guides, news sign-up without installing (consent box unticked), /press indexable, SHA-256 per version on /changelog and «Withdrawn» for the Apple Silicon builds before 1.5.8, IndexNow after each deploy, skip link, JSON-LD and meta fixes, «More from Super Apps» on /press.
 
+## [1.5.10] — 2026-11-25
+
+- **Downloads (audit 2026-11-24):** cancel only removes its own partial files (SD-04); Retry resumes with `--continue` on the same path (SD-06); confirmed playlists/channels use a per-entry template and NDJSON metadata (SD-05); file names capped at 200 bytes on a UTF-8 boundary (SD-08); Vimeo showcase/album ids no longer used as the video id (SD-09); Instagram carousel honours `img_index`; `%` escaped in yt-dlp templates; no "newest .mp4" guess when the output is missing.
+- **Lifecycle:** Update asks before cancelling running downloads and kills their process groups on update/quit (SD-07); Remove from List cancels first; cookie metadata passes time out and can be cancelled; first-attempt stderr drained concurrently; stall errors reported as stalls; launch housekeeping never deletes an engine in use.
+- **Conversion:** ffmpeg progress pipe drained to EOF; libx264 fallback when VideoToolbox fails; a failed conversion is reported, not hidden.
+- **App UI:** quotes escaped in the download list; turning history off deletes `download-history.json`.
+- **Release gate:** stale builds refused at staging (SD-10); FFmpeg source attached for both architectures (SD-03).
+- **Licence (dormant while free):** activation accepts only our Lemon Squeezy store/product (SD-02).
+
 ## [1.5.9] — 2026-11-21
 
 - **What's new:** after an update the app shows a «What's new» card with the real release notes (also in `latest.json`, so the update banner shows them).

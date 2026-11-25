@@ -12,6 +12,20 @@ export const knownIssues = [
 
 export const releases = [
   {
+    version: '1.5.10',
+    date: '2026-11-25',
+    notes: [
+      'Cancelling one download no longer touches the files of another download with a similar name.',
+      'Retry now picks up where the download stopped instead of starting again as a copy.',
+      'Playlists and channels you confirm save every video, each with its own name.',
+      'Long titles in Japanese, Chinese, Cyrillic or with emoji no longer fail with «File name too long».',
+      'Updating while downloads are running now asks first, and stops them cleanly.',
+      'Vimeo showcase links download the right video.',
+      'If a video can’t be converted, the app tells you instead of reporting success.',
+      'Turning off download history now also deletes the saved history.',
+    ],
+  },
+  {
     version: '1.5.9',
     date: '2026-11-21',
     notes: [
