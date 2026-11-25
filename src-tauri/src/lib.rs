@@ -2323,11 +2323,62 @@ fn probe_video_codec_and_duration(path: &str, ffmpeg_dir: &str) -> (Option<Strin
     (codec, duration)
 }
 
+// Reads ffmpeg's `-progress pipe:1` output to the end and reports whole
+// percentages. Without a known duration nothing is reported, but the pipe is
+// still drained: dropping it early would kill ffmpeg with SIGPIPE.
+fn drain_ffmpeg_progress<T: std::io::Read>(
+    reader: T,
+    duration: Option<f64>,
+    mut on_pct: impl FnMut(u8),
+) {
+    let total = duration.filter(|d| *d > 0.0);
+    let mut last = 0u8;
+    for line in BufReader::new(reader).lines().map_while(Result::ok) {
+        let Some(total) = total else { continue };
+        // out_time_us is in microseconds (out_time_ms is too, despite its name).
+        if let Some(us) = line
+            .strip_prefix("out_time_us=")
+            .and_then(|v| v.parse::<f64>().ok())
+        {
+            let pct = ((us / 1_000_000.0 / total) * 100.0).clamp(0.0, 99.0) as u8;
+            if pct > last {
+                last = pct;
+                on_pct(pct);
+            }
+        }
+    }
+}
+
+// Encoder-specific ffmpeg arguments for the Premiere-ready H.264 output.
+fn h264_encoder_args(encoder: &str) -> Vec<&'static str> {
+    let mut args = vec!["-c:v"];
+    if encoder == "libx264" {
+        args.extend(["libx264", "-crf", "18", "-preset", "medium"]);
+    } else {
+        args.extend(["h264_videotoolbox", "-q:v", "70"]);
+    }
+    args.extend(["-profile:v", "high", "-pix_fmt", "yuv420p"]);
+    args
+}
+
+fn ffmpeg_has_encoder(ffmpeg: &str, encoder: &str) -> bool {
+    Command::new(ffmpeg)
+        .args(["-v", "error", "-encoders"])
+        .output()
+        .map(|o| {
+            String::from_utf8_lossy(&o.stdout)
+                .lines()
+                .any(|l| l.split_whitespace().nth(1) == Some(encoder))
+        })
+        .unwrap_or(false)
+}
+
 // Premiere-ready guarantee: after the download, re-encode to H.264/AAC only when
 // the file's video isn't H.264 already (YouTube 4K VP9/AV1, TikTok HEVC…). The
 // codec is read from the actual file, so H.264 sources are never re-encoded,
 // and progress comes from ffmpeg itself instead of a timer.
-// Returns the final path, or None when the download was cancelled meanwhile.
+// Returns the final path, or None when the download was cancelled or the
+// conversion failed (the user then gets a download-error, not a success).
 fn ensure_h264<R: Runtime>(
     window: &Window<R>,
     download_id: &str,
@@ -2361,71 +2412,63 @@ fn ensure_h264<R: Runtime>(
     let final_path = source.with_extension("mp4");
     let tmp_path = source.with_extension("converting.mp4");
     let ffmpeg = find_bundled_binary("ffmpeg").unwrap_or_else(|| format!("{}/ffmpeg", ffmpeg_dir));
-    let mut cmd = Command::new(ffmpeg);
-    cmd.args(["-y", "-v", "error", "-nostats", "-progress", "pipe:1", "-i"])
-        .arg(path)
-        .args([
-            "-map",
-            "0:V:0",
-            "-map",
-            "0:a?",
-            "-threads",
-            "0",
-            "-c:v",
-            "h264_videotoolbox",
-            "-q:v",
-            "70",
-            "-profile:v",
-            "high",
-            "-pix_fmt",
-            "yuv420p",
-            "-c:a",
-            "aac",
-            "-b:a",
-            "320k",
-            "-movflags",
-            "+faststart",
-        ])
-        .arg(&tmp_path)
-        .stdout(Stdio::piped())
-        .stderr(Stdio::null());
-    let Ok(mut child) = own_process_group(&mut cmd).spawn() else {
-        eprintln!("Could not start ffmpeg for H.264 conversion; keeping the original file");
-        return Some(path.to_string());
-    };
-    if let Ok(mut map) = active_downloads().lock() {
-        map.insert(download_id.to_string(), child.id());
-    }
-    let mut last = 0u8;
-    if let (Some(stdout), Some(total)) = (child.stdout.take(), duration.filter(|d| *d > 0.0)) {
-        for line in BufReader::new(stdout).lines().map_while(Result::ok) {
-            // out_time_us is in microseconds (out_time_ms is too, despite its name).
-            if let Some(us) = line
-                .strip_prefix("out_time_us=")
-                .and_then(|v| v.parse::<f64>().ok())
-            {
-                let pct = ((us / 1_000_000.0 / total) * 100.0).clamp(0.0, 99.0) as u8;
-                if pct > last {
-                    last = pct;
-                    emit(pct);
-                }
-            }
+    // Hardware encoder first; software x264 when VideoToolbox refuses the
+    // file (e.g. 8K) and this ffmpeg build has it.
+    let mut ok = false;
+    for encoder in ["h264_videotoolbox", "libx264"] {
+        if encoder == "libx264" && !ffmpeg_has_encoder(&ffmpeg, encoder) {
+            break;
         }
-    }
-    let ok = child.wait().map(|s| s.success()).unwrap_or(false);
-    if let Ok(mut map) = active_downloads().lock() {
-        map.remove(download_id);
-    }
-    if take_cancelled(download_id) {
-        // The user cancelled: leave nothing behind, not even the unconverted file.
+        let mut cmd = Command::new(&ffmpeg);
+        cmd.args(["-y", "-v", "error", "-nostats", "-progress", "pipe:1", "-i"])
+            .arg(path)
+            .args(["-map", "0:V:0", "-map", "0:a?", "-threads", "0"])
+            .args(h264_encoder_args(encoder))
+            .args(["-c:a", "aac", "-b:a", "320k", "-movflags", "+faststart"])
+            .arg(&tmp_path)
+            .stdout(Stdio::piped())
+            .stderr(Stdio::null());
+        let Ok(mut child) = own_process_group(&mut cmd).spawn() else {
+            eprintln!("Could not start ffmpeg ({}) for H.264 conversion", encoder);
+            continue;
+        };
+        if let Ok(mut map) = active_downloads().lock() {
+            map.insert(download_id.to_string(), child.id());
+        }
+        if let Some(stdout) = child.stdout.take() {
+            drain_ffmpeg_progress(stdout, duration, emit);
+        }
+        ok = child.wait().map(|s| s.success()).unwrap_or(false);
+        if let Ok(mut map) = active_downloads().lock() {
+            map.remove(download_id);
+        }
+        if take_cancelled(download_id) {
+            // The user cancelled: leave nothing behind, not even the unconverted file.
+            let _ = fs::remove_file(&tmp_path);
+            let _ = fs::remove_file(source);
+            return None;
+        }
+        if ok && fs::rename(&tmp_path, &final_path).is_ok() {
+            break;
+        }
+        ok = false;
         let _ = fs::remove_file(&tmp_path);
-        let _ = fs::remove_file(source);
+        eprintln!("H.264 conversion with {} failed", encoder);
+        emit(0);
+    }
+    if !ok {
+        // Tell the user instead of reporting a file Premiere may not open as a success.
+        let _ = window.emit(
+            "download-error",
+            (
+                download_id.to_string(),
+                format!(
+                    "Couldn't convert this video to H.264 for editing. The original file ({}) was kept: {}",
+                    codec, path
+                ),
+            ),
+        );
         return None;
-    }
-    if !ok || fs::rename(&tmp_path, &final_path).is_err() {
-        let _ = fs::remove_file(&tmp_path);
-        eprintln!("H.264 conversion failed; keeping the original file");
-        return Some(path.to_string());
     }
     if source != final_path {
         let _ = fs::remove_file(source);
@@ -2589,6 +2632,42 @@ mod e2e_tests;
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn drain_ffmpeg_progress_reads_to_eof_without_a_duration() {
+        // A child that writes far more than a pipe buffer holds must not be
+        // killed by SIGPIPE when the duration is unknown.
+        let mut child = std::process::Command::new("sh")
+            .args([
+                "-c",
+                "i=0; while [ $i -lt 20000 ]; do echo out_time_us=$i; i=$((i+1)); done",
+            ])
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .expect("spawn sh");
+        let stdout = child.stdout.take().expect("stdout");
+        let mut seen = Vec::new();
+        super::drain_ffmpeg_progress(stdout, None, |p| seen.push(p));
+        assert!(child.wait().expect("wait").success(), "child died of SIGPIPE");
+        assert!(seen.is_empty());
+    }
+
+    #[test]
+    fn h264_encoder_args_pick_the_requested_encoder() {
+        let vt = super::h264_encoder_args("h264_videotoolbox");
+        assert!(vt.contains(&"h264_videotoolbox") && !vt.contains(&"libx264"));
+        let x264 = super::h264_encoder_args("libx264");
+        assert!(x264.contains(&"libx264") && x264.contains(&"-crf"));
+        assert!(!x264.contains(&"h264_videotoolbox") && !x264.contains(&"-q:v"));
+    }
+
+    #[test]
+    fn drain_ffmpeg_progress_reports_percentages_with_a_duration() {
+        let data = "out_time_us=1000000\nout_time_us=5000000\nprogress=end\n";
+        let mut seen = Vec::new();
+        super::drain_ffmpeg_progress(data.as_bytes(), Some(10.0), |p| seen.push(p));
+        assert_eq!(seen, vec![10, 50]);
+    }
+
     fn spawn_sleeper() -> std::process::Child {
         let mut cmd = std::process::Command::new("sleep");
         cmd.arg("30");
