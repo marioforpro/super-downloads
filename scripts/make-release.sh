@@ -143,17 +143,21 @@ stage() {
   local label="$1" triple="$2"
   local dmg_src bundle_dir tar_src sig_src
   bundle_dir="${TARGET_DIR}/${triple}/release/bundle"
-  dmg_src="$(ls "${bundle_dir}/dmg/"*.dmg 2>/dev/null | head -1)"
-  tar_src="$(ls "${bundle_dir}/macos/"*.app.tar.gz 2>/dev/null | head -1)"
-  sig_src="$(ls "${bundle_dir}/macos/"*.app.tar.gz.sig 2>/dev/null | head -1)"
+  # SD-10: refuse a stale build (e.g. --no-build after a version bump): the DMG
+  # name, the .app and the updater tarball must all carry VERSION.
+  dmg_src="$(./scripts/check-bundle-version.sh "$VERSION" "$bundle_dir")" \
+    || { echo "FAIL: ${label} build in ${bundle_dir} is not ${VERSION}"; exit 1; }
+  tar_src="${bundle_dir}/macos/Super Downloads.app.tar.gz"
+  sig_src="${bundle_dir}/macos/Super Downloads.app.tar.gz.sig"
 
   [[ -f "$dmg_src" ]] || { echo "FAIL: missing DMG for ${label} (${bundle_dir}/dmg)"; exit 1; }
   [[ -f "$tar_src" ]] || { echo "FAIL: missing .app.tar.gz for ${label} — is createUpdaterArtifacts true + signing key set?"; exit 1; }
   [[ -f "$sig_src" ]] || { echo "FAIL: missing .sig for ${label}"; exit 1; }
 
-  cp "$dmg_src" "dist/Super-Downloads_${label}.dmg"
-  cp "$tar_src" "dist/Super-Downloads_${VERSION}_${label}.app.tar.gz"
-  cp "$sig_src" "dist/Super-Downloads_${VERSION}_${label}.app.tar.gz.sig"
+  # cp -p keeps the build's mtime, so check-release-artifacts.sh sees the real age.
+  cp -p "$dmg_src" "dist/Super-Downloads_${label}.dmg"
+  cp -p "$tar_src" "dist/Super-Downloads_${VERSION}_${label}.app.tar.gz"
+  cp -p "$sig_src" "dist/Super-Downloads_${VERSION}_${label}.app.tar.gz.sig"
   echo "  staged ${label}: DMG + updater artifact + sig"
 }
 
@@ -221,23 +225,18 @@ if [[ "$PUBLISH" == "1" ]]; then
     [[ "$a" == *.dmg ]] && NOTES+=$'\n'"\`$(shasum -a 256 "$a" | cut -d' ' -f1)\`  $(basename "$a")"
   done
 
-  # GPL: the Apple Silicon ffmpeg is a GPL build (1.5.8+), so its source
-  # tarballs ride every release that ships it (named as on v1.5.8). Before
-  # 2026-11-21 they were attached by hand.
+  # GPL: both bundled ffmpeg/ffprobe builds (Apple Silicon and Intel) are GPL v3,
+  # so the corresponding source for EACH architecture rides every release that
+  # ships it (SD-03). The helper reads each binary's version, stages the source
+  # + build config, and fails the release if a GPL binary lacks its source asset.
   UPLOADS=("${ASSETS[@]}")
-  if src-tauri/binaries/ffmpeg-aarch64-apple-darwin -hide_banner -version 2>/dev/null | grep -q -- --enable-gpl; then
-    SRC_DIR="$(ls -d src-tauri/binaries/ffmpeg-arm64-sources-* 2>/dev/null | sort | tail -1)"
-    if [[ -z "$SRC_DIR" ]]; then
-      echo "FAIL: arm64 ffmpeg is GPL but no src-tauri/binaries/ffmpeg-arm64-sources-* to attach" >&2
-      exit 1
-    fi
-    rm -rf dist/gpl-sources && mkdir -p dist/gpl-sources
-    for f in "$SRC_DIR"/*; do
-      cp -c "$f" "dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")" 2>/dev/null \
-        || cp "$f" "dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")"
-      UPLOADS+=("dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")")
-    done
-    NOTES+=$'\n\nApple Silicon ffmpeg/ffprobe are a GPL v3 build (x264, LAME, dav1d); their source tarballs are attached to this release.'
+  GPL_LIST="$(./scripts/stage-gpl-sources.sh src-tauri/binaries dist/gpl-sources)" \
+    || { echo "FAIL: GPL source gate (see above)" >&2; exit 1; }
+  while IFS= read -r f; do
+    [[ -n "$f" ]] && UPLOADS+=("$f")
+  done <<<"$GPL_LIST"
+  if [[ -n "$GPL_LIST" ]]; then
+    NOTES+=$'\n\nThe bundled ffmpeg/ffprobe (Apple Silicon and Intel) are GPL v3 builds; the corresponding source tarballs and build configuration for each architecture are attached to this release (ffmpeg-arm64-source-*, ffmpeg-x86_64-source-*).'
   fi
 
   echo "▶ Publishing ${TAG} (${TARGET:0:7}) to GitHub…"
