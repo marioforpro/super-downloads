@@ -2652,7 +2652,10 @@ mod tests {
         let stdout = child.stdout.take().expect("stdout");
         let mut seen = Vec::new();
         super::drain_ffmpeg_progress(stdout, None, |p| seen.push(p));
-        assert!(child.wait().expect("wait").success(), "child died of SIGPIPE");
+        assert!(
+            child.wait().expect("wait").success(),
+            "child died of SIGPIPE"
+        );
         assert!(seen.is_empty());
     }
 
