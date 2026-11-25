@@ -2626,6 +2626,18 @@ mod e2e_tests;
 #[cfg(test)]
 mod tests {
     #[test]
+    fn remove_file_if_exists_deletes_and_tolerates_missing() {
+        let dir = std::env::temp_dir().join(format!("sd-hist-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("mkdir");
+        let file = dir.join("download-history.json");
+        std::fs::write(&file, "[]").expect("write");
+        super::remove_file_if_exists(&file).expect("delete existing");
+        assert!(!file.exists());
+        super::remove_file_if_exists(&file).expect("missing file is fine");
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
     fn drain_ffmpeg_progress_reads_to_eof_without_a_duration() {
         // A child that writes far more than a pipe buffer holds must not be
         // killed by SIGPIPE when the duration is unknown.
@@ -3098,6 +3110,21 @@ fn save_download_history(app: AppHandle, downloads_json: String) -> Result<(), S
     let history_path = download_history_path(&app)?;
     fs::write(&history_path, downloads_json)
         .map_err(|e| format!("Failed to save download history: {}", e))
+}
+
+// Removes a file; a file that is already gone counts as success.
+fn remove_file_if_exists(path: &Path) -> std::io::Result<()> {
+    match fs::remove_file(path) {
+        Err(err) if err.kind() != ErrorKind::NotFound => Err(err),
+        _ => Ok(()),
+    }
+}
+
+#[tauri::command]
+fn delete_download_history(app: AppHandle) -> Result<(), String> {
+    let history_path = download_history_path(&app)?;
+    remove_file_if_exists(&history_path)
+        .map_err(|e| format!("Failed to delete download history: {}", e))
 }
 
 #[tauri::command]
@@ -3850,6 +3877,7 @@ pub fn run() {
             resize_window_height,
             set_min_window_height,
             save_download_history,
+            delete_download_history,
             load_download_history,
             delete_cached_thumbnail,
             show_notification,
