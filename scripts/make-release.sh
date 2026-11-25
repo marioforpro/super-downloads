@@ -143,17 +143,21 @@ stage() {
   local label="$1" triple="$2"
   local dmg_src bundle_dir tar_src sig_src
   bundle_dir="${TARGET_DIR}/${triple}/release/bundle"
-  dmg_src="$(ls "${bundle_dir}/dmg/"*.dmg 2>/dev/null | head -1)"
-  tar_src="$(ls "${bundle_dir}/macos/"*.app.tar.gz 2>/dev/null | head -1)"
-  sig_src="$(ls "${bundle_dir}/macos/"*.app.tar.gz.sig 2>/dev/null | head -1)"
+  # SD-10: refuse a stale build (e.g. --no-build after a version bump): the DMG
+  # name, the .app and the updater tarball must all carry VERSION.
+  dmg_src="$(./scripts/check-bundle-version.sh "$VERSION" "$bundle_dir")" \
+    || { echo "FAIL: ${label} build in ${bundle_dir} is not ${VERSION}"; exit 1; }
+  tar_src="${bundle_dir}/macos/Super Downloads.app.tar.gz"
+  sig_src="${bundle_dir}/macos/Super Downloads.app.tar.gz.sig"
 
   [[ -f "$dmg_src" ]] || { echo "FAIL: missing DMG for ${label} (${bundle_dir}/dmg)"; exit 1; }
   [[ -f "$tar_src" ]] || { echo "FAIL: missing .app.tar.gz for ${label} — is createUpdaterArtifacts true + signing key set?"; exit 1; }
   [[ -f "$sig_src" ]] || { echo "FAIL: missing .sig for ${label}"; exit 1; }
 
-  cp "$dmg_src" "dist/Super-Downloads_${label}.dmg"
-  cp "$tar_src" "dist/Super-Downloads_${VERSION}_${label}.app.tar.gz"
-  cp "$sig_src" "dist/Super-Downloads_${VERSION}_${label}.app.tar.gz.sig"
+  # cp -p keeps the build's mtime, so check-release-artifacts.sh sees the real age.
+  cp -p "$dmg_src" "dist/Super-Downloads_${label}.dmg"
+  cp -p "$tar_src" "dist/Super-Downloads_${VERSION}_${label}.app.tar.gz"
+  cp -p "$sig_src" "dist/Super-Downloads_${VERSION}_${label}.app.tar.gz.sig"
   echo "  staged ${label}: DMG + updater artifact + sig"
 }
 
