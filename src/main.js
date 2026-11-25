@@ -1122,7 +1122,11 @@ async function clearDownloadList() {
     stopConversionProgress(downloadId);
   }
   renderDownloadList();
-  scheduleSaveDownloads();
+  if (isHistoryEnabled()) {
+    scheduleSaveDownloads();
+  } else {
+    await deleteSavedHistory();
+  }
 }
 
 // Render download list
@@ -1535,9 +1539,10 @@ function createDownloadItemHTML(download) {
 }
 
 function escapeHtml(text) {
+  // Also escape quotes: the result is used inside alt="…" and title="…" attributes.
   const div = document.createElement("div");
   div.textContent = text;
-  return div.innerHTML;
+  return div.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 function getStatusText(status) {
@@ -1681,6 +1686,26 @@ async function loadDownloads() {
     }
   } catch {
     downloads = [];
+  }
+}
+
+// History off: nothing may stay on disk (the FAQ promises it).
+async function deleteSavedHistory() {
+  try {
+    if (!window.__TAURI__?.core?.invoke) return;
+    await window.__TAURI__.core.invoke("delete_download_history");
+  } catch (err) {
+    console.error("Failed to delete download history:", err);
+  }
+}
+
+async function onKeepHistoryChange() {
+  saveSettings();
+  if (keepHistoryEnabled.checked) {
+    scheduleSaveDownloads();
+  } else {
+    clearTimeout(saveDownloadsTimer);
+    await deleteSavedHistory();
   }
 }
 
@@ -2725,12 +2750,7 @@ window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", ()
   }
 });
 if (keepHistoryEnabled) {
-  keepHistoryEnabled.addEventListener("change", () => {
-    saveSettings();
-    if (keepHistoryEnabled.checked) {
-      scheduleSaveDownloads();
-    }
-  });
+  keepHistoryEnabled.addEventListener("change", onKeepHistoryChange);
 }
 
 if (usageStatsEnabled) {
