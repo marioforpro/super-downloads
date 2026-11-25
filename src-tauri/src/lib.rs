@@ -750,10 +750,24 @@ fn start_download<R: Runtime>(
         // Vimeo's session step already uses the browser session for the download;
         // use it for metadata too so the file gets its real title.
         let metadata_with_cookies = matches!(vimeo_step, VimeoStep::DirectWithCookies);
-        let metadata_result = match build_metadata_cmd(metadata_with_cookies).output() {
-            Ok(output) if !output.status.success() && is_linkedin_metadata => {
+        // Both passes are time-limited and cancellable (run_metadata_command).
+        let metadata_result = match run_metadata_command(
+            &download_id,
+            &mut build_metadata_cmd(metadata_with_cookies),
+            METADATA_TIMEOUT,
+        ) {
+            Ok(output)
+                if !output.status.success()
+                    && is_linkedin_metadata
+                    && !is_cancelled(&download_id) =>
+            {
                 eprintln!("LinkedIn metadata failed logged-out, retrying with browser cookies");
-                build_metadata_cmd(true).output().or(Ok(output))
+                run_metadata_command(
+                    &download_id,
+                    &mut build_metadata_cmd(true),
+                    METADATA_TIMEOUT,
+                )
+                .or(Ok(output))
             }
             other => other,
         };
@@ -1147,7 +1161,8 @@ fn start_download<R: Runtime>(
         let stdout = child.stdout.take().expect("No stdout");
         let stderr = child.stderr.take().expect("No stderr");
         let stdout_reader = BufReader::new(stdout);
-        let stderr_reader = BufReader::new(stderr);
+        // Drained concurrently: a full stderr pipe must not block the engine.
+        let stderr_handle = spawn_stderr_drain(stderr);
 
         // Initialize resolution from metadata if we got it, otherwise detect during download
         let mut current_resolution = initial_resolution.clone();
@@ -1448,15 +1463,7 @@ fn start_download<R: Runtime>(
         }
 
         // Read stderr for errors - capture ALL stderr output
-        let mut error_messages = Vec::new();
-        let mut all_stderr = String::new();
-        for line in stderr_reader.lines().map_while(Result::ok) {
-            all_stderr.push_str(&line);
-            all_stderr.push('\n');
-            if is_error_line(&line) {
-                error_messages.push(line.clone());
-            }
-        }
+        let (all_stderr, mut error_messages) = stderr_handle.join().unwrap_or_default();
 
         // Combine stdout and stderr errors
         error_messages.extend(stdout_errors);
@@ -1760,7 +1767,7 @@ fn start_download<R: Runtime>(
                         &mut retry_cmd,
                         &current_resolution,
                     ) {
-                        Some((true, retry_stdout, _)) => {
+                        Some((true, retry_stdout, _, _)) => {
                             eprintln!("Cookie retry succeeded for {}", download_id);
                             // Find the downloaded file
                             let mut retry_file_path = planned_output_path.clone();
@@ -1820,8 +1827,16 @@ fn start_download<R: Runtime>(
                             );
                             return;
                         }
-                        Some((false, _, retry_stderr)) => {
+                        Some((false, _, retry_stderr, stalled)) => {
                             eprintln!("Cookie retry also failed: {}", retry_stderr);
+                            // A stalled retry is the news, not the first attempt's error.
+                            if stalled && !is_cancelled(&download_id) {
+                                let _ = window.emit(
+                                    "download-error",
+                                    (download_id.clone(), STALL_ERROR.to_string()),
+                                );
+                                return;
+                            }
                             // Fall through to emit original error
                         }
                         None => {
@@ -1898,7 +1913,7 @@ fn start_download<R: Runtime>(
                                     &mut fallback_cmd,
                                     &current_resolution,
                                 ) {
-                                    Some((true, fb_stdout, _)) => {
+                                    Some((true, fb_stdout, _, _)) => {
                                         eprintln!(
                                             "Instagram fallback download succeeded for {}",
                                             download_id
@@ -1959,11 +1974,18 @@ fn start_download<R: Runtime>(
                                         );
                                         return;
                                     }
-                                    Some((false, _, fb_stderr)) => {
+                                    Some((false, _, fb_stderr, stalled)) => {
                                         eprintln!(
                                             "Instagram fallback download failed: {}",
                                             fb_stderr
                                         );
+                                        if stalled && !is_cancelled(&download_id) {
+                                            let _ = window.emit(
+                                                "download-error",
+                                                (download_id.clone(), STALL_ERROR.to_string()),
+                                            );
+                                            return;
+                                        }
                                         // Fall through to emit the original yt-dlp error below.
                                     }
                                     None => {
@@ -2504,6 +2526,143 @@ impl Drop for StallWatchdog {
     }
 }
 
+fn is_cancelled(download_id: &str) -> bool {
+    cancelled_downloads()
+        .lock()
+        .map(|c| c.contains(download_id))
+        .unwrap_or(false)
+}
+
+// Stops every running download process group: TERM first, then KILL for
+// anything still alive after `grace`. Used before the app restarts for an
+// update and when it quits, so no yt-dlp/ffmpeg is left running unattended.
+fn terminate_all_downloads(grace: std::time::Duration) {
+    let pids: Vec<u32> = match active_downloads().lock() {
+        Ok(mut map) => {
+            let pids = map.values().copied().collect();
+            map.clear();
+            pids
+        }
+        Err(_) => return,
+    };
+    if pids.is_empty() {
+        return;
+    }
+    let signal_all = |sig: &str| {
+        for pid in &pids {
+            let _ = Command::new("kill")
+                .args([sig, "--", &format!("-{}", pid)])
+                .stderr(Stdio::null())
+                .status();
+        }
+    };
+    signal_all("-TERM");
+    thread::sleep(grace);
+    // Harmless for groups that already exited ("no such process").
+    signal_all("-KILL");
+}
+
+// Runs a metadata pass with a time limit, in its own process group and
+// registered under the download id so Cancel can stop it. A browser-cookie
+// pass waiting on a hidden Keychain prompt used to block its thread forever.
+// On timeout the group is killed and the (failed) output is returned.
+fn run_metadata_command(
+    download_id: &str,
+    cmd: &mut Command,
+    timeout: std::time::Duration,
+) -> std::io::Result<std::process::Output> {
+    cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
+    let mut child = own_process_group(cmd).spawn()?;
+    let pid = child.id();
+    if let Ok(mut map) = active_downloads().lock() {
+        map.insert(download_id.to_string(), pid);
+    }
+    let drain = |pipe: Option<Box<dyn std::io::Read + Send>>| {
+        thread::spawn(move || {
+            let mut buf = Vec::new();
+            if let Some(mut p) = pipe {
+                let _ = std::io::Read::read_to_end(&mut p, &mut buf);
+            }
+            buf
+        })
+    };
+    let out_handle = drain(child.stdout.take().map(|p| Box::new(p) as _));
+    let err_handle = drain(child.stderr.take().map(|p| Box::new(p) as _));
+    let started = std::time::Instant::now();
+    let mut killed = false;
+    let status = loop {
+        match child.try_wait() {
+            Ok(Some(status)) => break Ok(status),
+            Ok(None) => {}
+            Err(e) => break Err(e),
+        }
+        if !killed && started.elapsed() >= timeout {
+            eprintln!(
+                "Metadata pass for {} timed out after {:?}; stopping it",
+                download_id, timeout
+            );
+            let _ = Command::new("kill")
+                .args(["-TERM", "--", &format!("-{}", pid)])
+                .status();
+            killed = true;
+        }
+        thread::sleep(std::time::Duration::from_millis(50));
+    };
+    if let Ok(mut map) = active_downloads().lock() {
+        if map.get(download_id) == Some(&pid) {
+            map.remove(download_id);
+        }
+    }
+    let stdout = out_handle.join().unwrap_or_default();
+    let stderr = err_handle.join().unwrap_or_default();
+    status.map(|status| std::process::Output {
+        status,
+        stdout,
+        stderr,
+    })
+}
+
+const METADATA_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(90);
+
+// Reads stderr on its own thread so a chatty engine can never block on a full
+// pipe while stdout is being read. Returns (all text, error lines).
+fn spawn_stderr_drain<T: std::io::Read + Send + 'static>(
+    reader: T,
+) -> thread::JoinHandle<(String, Vec<String>)> {
+    thread::spawn(move || {
+        let mut all = String::new();
+        let mut errors = Vec::new();
+        for line in lossy_lines(reader) {
+            all.push_str(&line);
+            all.push('\n');
+            if is_error_line(&line) {
+                errors.push(line);
+            }
+        }
+        (all, errors)
+    })
+}
+
+// Launch housekeeping must not pull the engine out from under a running
+// download. `in_use` is checked right before deleting; true = left alone.
+fn remove_engine_dir_if_idle(dir: &Path, in_use: impl Fn() -> bool) -> bool {
+    if in_use() {
+        eprintln!(
+            "Engine housekeeping: {} is in use, keeping it",
+            dir.display()
+        );
+        return false;
+    }
+    fs::remove_dir_all(dir).is_ok()
+}
+
+fn downloads_running() -> bool {
+    active_downloads()
+        .lock()
+        .map(|m| !m.is_empty())
+        .unwrap_or(true)
+}
+
 // Silent phases after the download itself: merge, re-encode, audio extraction.
 fn is_post_processing_line(line: &str) -> bool {
     [
@@ -2718,14 +2877,30 @@ fn run_streaming_attempt<R: Runtime>(
     download_id: &str,
     cmd: &mut Command,
     resolution: &str,
-) -> Option<(bool, String, String)> {
+) -> Option<(bool, String, String, bool)> {
+    run_streaming_attempt_with(window, download_id, cmd, resolution, STALL_TIMEOUT)
+}
+
+// Fourth tuple field: true when the stall watchdog had to kill the attempt.
+fn run_streaming_attempt_with<R: Runtime>(
+    window: &Window<R>,
+    download_id: &str,
+    cmd: &mut Command,
+    resolution: &str,
+    stall_timeout: std::time::Duration,
+) -> Option<(bool, String, String, bool)> {
+    // Cancelled while an earlier step ran (e.g. the Instagram link lookup):
+    // never start the process. The flag stays set for the caller to consume.
+    if is_cancelled(download_id) {
+        return None;
+    }
     cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
     let mut child = own_process_group(cmd).spawn().ok()?;
     if let Ok(mut map) = active_downloads().lock() {
         map.insert(download_id.to_string(), child.id());
     }
     // Also bounds a cookie retry stuck behind a hidden Keychain prompt.
-    let watchdog = StallWatchdog::start(child.id(), STALL_TIMEOUT);
+    let watchdog = StallWatchdog::start(child.id(), stall_timeout);
     // Drain stderr on its own thread so a chatty stderr can never block stdout.
     let stderr_handle = child.stderr.take().map(|err| {
         thread::spawn(move || {
@@ -2761,10 +2936,11 @@ fn run_streaming_attempt<R: Runtime>(
         }
     }
     let ok = child.wait().map(|s| s.success()).unwrap_or(false);
-    if watchdog.finish() {
+    let stalled = watchdog.finish();
+    if stalled {
         eprintln!(
             "Attempt for {} stalled: no engine output for {:?}",
-            download_id, STALL_TIMEOUT
+            download_id, stall_timeout
         );
     }
     if let Ok(mut map) = active_downloads().lock() {
@@ -2773,7 +2949,7 @@ fn run_streaming_attempt<R: Runtime>(
     let stderr_text = stderr_handle
         .and_then(|h| h.join().ok())
         .unwrap_or_default();
-    Some((ok, stdout_text, stderr_text))
+    Some((ok, stdout_text, stderr_text, stalled))
 }
 
 // Line iterator that survives non-UTF-8 output (`lines()` stops at the first
@@ -3265,6 +3441,184 @@ mod tests {
     fn format_duration_handles_hours() {
         assert_eq!(format_duration(65.0), "01:05");
         assert_eq!(format_duration(3661.0), "01:01:01");
+    }
+
+    // --- download lifecycle (quit/update kill, metadata timeout, stderr drain,
+    // --- stall surfacing, cancel before spawn, engine housekeeping) ---
+
+    // terminate_all_downloads clears the shared active-download map, so tests
+    // that register processes there must not overlap with it.
+    static ACTIVE_MAP_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+    fn sh_group(script: &str) -> std::process::Child {
+        let mut cmd = std::process::Command::new("sh");
+        cmd.args(["-c", script]);
+        super::own_process_group(&mut cmd)
+            .spawn()
+            .expect("spawn sh")
+    }
+
+    #[test]
+    fn terminate_all_downloads_stops_even_a_process_that_ignores_term() {
+        let _guard = ACTIVE_MAP_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let mut child = sh_group("trap '' TERM; sleep 30");
+        super::active_downloads()
+            .lock()
+            .unwrap()
+            .insert("test-quit-1".to_string(), child.id());
+        let started = std::time::Instant::now();
+        super::terminate_all_downloads(std::time::Duration::from_millis(400));
+        let status = child.wait().expect("wait");
+        assert!(!status.success());
+        assert!(started.elapsed() < std::time::Duration::from_secs(10));
+        assert!(!super::active_downloads()
+            .lock()
+            .unwrap()
+            .contains_key("test-quit-1"));
+        super::take_cancelled("test-quit-1");
+    }
+
+    #[test]
+    fn metadata_command_times_out_and_kills_the_process() {
+        let _guard = ACTIVE_MAP_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let mut cmd = std::process::Command::new("sleep");
+        cmd.arg("30");
+        let started = std::time::Instant::now();
+        let out = super::run_metadata_command(
+            "test-meta-1",
+            &mut cmd,
+            std::time::Duration::from_millis(500),
+        )
+        .expect("output");
+        assert!(!out.status.success());
+        assert!(started.elapsed() < std::time::Duration::from_secs(10));
+        assert!(!super::active_downloads()
+            .lock()
+            .unwrap()
+            .contains_key("test-meta-1"));
+    }
+
+    #[test]
+    fn metadata_command_returns_output_and_registers_while_running() {
+        let _guard = ACTIVE_MAP_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let mut cmd = std::process::Command::new("sh");
+        cmd.args(["-c", "echo hello; echo oops >&2"]);
+        let out = super::run_metadata_command(
+            "test-meta-2",
+            &mut cmd,
+            std::time::Duration::from_secs(10),
+        )
+        .expect("output");
+        assert!(out.status.success());
+        assert_eq!(String::from_utf8_lossy(&out.stdout).trim(), "hello");
+        assert_eq!(String::from_utf8_lossy(&out.stderr).trim(), "oops");
+    }
+
+    #[test]
+    fn metadata_command_can_be_cancelled_through_the_active_map() {
+        let _guard = ACTIVE_MAP_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let handle = std::thread::spawn(|| {
+            let mut cmd = std::process::Command::new("sleep");
+            cmd.arg("30");
+            super::run_metadata_command("test-meta-3", &mut cmd, std::time::Duration::from_secs(60))
+        });
+        let pid = loop {
+            if let Some(pid) = super::active_downloads()
+                .lock()
+                .unwrap()
+                .get("test-meta-3")
+                .copied()
+            {
+                break pid;
+            }
+            std::thread::sleep(std::time::Duration::from_millis(20));
+        };
+        let _ = std::process::Command::new("kill")
+            .args(["-TERM", "--", &format!("-{}", pid)])
+            .status();
+        let out = handle.join().unwrap().expect("output");
+        assert!(!out.status.success());
+    }
+
+    #[test]
+    fn stderr_is_drained_while_stdout_is_read() {
+        // ~600 KB on stderr overflows the pipe buffer; reading stdout to EOF
+        // first (the old order) would deadlock.
+        let mut cmd = std::process::Command::new("sh");
+        cmd.args([
+            "-c",
+            "i=0; while [ $i -lt 6000 ]; do echo 'ERROR: some long diagnostic line xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx' >&2; i=$((i+1)); done; echo done",
+        ])
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped());
+        let mut child = cmd.spawn().expect("spawn");
+        let drain = super::spawn_stderr_drain(child.stderr.take().unwrap());
+        let out: Vec<String> = super::lossy_lines(child.stdout.take().unwrap()).collect();
+        let (text, errors) = drain.join().unwrap();
+        child.wait().unwrap();
+        assert_eq!(out, vec!["done".to_string()]);
+        assert_eq!(errors.len(), 6000);
+        assert!(text.len() > 600_000);
+    }
+
+    fn mock_window() -> tauri::Window<tauri::test::MockRuntime> {
+        let app = tauri::test::mock_app();
+        let webview = tauri::WebviewWindowBuilder::new(&app, "main", tauri::WebviewUrl::default())
+            .build()
+            .expect("mock window");
+        // Keep the app alive for the test's duration.
+        std::mem::forget(app);
+        webview.as_ref().window()
+    }
+
+    #[test]
+    fn streaming_attempt_reports_a_stall() {
+        let _guard = ACTIVE_MAP_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        let window = mock_window();
+        let mut cmd = std::process::Command::new("sleep");
+        cmd.arg("30");
+        let started = std::time::Instant::now();
+        let (ok, _, _, stalled) = super::run_streaming_attempt_with(
+            &window,
+            "test-stall-1",
+            &mut cmd,
+            "",
+            std::time::Duration::from_millis(500),
+        )
+        .expect("attempt");
+        assert!(!ok);
+        assert!(stalled, "a watchdog kill must be reported to the caller");
+        assert!(started.elapsed() < std::time::Duration::from_secs(10));
+    }
+
+    #[test]
+    fn streaming_attempt_does_not_start_when_already_cancelled() {
+        let window = mock_window();
+        super::cancelled_downloads()
+            .lock()
+            .unwrap()
+            .insert("test-cancel-1".to_string());
+        let mut cmd = std::process::Command::new("sleep");
+        cmd.arg("30");
+        let started = std::time::Instant::now();
+        let res = super::run_streaming_attempt(&window, "test-cancel-1", &mut cmd, "");
+        assert!(
+            res.is_none(),
+            "no process may be spawned for a cancelled download"
+        );
+        assert!(started.elapsed() < std::time::Duration::from_secs(2));
+        // The flag stays set so the caller can clean up.
+        assert!(super::take_cancelled("test-cancel-1"));
+    }
+
+    #[test]
+    fn engine_dir_survives_housekeeping_while_downloads_run() {
+        let dir = std::env::temp_dir().join(format!("sd-engine-test-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).unwrap();
+        assert!(!super::remove_engine_dir_if_idle(&dir, || true));
+        assert!(dir.exists(), "engine in use must not be deleted");
+        assert!(super::remove_engine_dir_if_idle(&dir, || false));
+        assert!(!dir.exists());
     }
 }
 
@@ -3932,6 +4286,13 @@ async fn install_update(app: AppHandle, window: Window) -> Result<(), String> {
         .await
         .map_err(|e| e.to_string())?;
 
+    // The restart does not run exit handlers: stop running downloads (the UI
+    // asked the user first) so no yt-dlp/ffmpeg keeps running unattended.
+    let _ = tauri::async_runtime::spawn_blocking(|| {
+        terminate_all_downloads(std::time::Duration::from_millis(1500))
+    })
+    .await;
+
     // download_and_install replaced the app bundle; relaunch into the new version.
     app.restart();
 }
@@ -4007,7 +4368,7 @@ fn prepare_ytdlp_engine() {
     let mut engines = managed_engines();
     if let Some((newest_tag, newest_dir)) = engines.pop() {
         for (_, dir) in engines {
-            let _ = fs::remove_dir_all(dir);
+            remove_engine_dir_if_idle(&dir, downloads_running);
         }
         let bundled_version = find_bundled_ytdlp().and_then(|p| binary_version(&p));
         if let Some(bv) = bundled_version {
@@ -4016,7 +4377,8 @@ fn prepare_ytdlp_engine() {
                     "Managed yt-dlp {} is older than bundled {} — removing managed copy",
                     newest_tag, bv
                 );
-                let _ = fs::remove_dir_all(newest_dir);
+                // Re-checked now: the version probe above can take seconds.
+                remove_engine_dir_if_idle(&newest_dir, downloads_running);
             }
         }
     }
@@ -4280,8 +4642,15 @@ pub fn run() {
             get_ytdlp_version,
             get_system_info
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app, event| {
+            // Quit (Cmd+Q, last window closed): stop running downloads instead
+            // of leaving their processes orphaned.
+            if let tauri::RunEvent::Exit = event {
+                terminate_all_downloads(std::time::Duration::from_millis(1000));
+            }
+        });
 }
 
 #[cfg(test)]

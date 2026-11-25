@@ -1081,9 +1081,14 @@ function updateDownload(id, updates) {
   }
 }
 
-// Remove download from list
-function removeDownload(id) {
+// Remove download from list. A running download is cancelled first: hiding
+// the row alone would leave the process running with nothing able to stop it.
+async function removeDownload(id) {
   const download = downloads.find(d => d.id === id);
+  if (download && !isTerminalStatus(download.status)) {
+    const cancelled = await cancelDownload(id);
+    if (!cancelled) return; // could not stop it: keep the row so Cancel stays reachable
+  }
   if (download?.thumbnail) {
     queueThumbnailCleanup([download.thumbnail]);
   }
@@ -1371,9 +1376,11 @@ async function cancelDownload(downloadId) {
     transferStats.delete(downloadId);
     progressUiState.delete(downloadId);
     stopConversionProgress(downloadId);
+    return true;
   } catch (err) {
     console.error("Failed to cancel download:", err);
     showToast("Could not cancel download");
+    return false;
   }
 }
 
@@ -2646,8 +2653,21 @@ async function checkForUpdate({ silent = true } = {}) {
   }
 }
 
+// Rows the update restart would kill: anything not finished, failed or cancelled.
+function activeDownloadCount() {
+  return downloads.filter((d) => !isTerminalStatus(d.status)).length;
+}
+
+function updateConfirmMessage(count) {
+  return `${count} download${count === 1 ? "" : "s"} in progress will be cancelled.\n\nUpdate and restart anyway?`;
+}
+
 async function startUpdate() {
   if (sdUpdateInProgress || !window.__TAURI__?.core?.invoke) return;
+  // The restart stops every running download; ask first.
+  const running = activeDownloadCount();
+  if (running > 0 && !(await showConfirm(updateConfirmMessage(running)))) return;
+  if (sdUpdateInProgress) return;
   sdUpdateInProgress = true;
   const btn = document.getElementById("update-banner-btn");
   const text = document.getElementById("update-banner-text");
