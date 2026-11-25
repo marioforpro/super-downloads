@@ -122,9 +122,22 @@ fn vimeo_embed_url(url: &str) -> Option<String> {
         .unwrap_or(url)
         .trim_end_matches('/');
     let segments: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
+    let is_id = |seg: &str| seg.len() >= 6 && seg.chars().all(|c| c.is_ascii_digit());
+    // Showcase/album ids are not video ids: prefer the id after `video(s)`,
+    // then the id right after the host (`vimeo.com/<id>[/<hash>]`), then the last id that is
+    // not a showcase/album/group container.
     let idx = segments
         .iter()
-        .position(|seg| seg.len() >= 6 && seg.chars().all(|c| c.is_ascii_digit()))?;
+        .position(|seg| matches!(*seg, "video" | "videos"))
+        .map(|i| i + 1)
+        .filter(|&i| segments.get(i).is_some_and(|s| is_id(s)))
+        .or_else(|| segments.get(2).is_some_and(|s| is_id(s)).then_some(2))
+        .or_else(|| {
+            (1..segments.len()).rev().find(|&i| {
+                is_id(segments[i])
+                    && !matches!(segments[i - 1], "showcase" | "album" | "albums" | "groups")
+            })
+        })?;
     let id = segments[idx];
     let hash = segments
         .get(idx + 1)
@@ -2808,6 +2821,37 @@ mod tests {
             Some("https://player.vimeo.com/video/76979871?h=a1b2c3d4e5")
         );
         assert!(super::vimeo_embed_url("https://player.vimeo.com/video/76979871").is_none());
+    }
+
+    #[test]
+    fn vimeo_embed_url_ignores_showcase_and_album_ids() {
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/showcase/9876543/video/412345678")
+                .as_deref(),
+            Some("https://player.vimeo.com/video/412345678")
+        );
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/album/1234567/video/412345678?x=1")
+                .as_deref(),
+            Some("https://player.vimeo.com/video/412345678")
+        );
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/channels/staffpicks/videos/76979871/")
+                .as_deref(),
+            Some("https://player.vimeo.com/video/76979871")
+        );
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/showcase/9876543/video/412345678/a1b2c3d4e5")
+                .as_deref(),
+            Some("https://player.vimeo.com/video/412345678?h=a1b2c3d4e5")
+        );
+        // A showcase page alone carries no video id.
+        assert!(super::vimeo_embed_url("https://vimeo.com/showcase/9876543").is_none());
+        // Plain and unlisted links keep working.
+        assert_eq!(
+            super::vimeo_embed_url("https://vimeo.com/76979871/a1b2c3d4e5").as_deref(),
+            Some("https://player.vimeo.com/video/76979871?h=a1b2c3d4e5")
+        );
         assert!(super::vimeo_embed_url("https://vimeo.com/user12/videos").is_none());
     }
 
