@@ -888,8 +888,13 @@ fn start_download<R: Runtime>(
         } else {
             output_format.to_string()
         };
-        let planned_output_path =
-            build_unique_output_path(&base_path, &video_title, &output_extension);
+        let previous_path = previous_retry_path(&url, &output_extension);
+        let planned_output_path = plan_output_path(
+            &base_path,
+            &video_title,
+            &output_extension,
+            previous_path.as_deref(),
+        );
 
         // Store metadata for later use
         let metadata_duration = duration_seconds;
@@ -1054,7 +1059,7 @@ fn start_download<R: Runtime>(
 
         add_vimeo_plugin(&mut cmd, &ytdlp_path, &url);
         cmd.arg("-o")
-            .arg(&planned_output_path)
+            .arg(ytdlp_output_template(&planned_output_path))
             .arg(&url)
             .stderr(Stdio::piped());
 
@@ -1088,6 +1093,7 @@ fn start_download<R: Runtime>(
             Err(e) => {
                 let error_msg = format!("Failed to start the download engine ({}): {}\n\nTry 'Update downloader engine' in Settings, or reinstall the app.", ytdlp_path, e);
                 eprintln!("ERROR starting yt-dlp: {}", error_msg);
+                release_for_retry(&url, &output_extension, &planned_output_path);
                 let _ = window.emit("download-error", (download_id.clone(), error_msg));
                 return;
             }
@@ -1426,6 +1432,7 @@ fn start_download<R: Runtime>(
                 "Download {} stalled: no engine output for {:?}",
                 download_id, STALL_TIMEOUT
             );
+            release_for_retry(&url, &output_extension, &planned_output_path);
             let _ = window.emit(
                 "download-error",
                 (download_id.clone(), STALL_ERROR.to_string()),
@@ -1435,57 +1442,25 @@ fn start_download<R: Runtime>(
 
         match exit_status {
             Ok(status) if status.success() => {
-                // Try to find the actual downloaded file if path not found
-                if (final_file_path.is_empty() || !Path::new(&final_file_path).exists())
-                    && Path::new(&planned_output_path).exists()
-                {
-                    final_file_path = planned_output_path.clone();
-                }
-
-                if final_file_path.is_empty() || !Path::new(&final_file_path).exists() {
-                    let expected_extension = if is_audio_only { "mp3" } else { output_format };
-                    // Try to find the most recently created file in the download directory
-                    if let Ok(entries) = fs::read_dir(&base_path) {
-                        let mut latest_file: Option<String> = None;
-                        let mut latest_time: Option<std::time::SystemTime> = None;
-
-                        for entry in entries.flatten() {
-                            if let Ok(metadata) = entry.metadata() {
-                                if metadata.is_file() {
-                                    let path = entry.path();
-                                    let ext_matches = path
-                                        .extension()
-                                        .and_then(|ext| ext.to_str())
-                                        .map(|ext| ext.eq_ignore_ascii_case(expected_extension))
-                                        .unwrap_or(false);
-                                    if !ext_matches {
-                                        continue;
-                                    }
-                                    if let Ok(modified) = metadata.modified() {
-                                        if latest_time.is_none() || modified > latest_time.unwrap()
-                                        {
-                                            if let Some(path_str) = path.to_str() {
-                                                latest_file = Some(path_str.to_string());
-                                                latest_time = Some(modified);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if let Some(path) = latest_file {
-                            final_file_path = path;
-                        } else {
-                            // Fallback: construct path
-                            final_file_path =
-                                format!("{}/{}.{}", base_path, video_title, expected_extension);
-                        }
-                    } else {
-                        final_file_path =
-                            format!("{}/{}.{}", base_path, video_title, expected_extension);
-                    }
-                }
+                // The file yt-dlp reported, else the planned path. Never guess
+                // another file from the folder.
+                let Some(found_path) = locate_output(&final_file_path, &planned_output_path)
+                else {
+                    eprintln!(
+                        "yt-dlp succeeded but no output file was found (planned: {})",
+                        planned_output_path
+                    );
+                    release_for_retry(&url, &output_extension, &planned_output_path);
+                    let _ = window.emit(
+                        "download-error",
+                        (
+                            download_id.clone(),
+                            "The download finished but the saved file could not be found. Check your download folder, then try again.".to_string(),
+                        ),
+                    );
+                    return;
+                };
+                final_file_path = found_path;
 
                 // Canonicalize the file path to ensure it's absolute and properly formatted
                 let canonical_path = if Path::new(&final_file_path).exists() {
@@ -1586,7 +1561,7 @@ fn start_download<R: Runtime>(
             Ok(status) => {
                 if take_cancelled(&download_id) {
                     eprintln!("Download {} cancelled by user", download_id);
-                    cleanup_partial_files(&planned_output_path);
+                    abandon_output(&planned_output_path);
                     return;
                 }
 
@@ -1716,7 +1691,7 @@ fn start_download<R: Runtime>(
                     retry_cmd
                         .arg("--no-warnings")
                         .arg("-o")
-                        .arg(&planned_output_path)
+                        .arg(ytdlp_output_template(&planned_output_path))
                         .arg(&url);
 
                     let current_path = std::env::var("PATH").unwrap_or_default();
@@ -1802,7 +1777,7 @@ fn start_download<R: Runtime>(
                         }
                     }
                     if take_cancelled(&download_id) {
-                        cleanup_partial_files(&planned_output_path);
+                        abandon_output(&planned_output_path);
                         return;
                     }
                 }
@@ -1837,7 +1812,7 @@ fn start_download<R: Runtime>(
                                     .arg("--socket-timeout")
                                     .arg("30")
                                     .arg("-o")
-                                    .arg(&planned_output_path);
+                                    .arg(ytdlp_output_template(&planned_output_path));
 
                                 if is_audio_only {
                                     fallback_cmd
@@ -1945,12 +1920,13 @@ fn start_download<R: Runtime>(
                                     }
                                 }
                                 if take_cancelled(&download_id) {
-                                    cleanup_partial_files(&planned_output_path);
+                                    abandon_output(&planned_output_path);
                                     return;
                                 }
                             }
                             Err(instagram_fallback::IgFallbackError::Fatal(msg)) => {
                                 eprintln!("Instagram fallback: fatal — {}", msg);
+                                release_for_retry(&url, &output_extension, &planned_output_path);
                                 let _ = window.emit("download-error", (download_id.clone(), msg));
                                 return;
                             }
@@ -2010,14 +1986,16 @@ fn start_download<R: Runtime>(
                     format!("Download failed (exit code {}). Try again, or use Update in Settings → Engine.", status.code().unwrap_or(-1))
                 };
                 eprintln!("Download error: {}", error_msg);
+                release_for_retry(&url, &output_extension, &planned_output_path);
                 let _ = window.emit("download-error", (download_id.clone(), error_msg.clone()));
             }
             Err(e) => {
                 if take_cancelled(&download_id) {
                     eprintln!("Download {} cancelled by user", download_id);
-                    cleanup_partial_files(&planned_output_path);
+                    abandon_output(&planned_output_path);
                     return;
                 }
+                release_for_retry(&url, &output_extension, &planned_output_path);
                 let _ = window.emit(
                     "download-error",
                     (download_id.clone(), format!("Process error: {}", e)),
@@ -2091,10 +2069,17 @@ fn sanitize_filename_for_fs(input: &str) -> String {
         }
     }
 
-    // macOS caps a file name at 255 bytes; long titles failed with
-    // "[Errno 63] File name too long". 150 chars leaves room for the
-    // extension, a " (copy N)" suffix and yt-dlp's temp suffixes.
-    let capped: String = cleaned.trim().chars().take(150).collect();
+    // macOS caps a file name at 255 BYTES; long titles failed with
+    // "[Errno 63] File name too long". 200 bytes (cut on a char boundary)
+    // leaves room for the extension, a " (copy N)" suffix and yt-dlp's
+    // temp suffixes such as ".f137.mp4.part".
+    let mut capped = String::new();
+    for ch in cleaned.trim().chars() {
+        if capped.len() + ch.len_utf8() > 200 {
+            break;
+        }
+        capped.push(ch);
+    }
     let trimmed = capped.trim().trim_matches('.');
     if trimmed.is_empty() {
         "download".to_string()
@@ -2120,7 +2105,8 @@ fn build_unique_output_path(base_path: &str, title: &str, extension: &str) -> St
         };
         let candidate = Path::new(base_path).join(filename);
         let candidate_str = candidate.to_string_lossy().to_string();
-        if !candidate.exists() {
+        // A leftover partial belongs to an earlier download: never resume onto it.
+        if !candidate.exists() && !has_partial_files(&candidate) {
             if let Ok(mut set) = reserved.lock() {
                 if set.insert(candidate_str.clone()) {
                     return candidate_str;
@@ -2167,19 +2153,126 @@ fn cleanup_partial_files(planned_output_path: &str) {
     };
     for entry in entries.flatten() {
         let name = entry.file_name().to_string_lossy().to_string();
-        let Some(rest) = name.strip_prefix(stem) else {
-            continue;
-        };
-        let is_partial = rest.ends_with(".part")
-            || rest.ends_with(".ytdl")
-            || rest.contains(".temp.")
-            || rest.contains(".part-Frag")
-            || (rest.starts_with(".f")
-                && rest[2..].chars().next().is_some_and(|c| c.is_ascii_digit()));
-        if is_partial {
+        if is_own_partial(&name, stem) {
             let _ = fs::remove_file(entry.path());
         }
     }
+}
+
+// True when `name` is a yt-dlp partial of the download whose file stem is
+// `stem`. The rest after the stem must start with '.', so "Title (copy 1)…",
+// "Title 2…" and "Title extras.zip.part" (other downloads) never match.
+fn is_own_partial(name: &str, stem: &str) -> bool {
+    let Some(rest) = name.strip_prefix(stem) else {
+        return false;
+    };
+    if !rest.starts_with('.') || rest.contains(" (copy ") {
+        return false;
+    }
+    rest.ends_with(".part")
+        || rest.ends_with(".ytdl")
+        || rest.contains(".temp.")
+        || rest.contains(".part-Frag")
+        || (rest.starts_with(".f") && rest[2..].chars().next().is_some_and(|c| c.is_ascii_digit()))
+}
+
+fn has_partial_files(planned: &Path) -> bool {
+    let (Some(dir), Some(stem)) = (
+        planned.parent(),
+        planned.file_stem().and_then(|s| s.to_str()),
+    ) else {
+        return false;
+    };
+    let Ok(entries) = fs::read_dir(dir) else {
+        return false;
+    };
+    entries
+        .flatten()
+        .any(|e| is_own_partial(&e.file_name().to_string_lossy(), stem))
+}
+
+// yt-dlp reads the -o value as an output template: a literal % must be %%.
+fn ytdlp_output_template(path: &str) -> String {
+    path.replace('%', "%%")
+}
+
+// The file yt-dlp produced: the path it reported, else the planned path. Never
+// another file from the folder.
+fn locate_output(reported: &str, planned: &str) -> Option<String> {
+    if !reported.is_empty() && Path::new(reported).exists() {
+        return Some(reported.to_string());
+    }
+    if Path::new(planned).exists() {
+        return Some(planned.to_string());
+    }
+    None
+}
+
+// Planned paths of downloads that failed or stalled, per URL and extension, so
+// Retry can reuse the path and let `--continue` resume the partial files.
+static RETRY_OUTPUT_PATHS: OnceLock<Mutex<std::collections::HashMap<String, String>>> =
+    OnceLock::new();
+
+fn retry_key(url: &str, extension: &str) -> String {
+    format!("{}\n{}", extension, url)
+}
+
+fn remember_retry_path(url: &str, extension: &str, path: &str) {
+    let map = RETRY_OUTPUT_PATHS.get_or_init(|| Mutex::new(Default::default()));
+    if let Ok(mut m) = map.lock() {
+        m.insert(retry_key(url, extension), path.to_string());
+    }
+}
+
+fn forget_retry_path(path: &str) {
+    if let Some(map) = RETRY_OUTPUT_PATHS.get() {
+        if let Ok(mut m) = map.lock() {
+            m.retain(|_, v| v != path);
+        }
+    }
+}
+
+fn previous_retry_path(url: &str, extension: &str) -> Option<String> {
+    let map = RETRY_OUTPUT_PATHS.get()?;
+    let m = map.lock().ok()?;
+    m.get(&retry_key(url, extension)).cloned()
+}
+
+// Plan the output path: reuse the previous attempt's path when it is free
+// (not finished, not held by another download) so --continue resumes.
+fn plan_output_path(
+    base_path: &str,
+    title: &str,
+    extension: &str,
+    previous: Option<&str>,
+) -> String {
+    if let Some(prev) = previous {
+        let p = Path::new(prev);
+        let same_dir = p.parent() == Some(Path::new(base_path));
+        if same_dir && !p.exists() {
+            let reserved = RESERVED_OUTPUT_PATHS.get_or_init(|| Mutex::new(HashSet::new()));
+            if let Ok(mut set) = reserved.lock() {
+                if set.insert(prev.to_string()) {
+                    return prev.to_string();
+                }
+            }
+        }
+    }
+    build_unique_output_path(base_path, title, extension)
+}
+
+// A cancelled or dismissed download: drop its partials, free the name and
+// forget it for Retry.
+fn abandon_output(path: &str) {
+    cleanup_partial_files(path);
+    release_output_path(path);
+    forget_retry_path(path);
+}
+
+// A failed or stalled download: partials stay for Retry, the name is freed.
+fn release_for_retry(url: &str, extension: &str, path: &str) {
+    remember_retry_path(url, extension, path);
+    release_output_path(path);
 }
 
 // Run each external process in its own process group so cancel can stop the
@@ -3841,4 +3934,92 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod output_path_tests {
+    use super::*;
+    use std::fs;
+
+    fn tmp(name: &str) -> std::path::PathBuf {
+        let d = std::env::temp_dir().join(format!("sd-out-{}-{}", name, std::process::id()));
+        let _ = fs::remove_dir_all(&d);
+        fs::create_dir_all(&d).unwrap();
+        d
+    }
+
+    #[test]
+    fn cleanup_keeps_other_downloads_files() {
+        let d = tmp("cleanup");
+        let keep = [
+            "Video by nasa (copy 1).f137.mp4.part",
+            "Episode 10.f137.mp4.part",
+            "Episode 1 extras.zip.part",
+            "Episode 1 (copy 1).mp4.part",
+        ];
+        let gone = ["Episode 1.mp4.part", "Episode 1.f137.mp4.part", "Episode 1.mp4.ytdl"];
+        for n in keep.iter().chain(gone.iter()) {
+            fs::write(d.join(n), b"x").unwrap();
+        }
+        cleanup_partial_files(d.join("Episode 1.mp4").to_str().unwrap());
+        for n in keep {
+            assert!(d.join(n).exists(), "{} must stay", n);
+        }
+        for n in gone {
+            assert!(!d.join(n).exists(), "{} must go", n);
+        }
+        let _ = fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn filename_is_capped_in_bytes_on_char_boundary() {
+        for s in ["日".repeat(150), "я".repeat(200), "😀".repeat(100), "a".repeat(400)] {
+            let out = sanitize_filename_for_fs(&s);
+            assert!(out.len() <= 200, "{} bytes", out.len());
+            assert!(!out.is_empty());
+        }
+        assert_eq!(sanitize_filename_for_fs("日本語"), "日本語");
+    }
+
+    #[test]
+    fn percent_is_escaped_for_the_output_template() {
+        assert_eq!(ytdlp_output_template("/a/100%(title)s.mp4"), "/a/100%%(title)s.mp4");
+    }
+
+    #[test]
+    fn missing_output_is_not_replaced_by_another_file() {
+        let d = tmp("locate");
+        let other = d.join("unrelated.mp4");
+        fs::write(&other, b"x").unwrap();
+        let planned = d.join("Wanted.mp4");
+        assert_eq!(locate_output("", planned.to_str().unwrap()), None);
+        assert_eq!(
+            locate_output(other.to_str().unwrap(), planned.to_str().unwrap()),
+            Some(other.to_string_lossy().to_string())
+        );
+        fs::write(&planned, b"x").unwrap();
+        assert_eq!(
+            locate_output("", planned.to_str().unwrap()),
+            Some(planned.to_string_lossy().to_string())
+        );
+        let _ = fs::remove_dir_all(&d);
+    }
+
+    #[test]
+    fn retry_reuses_previous_path_and_partials_force_new_name() {
+        let d = tmp("plan");
+        let base = d.to_str().unwrap();
+        let first = plan_output_path(base, "Clip", "mp4", None);
+        // Failed run: partial stays, name is released.
+        fs::write(d.join("Clip.mp4.part"), b"x").unwrap();
+        release_output_path(&first);
+        let retry = plan_output_path(base, "Clip", "mp4", Some(&first));
+        assert_eq!(retry, first, "retry must resume on the same path");
+        release_output_path(&retry);
+        // A different download with the same title must not inherit the partial.
+        let other = plan_output_path(base, "Clip", "mp4", None);
+        assert!(other.ends_with("Clip (copy 1).mp4"), "{}", other);
+        release_output_path(&other);
+        let _ = fs::remove_dir_all(&d);
+    }
 }
