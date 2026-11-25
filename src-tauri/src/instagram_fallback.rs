@@ -746,10 +746,19 @@ mod tests {
             ]}]}"#,
         )
         .unwrap();
-        assert_eq!(parse_img_index("https://www.instagram.com/p/ABC/?img_index=3"), Some(3));
-        assert_eq!(parse_img_index("https://www.instagram.com/p/ABC/?utm=x&img_index=2#t"), Some(2));
+        assert_eq!(
+            parse_img_index("https://www.instagram.com/p/ABC/?img_index=3"),
+            Some(3)
+        );
+        assert_eq!(
+            parse_img_index("https://www.instagram.com/p/ABC/?utm=x&img_index=2#t"),
+            Some(2)
+        );
         assert_eq!(parse_img_index("https://www.instagram.com/p/ABC/"), None);
-        assert_eq!(parse_img_index("https://www.instagram.com/p/ABC/?img_index=0"), None);
+        assert_eq!(
+            parse_img_index("https://www.instagram.com/p/ABC/?img_index=0"),
+            None
+        );
         assert_eq!(
             extract_best_video_url_at(&json, Some(3)),
             Some("https://cdn.example.com/c3.mp4".to_string())
