@@ -2,7 +2,7 @@
 
 > **NEXT breadcrumb** (rol M4, `docs/protocols/DOC-CONTRACT.md`): guía humana corta. Lo trackeable vive en `ROADMAP.md` (plan 2026-10-23: R-SD-005 → R-SD-009). Historia anterior (LemonSqueezy, v1.1–v1.5): `docs/archive/NEXT-history-2026.md`.
 
-> **NEXT (2026-11-23, LinkedIn):** página de empresa en vivo en linkedin.com/company/superdownloads-app (`superdownloads` estaba cogido); kit + logo + portada en `marketing/linkedin/` (`444c8ea`). Nada publicado hasta el lanzamiento del 2027-01-26. Opcional, cuando quieras: especialidades (lista en el kit). El resto sigue como en la entrada del 2026-11-21 de abajo.
+> **NEXT (2026-11-23, LinkedIn):** página de empresa en vivo en linkedin.com/company/superdownloads-app (`superdownloads` estaba cogido); kit + logo + portada en el taller privado de contenido (fuera de este repo público). Nada publicado hasta el lanzamiento del 2027-01-26. Opcional, cuando quieras: especialidades (lista en el kit). El resto sigue como en la entrada del 2026-11-21 de abajo.
 
 > **NEXT (2026-11-21, cierre):** todo lo de esta noche está publicado y verificado: v1.5.9 en vivo (latest.json 1.5.9, fuentes GPL adjuntas), web 42/42, health 7/7, Dependabot 0, llave del updater solo en `~/.config/super-downloads/` + Contraseñas (copia de iCloud borrada). Queda: **el founder** — AlternativeTo + Uneed con el borrador `08_Growth/super-downloads/drafts-2027-01-launch/06b-…` (cuenta de marca) y actualizar su app desde el banner. **Claude, primer paso:** comprobar en PostHog si el salto de descargas de la 1.5.8 (344 DMG en 25 días) se ve también en `app_active`; después abrir en STUDIO los jobs S1–S4 del lanzamiento (`/brief`, GTM §8).
 
