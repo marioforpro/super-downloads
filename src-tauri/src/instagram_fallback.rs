@@ -404,6 +404,7 @@ fn best_from_item(item: &serde_json::Value, img_index: Option<usize>) -> Option<
 /// response shapes. Returns `None` when the JSON parsed fine but carries no
 /// usable video (wrong shape, or a genuinely photo-only post) — the caller
 /// treats that as "try the next endpoint format".
+#[cfg(test)]
 pub fn extract_best_video_url(json: &serde_json::Value) -> Option<String> {
     extract_best_video_url_at(json, None)
 }
