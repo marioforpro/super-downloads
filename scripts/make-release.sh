@@ -225,23 +225,18 @@ if [[ "$PUBLISH" == "1" ]]; then
     [[ "$a" == *.dmg ]] && NOTES+=$'\n'"\`$(shasum -a 256 "$a" | cut -d' ' -f1)\`  $(basename "$a")"
   done
 
-  # GPL: the Apple Silicon ffmpeg is a GPL build (1.5.8+), so its source
-  # tarballs ride every release that ships it (named as on v1.5.8). Before
-  # 2026-11-21 they were attached by hand.
+  # GPL: both bundled ffmpeg/ffprobe builds (Apple Silicon and Intel) are GPL v3,
+  # so the corresponding source for EACH architecture rides every release that
+  # ships it (SD-03). The helper reads each binary's version, stages the source
+  # + build config, and fails the release if a GPL binary lacks its source asset.
   UPLOADS=("${ASSETS[@]}")
-  if src-tauri/binaries/ffmpeg-aarch64-apple-darwin -hide_banner -version 2>/dev/null | grep -q -- --enable-gpl; then
-    SRC_DIR="$(ls -d src-tauri/binaries/ffmpeg-arm64-sources-* 2>/dev/null | sort | tail -1)"
-    if [[ -z "$SRC_DIR" ]]; then
-      echo "FAIL: arm64 ffmpeg is GPL but no src-tauri/binaries/ffmpeg-arm64-sources-* to attach" >&2
-      exit 1
-    fi
-    rm -rf dist/gpl-sources && mkdir -p dist/gpl-sources
-    for f in "$SRC_DIR"/*; do
-      cp -c "$f" "dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")" 2>/dev/null \
-        || cp "$f" "dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")"
-      UPLOADS+=("dist/gpl-sources/ffmpeg-arm64-source-$(basename "$f")")
-    done
-    NOTES+=$'\n\nApple Silicon ffmpeg/ffprobe are a GPL v3 build (x264, LAME, dav1d); their source tarballs are attached to this release.'
+  GPL_LIST="$(./scripts/stage-gpl-sources.sh src-tauri/binaries dist/gpl-sources)" \
+    || { echo "FAIL: GPL source gate (see above)" >&2; exit 1; }
+  while IFS= read -r f; do
+    [[ -n "$f" ]] && UPLOADS+=("$f")
+  done <<<"$GPL_LIST"
+  if [[ -n "$GPL_LIST" ]]; then
+    NOTES+=$'\n\nThe bundled ffmpeg/ffprobe (Apple Silicon and Intel) are GPL v3 builds; the corresponding source tarballs and build configuration for each architecture are attached to this release (ffmpeg-arm64-source-*, ffmpeg-x86_64-source-*).'
   fi
 
   echo "▶ Publishing ${TAG} (${TARGET:0:7}) to GitHub…"

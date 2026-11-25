@@ -21,8 +21,9 @@ Upstream project: https://ffmpeg.org/
 **License identity as verified — divergent per architecture:**
 
 - **aarch64 build:** rebuilt 2026-10-27 as FFmpeg 7.1.5 (official tarball from ffmpeg.org, GPG signature verified) with `--enable-gpl --enable-version3` and **without** `--enable-nonfree`. `ffmpeg-aarch64-apple-darwin -L` prints the GPL v3-or-later text and no nonfree warning. Statically linked components: x264 (stable branch, commit b35605ac, GPLv2+), LAME 3.100 (LGPL), dav1d 1.5.4 (BSD-2-Clause); Apple VideoToolbox/AudioToolbox are system frameworks. Effective license: **GPL v3 or later**. This replaces the earlier 6.0 build that was compiled with `--enable-nonfree`.
-  **Corresponding source (GPL):** the exact source tarballs used for this build (FFmpeg 7.1.5, x264, LAME 3.100, dav1d 1.5.4) are kept and available on request from support@superdownloads.app.
+  **Corresponding source (GPL):** the exact source tarballs used for this build (FFmpeg 7.1.5, x264, LAME 3.100, dav1d 1.5.4) and its build configuration are attached to every GitHub release as `ffmpeg-arm64-source-*`, and are also available on request from support@superdownloads.app.
 - **x86_64 build:** compiled with `--enable-gpl` and `--enable-version3`, without `--enable-nonfree`. `-L` output prints GPL v3 license text (no nonfree warning). Effective license for this build: **GPL v3 or later**.
+  **Corresponding source (GPL):** the FFmpeg release tarball matching this binary's version (read from the binary at release time, currently 6.1.1) and its build configuration (the `-version` output) are attached to every GitHub release as `ffmpeg-x86_64-source-*`. For the third-party libraries linked into this upstream build, source is available on request from support@superdownloads.app (and from the build's origin, https://evermeet.cx/ffmpeg/).
 
 **Provenance of each claim:** both rows verified directly by executing the vendored binaries with `-version` and `-L` on 2026-08-03 (both archs run natively on the audit machine; no `strings`/quarantine fallback was needed). The x86_64 binary self-identifies its origin (evermeet.cx / "tessus" build tag) in its own version string; the aarch64 binary does not self-identify a build origin beyond its build path and compiler.
 
@@ -43,7 +44,7 @@ Upstream project: https://ffmpeg.org/ffprobe.html
 | `aarch64-apple-darwin` | 7.1.5 | rebuilt 2026-10-27 (same build as ffmpeg above) | `--enable-gpl --enable-version3 --enable-libx264 --enable-libmp3lame --enable-libdav1d --enable-videotoolbox --enable-audiotoolbox` (static, arm64, min macOS 12.0; **no** `--enable-nonfree`) |
 | `x86_64-apple-darwin` | 6.1.1-tessus | `https://evermeet.cx/ffmpeg/` (Apple clang 11.0.0) | `--enable-gpl --enable-version3`, no `--enable-nonfree` |
 
-**License identity as verified:** the aarch64 `ffprobe` is the same 7.1.5 GPL build as ffmpeg above (rebuilt 2026-10-27, no `--enable-nonfree`); its `-L` prints GPL v3-or-later text. The x86_64 `ffprobe -L` also prints GPL v3 text, no nonfree warning (GPL v3 or later). Corresponding source for the aarch64 build (FFmpeg 7.1.5, x264, LAME 3.100, dav1d 1.5.4) is kept and available on request from support@superdownloads.app.
+**License identity as verified:** the aarch64 `ffprobe` is the same 7.1.5 GPL build as ffmpeg above (rebuilt 2026-10-27, no `--enable-nonfree`); its `-L` prints GPL v3-or-later text. The x86_64 `ffprobe -L` also prints GPL v3 text, no nonfree warning (GPL v3 or later). Corresponding source for both builds (aarch64: FFmpeg 7.1.5, x264, LAME 3.100, dav1d 1.5.4; x86_64: the matching FFmpeg release tarball) and each build configuration are attached to every GitHub release (`ffmpeg-arm64-source-*`, `ffmpeg-x86_64-source-*`), and are also available on request from support@superdownloads.app.
 
 **Canonical upstream pointers:** same as FFmpeg above (ffprobe ships under the same license terms as the ffmpeg binary from the same build).
 
